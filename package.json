@@ -1,0 +1,19 @@
+{
+  "name": "continuum",
+  "private": true,
+  "scripts": {
+    "prepare": "husky",
+    "lint:frontend": "npm run lint --prefix continuum-frontend",
+    "typecheck:frontend": "npm run typecheck --prefix continuum-frontend"
+  },
+  "devDependencies": {
+    "husky": "^9.1.7",
+    "lint-staged": "^15.2.10"
+  },
+  "lint-staged": {
+    "continuum-frontend/src/**/*.{ts,tsx}": [
+      "eslint --fix --config continuum-frontend/eslint.config.js"
+    ]
+  }
+}
+
