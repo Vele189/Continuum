@@ -1,14 +1,26 @@
-# Environment variables
+# Dependencies
+node_modules/
+
+# Build outputs
+dist/
+build/
+
+# Environment files
 .env
 .env.local
 .env.*.local
 
-# Virtual environments
-venv/
-.venv/
-env/
-ENV/
-
 # IDE
-.vscode/
 .idea/
+.vscode/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+
