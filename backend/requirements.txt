@@ -1,2 +1,5 @@
 # Python dependencies
 
+pydantic-settings
+email-validator
+python-multipart
