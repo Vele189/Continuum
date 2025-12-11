@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { authApi, AuthResponse } from '../api/auth';
+import { authApi, type AuthResponse } from '../api/auth';
 
 interface User {
   id: string;
