@@ -1,4 +1,4 @@
-import { BarChart3, Users, Zap, Shield, Smartphone, Globe } from 'lucide-react';
+import { BarChart3, Users, Zap } from 'lucide-react';
 
 const Features = () => {
   const features = [
