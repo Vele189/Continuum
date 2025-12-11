@@ -12,8 +12,7 @@
   },
   "lint-staged": {
     "continuum-frontend/src/**/*.{ts,tsx}": [
-      "eslint --fix --config continuum-frontend/eslint.config.js"
+      "./continuum-frontend/node_modules/.bin/eslint --fix --config continuum-frontend/eslint.config.js"
     ]
   }
 }
-
