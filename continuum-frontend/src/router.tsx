@@ -3,10 +3,12 @@ import App from './App';
 
 // Pages
 import Landing from './pages/Landing';
-import Login from './pages/Auth/Login';
-import Register from './pages/Auth/Register';
-import Overview from './pages/Dashboard/Overview';
-import Team from './pages/Dashboard/Team';
+import Login from './pages/Auth/Login.tsx';
+import Register from './pages/Auth/Register.tsx';
+import Overview from './pages/Dashboard/Overview.tsx';
+import Team from './pages/Dashboard/Team.tsx';
+import ForgotPassword from './pages/Auth/ForgotPassword.tsx';
+import ResetPassword from './pages/Auth/ResetPassword.tsx';
 
 const router = createBrowserRouter([
   {
@@ -33,9 +35,16 @@ const router = createBrowserRouter([
         path: 'dashboard/team',
         element: <Team />,
       },
+      {
+        path: 'forgotpassword',
+        element: <ForgotPassword />,
+      },
+      {
+        path: 'resetpassword',
+        element: <ResetPassword />,
+      },
     ],
   },
 ]);
 
 export default router;
-
