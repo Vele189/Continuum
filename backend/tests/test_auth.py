@@ -11,8 +11,7 @@ def test_register_user(client: TestClient):
             "last_name": "User"
         },
     )
-    # 200 is used in the implementation, though 201 is more standard for creation. 
-    # Current implementation returns the created user object which defaults to 200 OK in FastAPI unless specified otherwise.
+
     assert response.status_code == 200 
     data = response.json()
     assert data["email"] == "test@example.com"
@@ -73,3 +72,32 @@ def test_duplicate_user(client: TestClient):
     
     response = client.post(f"{settings.API_V1_STR}/users/", json=payload)
     assert response.status_code == 400
+
+def test_refresh_token(client: TestClient):
+    # 1. Login to get tokens
+    client.post(
+        f"{settings.API_V1_STR}/users/",
+        json={
+            "email": "refresh_test@example.com", 
+            "password": "password123",
+            "first_name": "Test",
+            "last_name": "User"
+        },
+    )
+    login_response = client.post(
+        f"{settings.API_V1_STR}/auth/login",
+        json={"email": "refresh_test@example.com", "password": "password123"},
+    )
+    tokens = login_response.json()
+    refresh_token = tokens["refresh_token"]
+    
+    # 2. Use refresh token to get new access token
+    refresh_response = client.post(
+        f"{settings.API_V1_STR}/auth/refresh-token",
+        params={"refresh_token": refresh_token}
+    )
+    assert refresh_response.status_code == 200
+    new_tokens = refresh_response.json()
+    assert "access_token" in new_tokens
+    assert "refresh_token" in new_tokens
+

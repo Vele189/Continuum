@@ -29,3 +29,10 @@ def authenticate(db: Session, email: str, password: str) -> Optional[User]:
     if not verify_password(password, user.hashed_password):
         return None
     return user
+
+def update_refresh_token(db: Session, user: User, token: str) -> User:
+    user.refresh_token = token
+    db.add(user)
+    db.commit()
+    db.refresh(user)
+    return user

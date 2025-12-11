@@ -4,7 +4,7 @@ from app.api.v1.routes import users, auth
 from app.core.config import settings
 from app.db.base import Base
 from app.db.session import engine
-# Ensure models are imported so tables are created
+
 from app.models import user as user_model
 
 Base.metadata.create_all(bind=engine)

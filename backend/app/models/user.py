@@ -25,3 +25,4 @@ class User(Base):
     #email ver
     is_verified = Column(Boolean, default=False)
     verification_token = Column(String(255))
+    refresh_token = Column(String(255), nullable=True)
