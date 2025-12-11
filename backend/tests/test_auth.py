@@ -1,4 +1,8 @@
 from fastapi.testclient import TestClient
+from app.core import security
+from app.api import deps
+from app.db.session import SessionLocal
+from app.models.user import User
 from app.core.config import settings
 
 def test_register_user(client: TestClient):
@@ -100,4 +104,38 @@ def test_refresh_token(client: TestClient):
     new_tokens = refresh_response.json()
     assert "access_token" in new_tokens
     assert "refresh_token" in new_tokens
+
+
+def test_verify_email(client: TestClient):
+    # Register 
+    email = "verify_test@example.com"
+    client.post(
+        f"{settings.API_V1_STR}/users/",
+        json={
+            "email": email, 
+            "password": "password123",
+            "first_name": "Test",
+            "last_name": "User"
+        },
+    )
+    
+    # Get token from DB directly (simulating clicking link)
+    db = SessionLocal()
+    user = db.query(User).filter(User.email == email).first()
+    token = user.verification_token
+    assert token is not None
+    assert user.is_verified is False
+    db.close()
+    
+    # Verify
+    response = client.get(f"{settings.API_V1_STR}/users/verify-email", params={"token": token})
+    assert response.status_code == 200
+    assert response.json()["message"] == "Email verified successfully"
+    
+    # Check DB again
+    db = SessionLocal()
+    user = db.query(User).filter(User.email == email).first()
+    assert user.is_verified is True
+    assert user.verification_token is None
+    db.close()
 

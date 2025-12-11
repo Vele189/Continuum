@@ -23,3 +23,20 @@ def create_user(
     user = user_service.create(db, obj_in=user_in)
     return user
 
+
+@router.get("/verify-email")
+def verify_email(
+    token: str,
+    db: Session = Depends(deps.get_db),
+):
+    """
+    Verify user email.
+    """
+    user = user_service.verify_email(db, token=token)
+    if not user:
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid verification token.",
+        )
+    return {"message": "Email verified successfully"}
+
