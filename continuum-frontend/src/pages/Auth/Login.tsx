@@ -74,6 +74,7 @@ const Login = () => {
             <label htmlFor="password" className="block text-sm text-gray-700 mb-2 font-medium">
               Password
             </label>
+
             <div className="relative flex items-center">
               <span className="absolute left-3 text-gray-400 pointer-events-none">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -116,6 +117,10 @@ const Login = () => {
               {error}
             </div>
           )}
+<Link to="/forgotpassword" className="text-sm text-blue-600 no-underline hover:underline">
+                Forgot Password?
+              </Link>
+          
 
           <button
             type="submit"

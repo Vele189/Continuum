@@ -3,7 +3,8 @@ import { useAuth } from '../../hooks/useAuth';
 import { Link, useNavigate } from 'react-router-dom';
 
 const Register = () => {
-  const [name, setName] = useState('');
+  const [firstname, setFirstName] = useState('');
+   const [lastname, setLastName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -21,7 +22,7 @@ const Register = () => {
     }
 
     try {
-      await register(email, password, name);
+      await register(email, password, firstname, lastname);
       navigate('/dashboard');
     } catch (err) {
       console.error('Registration failed:', err);
@@ -55,8 +56,8 @@ const Register = () => {
 
         <div className="text-left">
           <div className="mb-5">
-            <label htmlFor="fullname" className="block text-sm text-gray-700 mb-2 font-medium">
-              Full Name
+            <label htmlFor="firstname" className="block text-sm text-gray-700 mb-2 font-medium">
+              First Name
             </label>
             <div className="relative flex items-center">
               <span className="absolute left-3 text-gray-400 pointer-events-none">
@@ -67,10 +68,33 @@ const Register = () => {
               </span>
               <input
                 type="text"
-                id="fullname"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="e.g. Lethabo Sehlapelo"
+                id="firstname"
+                value={firstname}
+                onChange={(e) => setFirstName(e.target.value)}
+                placeholder="e.g. Lethabo Edmond"
+                required
+                className="w-full py-3 px-11 border border-gray-300 rounded-md text-base text-gray-900 focus:outline-none focus:border-blue-500 transition-colors placeholder:text-gray-500"
+              />
+            </div>
+          </div>
+
+<div className="mb-5">
+            <label htmlFor="lastname" className="block text-sm text-gray-700 mb-2 font-medium">
+              Last Name
+            </label>
+            <div className="relative flex items-center">
+              <span className="absolute left-3 text-gray-400 pointer-events-none">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                  <circle cx="12" cy="7" r="4"></circle>
+                </svg>
+              </span>
+              <input
+                type="text"
+                id="lastname"
+                value={lastname}
+                onChange={(e) => setLastName(e.target.value)}
+                placeholder="e.g. Sehlapelo"
                 required
                 className="w-full py-3 px-11 border border-gray-300 rounded-md text-base text-gray-900 focus:outline-none focus:border-blue-500 transition-colors placeholder:text-gray-500"
               />

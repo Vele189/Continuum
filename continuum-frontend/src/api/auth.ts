@@ -8,16 +8,20 @@ export interface LoginCredentials {
 export interface RegisterData {
   email: string;
   password: string;
-  name: string;
+  firstname: string;
+  lastname: string;
+}
+
+export interface User {
+  id: string;
+  email: string;
+  firstname: string;
+  lastname: string;
 }
 
 export interface AuthResponse {
   token: string;
-  user: {
-    id: string;
-    email: string;
-    name: string;
-  };
+  user: User;
 }
 
 export const authApi = {

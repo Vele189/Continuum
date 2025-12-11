@@ -1,11 +1,7 @@
 import { useState, useEffect } from 'react';
-import { authApi, type AuthResponse } from '../api/auth';
+import { authApi, type AuthResponse, type User } from '../api/auth';
 
-interface User {
-  id: string;
-  email: string;
-  name: string;
-}
+
 
 export const useAuth = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -50,11 +46,11 @@ export const useAuth = () => {
     }
   };
 
-  const register = async (email: string, password: string, name: string) => {
+  const register = async (email: string, password: string, firstname: string, lastname: string) => {
     try {
       setLoading(true);
       setError(null);
-      const response: AuthResponse = await authApi.register({ email, password, name });
+      const response: AuthResponse = await authApi.register({ email, password, firstname, lastname });
       localStorage.setItem('token', response.token);
       setUser(response.user);
       return response;
