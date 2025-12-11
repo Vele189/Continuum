@@ -1,5 +1,15 @@
-# Python dependencies
+fastapi
+uvicorn[standard]
 
-pydantic-settings
+pydantic
+pydantic-settings[dotenv]
 email-validator
 python-multipart
+
+sqlalchemy
+
+python-jose[cryptography]
+passlib[bcrypt]
+
+pytest
+httpx
