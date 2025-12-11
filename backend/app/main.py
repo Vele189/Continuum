@@ -1,10 +1,17 @@
 # Main application entry point
 from fastapi import FastAPI
 from app.api.v1.routes import users, auth
+from app.core.config import settings
+from app.db.base import Base
+from app.db.session import engine
+# Ensure models are imported so tables are created
+from app.models import user as user_model
+
+Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="Continuum API")
-app.include_router(users.router, prefix="/users", tags=["Users"])
-app.include_router(auth.router, prefix="/auth", tags=["Auth"])
+app.include_router(users.router, prefix=f"{settings.API_V1_STR}/users", tags=["Users"])
+app.include_router(auth.router, prefix=f"{settings.API_V1_STR}/auth", tags=["Auth"])
 
 @app.get("/health")
 def health_check():
