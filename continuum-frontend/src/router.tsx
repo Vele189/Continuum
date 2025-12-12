@@ -1,7 +1,8 @@
-import { createBrowserRouter, RouterProvider } from 'react-router-dom';
+import { createBrowserRouter } from 'react-router-dom';
 import App from './App';
 
 // Pages
+import Landing from './pages/Landing';
 import Login from './pages/Auth/Login.tsx';
 import Register from './pages/Auth/Register.tsx';
 import Overview from './pages/Dashboard/Overview.tsx';
@@ -14,6 +15,10 @@ const router = createBrowserRouter([
     path: '/',
     element: <App />,
     children: [
+      {
+        index: true,
+        element: <Landing />,
+      },
       {
         path: 'login',
         element: <Login />,
