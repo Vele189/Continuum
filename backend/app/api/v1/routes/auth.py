@@ -9,7 +9,7 @@ from sqlalchemy.orm import Session
 from app.api import deps
 from app.core import security
 from app.core.config import settings
-from app.schemas.user import Token, UserLogin, User, TokenPayload
+from app.schemas.user import Token, UserLogin, User, TokenPayload, PasswordResetConfirm
 from app.services import user as user_service
 from app.models.user import User
 
@@ -121,3 +121,37 @@ def login_access_token(
         "token_type": "bearer",
         "refresh_token": refresh_token,
     }
+
+
+@router.post("/password-recovery/{email}", response_model=dict)
+def recover_password(email: str, db: Session = Depends(deps.get_db)) -> Any:
+    """
+    Password Recovery
+    """
+    user = user_service.initiate_password_reset(db, email=email)
+    
+    if not user:
+        # Don't reveal if user exists or not for security
+        # But for this task/development, let's just return success anyway
+        pass
+        
+    return {"message": "If this email exists, a password reset token has been sent."}
+
+
+@router.post("/reset-password", response_model=dict)
+def reset_password(
+    data: PasswordResetConfirm,
+    db: Session = Depends(deps.get_db),
+) -> Any:
+    """
+    Reset Password
+    """
+    user = user_service.reset_password(
+        db, token=data.token, new_password=data.new_password
+    )
+    if not user:
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid or expired token.",
+        )
+    return {"message": "Password updated successfully"}

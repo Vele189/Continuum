@@ -26,3 +26,4 @@ class User(Base):
     is_verified = Column(Boolean, default=False)
     verification_token = Column(String(255))
     refresh_token = Column(String(255), nullable=True)
+    password_reset_token = Column(String(255), nullable=True)

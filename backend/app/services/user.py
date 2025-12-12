@@ -58,3 +58,35 @@ def verify_email(db: Session, token: str) -> Optional[User]:
     db.commit()
     db.refresh(user)
     return user
+
+def initiate_password_reset(db: Session, email: str) -> Optional[User]:
+    user = get_by_email(db, email=email)
+    if not user:
+        return None
+    
+    reset_token = str(uuid.uuid4())
+    user.password_reset_token = reset_token
+    db.add(user)
+    db.commit()
+    db.refresh(user)
+    
+    # Mock sending email
+    print(f"--- MOCK EMAIL ---")
+    print(f"To: {email}")
+    print(f"Subject: Reset your password")
+    print(f"Token: {reset_token}")
+    print(f"------------------")
+    
+    return user
+
+def reset_password(db: Session, token: str, new_password: str) -> Optional[User]:
+    user = db.query(User).filter(User.password_reset_token == token).first()
+    if not user:
+        return None
+    
+    user.hashed_password = hash_password(new_password)
+    user.password_reset_token = None # Clear token
+    db.add(user)
+    db.commit()
+    db.refresh(user)
+    return user
