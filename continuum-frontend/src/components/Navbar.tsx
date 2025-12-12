@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import logo from '../assets/logo.png';
 
 const Navbar = () => {
@@ -24,6 +25,11 @@ const Navbar = () => {
       <div className="container mx-auto px-6 flex items-center justify-between relative">
         {/* Hidden spacer to balance the flex layout if needed, or we use absolute centering */}
         <div className="hidden md:flex items-center gap-8 w-1/3">
+          {/* Features and About links can remain as anchors if they link to sections on the same page, 
+              but since we are on the landing page, simple anchors work. 
+              However, if we are on other pages, we might need to navigate to /#section. 
+              For now, adhering to instruction to fix Login/Get Started. 
+              Leaving these as is relative to the page. */}
           {['Features', 'About'].map((item) => (
             <a 
               key={item} 
@@ -44,15 +50,18 @@ const Navbar = () => {
         </div>
 
         <div className="flex items-center gap-4 w-1/3 justify-end">
-          <a 
-            href="#login" 
+          <Link 
+            to="/login" 
             className="hidden md:block text-sm font-medium transition-colors hover:text-primary-600 text-gray-900"
           >
             Log in
-          </a>
-          <button className="bg-primary-600 hover:bg-primary-700 text-white px-5 py-2.5 rounded-full text-sm font-semibold transition-all shadow-lg hover:shadow-primary-500/25 cursor-pointer">
+          </Link>
+          <Link 
+            to="/register"
+            className="bg-primary-600 hover:bg-primary-700 text-white px-5 py-2.5 rounded-full text-sm font-semibold transition-all shadow-lg hover:shadow-primary-500/25 cursor-pointer"
+          >
             Get Started
-          </button>
+          </Link>
         </div>
       </div>
     </nav>

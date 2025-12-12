@@ -9,7 +9,7 @@ const Landing = () => {
   return (
     <div className="min-h-screen bg-white font-sans text-gray-900">
       <Navbar />
-      <main>
+      <main className="pt-28">
         <Hero />
         <HowTo />
         <TargetAudience />

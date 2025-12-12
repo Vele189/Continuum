@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import signupImg from '../assets/signup.png';
 import loginImg from '../assets/login.png';
 
@@ -24,9 +25,9 @@ const HowTo = () => {
             <p className="text-gray-600 mb-6">
               Get started for free in seconds. No credit card required. seamless collaboration awaits.
             </p>
-            <a href="#register" className="inline-block w-full py-3 px-6 bg-primary-600 text-white rounded-lg font-semibold text-center hover:bg-primary-700 transition-colors">
+            <Link to="/register" className="inline-block w-full py-3 px-6 bg-primary-600 text-white rounded-lg font-semibold text-center hover:bg-primary-700 transition-colors">
               Sign Up Now
-            </a>
+            </Link>
           </div>
 
           {/* Log In Section */}
@@ -38,9 +39,9 @@ const HowTo = () => {
             <p className="text-gray-600 mb-6">
               Already have an account? Sign securely to access your dashboard and pick up where you left off.
             </p>
-            <a href="#login" className="inline-block w-full py-3 px-6 bg-white text-primary-700 border border-primary-200 rounded-lg font-semibold text-center hover:bg-primary-50 transition-colors">
+            <Link to="/login" className="inline-block w-full py-3 px-6 bg-white text-primary-700 border border-primary-200 rounded-lg font-semibold text-center hover:bg-primary-50 transition-colors">
               Log In
-            </a>
+            </Link>
           </div>
         </div>
       </div>
