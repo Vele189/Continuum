@@ -1,0 +1,12 @@
+repos:
+  - repo: local
+    hooks:
+      - id: backend-tests
+        name: Backend Tests
+        entry: pytest
+        language: python
+        additional_dependencies: [pytest, httpx, fastapi, uvicorn, sqlalchemy, pydantic-settings]
+        types: [python]
+        files: ^backend/
+        pass_filenames: false
+        args: ["backend/tests"]
