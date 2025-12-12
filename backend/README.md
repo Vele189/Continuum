@@ -1,6 +1,25 @@
 # Continuum Backend API
 
-This is the backend for the Continuum application, built with **FastAPI**. It handles user authentication, role-based access control, and user management.
+This is the backend for the Continuum application, built with **FastAPI**.
+
+## Getting Started
+
+### Prerequisites
+- Python 3.9+
+- Pip
+
+### Installation
+- **Install dependencies**:
+    ```bash
+    pip install -r requirements.txt
+    ```
+
+### Running the App
+Start the development server with live reload:
+```bash
+uvicorn app.main:app --reload
+```
+The API will be available at `http://localhost:8000`.
 
 ## Base URL
 Local Development: `http://localhost:8000`
