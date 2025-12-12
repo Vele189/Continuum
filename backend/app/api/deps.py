@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 from app.core import security
 from app.core.config import settings
 from app.db.session import SessionLocal
-from app.models.user import User
+from app.models.user import User, UserRole
 from app.schemas.user import TokenPayload
 
 reusable_oauth2 = OAuth2PasswordBearer(
@@ -39,3 +39,12 @@ def get_current_user(
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     return user
+
+def get_current_active_admin(
+    current_user: User = Depends(get_current_user),
+) -> User:
+    if current_user.role != UserRole.CLIENT:
+        raise HTTPException(
+            status_code=403, detail="The user doesn't have enough privileges"
+        )
+    return current_user

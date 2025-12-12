@@ -7,7 +7,7 @@ from app.db.base import Base
 class UserRole(enum.Enum):
     BACKEND = "backend"
     FRONTEND = "frontend"
-    FULLSTACK = "fullstack"
+    DESIGNER = "designer"
     CLIENT = "client"
     PROJECTMANAGER = "project_manager"
 
