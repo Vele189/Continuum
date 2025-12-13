@@ -16,7 +16,10 @@ COPY . .
 # Expose the port FastAPI runs on
 EXPOSE 8000
 
+# Default port (Railway will override with $PORT env var)
+ENV PORT=8000
+
 # Start the uvicorn server
 # --host 0.0.0.0 is needed to expose the server to the network
-# --reload enables auto-reload for development
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+# Note: Using shell form to allow $PORT variable expansion
+CMD uvicorn app.main:app --host 0.0.0.0 --port $PORT
