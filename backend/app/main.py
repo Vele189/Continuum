@@ -7,6 +7,7 @@ from app.db.base import Base
 from app.db.session import engine
 from app.models import user as user_model
 from utils.logger import get_logger
+from .database import init_db
 
 logger = get_logger(__name__)
 
@@ -17,7 +18,13 @@ logger.info("Backend starting...")
 logger.info(f"Environment: {env}")
 logger.info(f"Port: {port}")
 
-Base.metadata.create_all(bind=engine)
+# Initialize the database structure
+try:
+    init_db()
+    logger.info("Startup complete. Database connected and verified.")
+except Exception as e:
+    logger.critical(f"FATAL ERROR during startup: Could not initialize database. {e}")
+    raise  # Raise to prevent app from starting if DB fails
 
 app = FastAPI(title="Continuum API")
 app.include_router(users.router, prefix=f"{settings.API_V1_STR}/users", tags=["Users"])
