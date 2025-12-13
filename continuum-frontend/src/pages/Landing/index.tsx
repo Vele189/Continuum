@@ -1,9 +1,4 @@
-import Navbar from '../../components/Navbar';
-import Hero from '../../components/Hero';
-import TargetAudience from '../../components/TargetAudience';
-import Features from '../../components/Features';
-import HowTo from '../../components/HowTo';
-import Footer from '../../components/Footer';
+import { Navbar, Hero, HowTo, TargetAudience, Features, Footer } from '../../components/landing';
 
 const Landing = () => {
   return (
@@ -21,4 +16,3 @@ const Landing = () => {
 };
 
 export default Landing;
-

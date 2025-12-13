@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import logo from '../assets/logo.png';
+import logo from '../../assets/logo.png';
 
 const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -23,13 +23,7 @@ const Navbar = () => {
       }`}
     >
       <div className="container mx-auto px-6 flex items-center justify-between relative">
-        {/* Hidden spacer to balance the flex layout if needed, or we use absolute centering */}
         <div className="hidden md:flex items-center gap-8 w-1/3">
-          {/* Features and About links can remain as anchors if they link to sections on the same page, 
-              but since we are on the landing page, simple anchors work. 
-              However, if we are on other pages, we might need to navigate to /#section. 
-              For now, adhering to instruction to fix Login/Get Started. 
-              Leaving these as is relative to the page. */}
           {['Features', 'About'].map((item) => (
             <a 
               key={item} 
@@ -41,7 +35,6 @@ const Navbar = () => {
           ))}
         </div>
 
-        {/* Centralized Branding */}
         <div className="flex items-center gap-4 justify-center absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 md:static md:translate-x-0 md:translate-y-0 md:w-1/3 md:justify-center">
           <img src={logo} alt="Continuum Logo" className="h-16 md:h-20 w-auto drop-shadow-sm transition-all" />
           <span className="text-3xl md:text-5xl font-bold tracking-tighter text-gray-900 transition-all">
@@ -69,3 +62,4 @@ const Navbar = () => {
 };
 
 export default Navbar;
+

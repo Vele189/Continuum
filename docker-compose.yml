@@ -3,8 +3,8 @@ services:
   backend:
     build: ./backend
     container_name: continuum-backend
-    ports:
-      - "8000:8000"
+    # ports:
+    #   - "8000:8000"  # Commented out to avoid port conflicts - frontend communicates via Docker network
     volumes:
       - ./backend:/app  # maps local backend folder for live code changes
     restart: unless-stopped
@@ -13,12 +13,12 @@ services:
     build: ./continuum-frontend
     container_name: continuum-frontend
     ports:
-      - "5174:5173"
+      - "5173:5173"
     volumes:
       - ./continuum-frontend:/app
       - /app/node_modules
     environment:
-      VITE_API_URL: http://backend:8000  # frontend can call backend via service name
+      VITE_API_BASE_URL: http://backend:8000/api  # frontend can call backend via service name
     depends_on:
       - backend
     restart: unless-stopped # will auto-restart upon docker crashes or system reboots

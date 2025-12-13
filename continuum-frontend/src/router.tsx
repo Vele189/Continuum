@@ -1,48 +1,34 @@
 import { createBrowserRouter } from 'react-router-dom';
 import App from './App';
 
-// Pages
+// Auth pages
+import Login from './pages/Auth/Login';
+import Register from './pages/Auth/Register';
+import ForgotPassword from './pages/Auth/ForgotPassword';
+import ResetPassword from './pages/Auth/ResetPassword';
+
+// Main pages
 import Landing from './pages/Landing';
-import Login from './pages/Auth/Login.tsx';
-import Register from './pages/Auth/Register.tsx';
-import Overview from './pages/Dashboard/Overview.tsx';
-import Team from './pages/Dashboard/Team.tsx';
-import ForgotPassword from './pages/Auth/ForgotPassword.tsx';
-import ResetPassword from './pages/Auth/ResetPassword.tsx';
+import Overview from './pages/Dashboard/Overview';
+import Team from './pages/Dashboard/Team';
 
 const router = createBrowserRouter([
   {
     path: '/',
     element: <App />,
     children: [
-      {
-        index: true,
-        element: <Landing />,
-      },
-      {
-        path: 'login',
-        element: <Login />,
-      },
-      {
-        path: 'register',
-        element: <Register />,
-      },
-      {
-        path: 'dashboard',
-        element: <Overview />,
-      },
-      {
-        path: 'dashboard/team',
-        element: <Team />,
-      },
-      {
-        path: 'forgotpassword',
-        element: <ForgotPassword />,
-      },
-      {
-        path: 'resetpassword',
-        element: <ResetPassword />,
-      },
+      // Landing
+      { index: true, element: <Landing /> },
+      
+      // Auth
+      { path: 'login', element: <Login /> },
+      { path: 'register', element: <Register /> },
+      { path: 'forgot-password', element: <ForgotPassword /> },
+      { path: 'reset-password', element: <ResetPassword /> },
+      
+      // Dashboard
+      { path: 'dashboard', element: <Overview /> },
+      { path: 'dashboard/team', element: <Team /> },
     ],
   },
 ]);

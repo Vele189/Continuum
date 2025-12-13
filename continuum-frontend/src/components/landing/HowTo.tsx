@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
-import signupImg from '../assets/signup.png';
-import loginImg from '../assets/login.png';
+import signupImg from '../../assets/signup.png';
+import loginImg from '../../assets/login.png';
 
 const HowTo = () => {
   return (
@@ -50,3 +50,4 @@ const HowTo = () => {
 };
 
 export default HowTo;
+

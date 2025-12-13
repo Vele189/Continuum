@@ -96,12 +96,86 @@ The emphasis is on real work, real data, and clean reporting.
 
 ---
 
+## Getting Started
+
+### Prerequisites
+
+- Docker and Docker Compose installed
+- Git
+
+### Quick Start
+
+```bash
+# Clone the repository
+git clone https://github.com/your-org/Continuum.git
+cd Continuum
+
+# Start the application
+docker compose up --build
+```
+
+Access the application:
+- **Frontend:** http://localhost:5173
+- **API Docs:** http://localhost:8000/docs
+
+📖 **For detailed setup instructions** (Windows, WSL, Linux), see the **[Docker Setup Guide](./DOCKER_SETUP.md)**.
+
+---
+
+## Project Structure
+
+```
+Continuum/
+├── backend/                 # FastAPI backend
+│   ├── app/
+│   │   ├── api/            # API routes
+│   │   ├── core/           # Config & security
+│   │   ├── db/             # Database setup
+│   │   ├── models/         # SQLAlchemy models
+│   │   ├── schemas/        # Pydantic schemas
+│   │   ├── services/       # Business logic
+│   │   └── utils/          # Utilities
+│   ├── Dockerfile
+│   └── requirements.txt
+├── continuum-frontend/      # React + Vite frontend
+│   ├── src/
+│   │   ├── api/            # API client
+│   │   ├── components/     # React components
+│   │   ├── hooks/          # Custom hooks
+│   │   ├── pages/          # Page components
+│   │   └── store/          # State management
+│   ├── Dockerfile
+│   └── package.json
+├── docker-compose.yml       # Docker orchestration
+├── DOCKER_SETUP.md         # Complete setup guide
+└── README.md
+```
+
+---
+
+## Tech Stack
+
+| Layer    | Technology                          |
+|----------|-------------------------------------|
+| Frontend | React, TypeScript, Vite, Tailwind   |
+| Backend  | FastAPI, Python 3.12, SQLAlchemy    |
+| Database | SQLite (PostgreSQL-ready)           |
+| DevOps   | Docker, Docker Compose              |
+
+---
+
+## Contributing
+
+See [CONTRIBUTING.md](./CONTRIBUTING.md) for guidelines.
+
+---
+
 ## Status
 
-This repository will serve as the starting point for the system architecture, backend, frontend, and documentation. More sections will be added as the project evolves.
+This repository serves as the starting point for the system architecture, backend, frontend, and documentation. More sections will be added as the project evolves.
 
 ---
 
 ## License
 
-MIT License 
+MIT License

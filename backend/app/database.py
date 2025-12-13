@@ -2,14 +2,7 @@
 import sqlite3
 from datetime import datetime
 
-try:
-    # Attempting a relative import based on a common structure
-    from utils.logger import get_logger 
-except ImportError:
-    # Fallback/Assumption if structure is simpler or different:
-    import logging
-    logging.basicConfig(level=logging.INFO, format="%(levelname)s | [%(name)s] %(message)s")
-    def get_logger(name: str): return logging.getLogger(name)
+from app.utils.logger import get_logger
 
 
 # Get a logger instance specifically for the database module

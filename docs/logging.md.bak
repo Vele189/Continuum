@@ -1,8 +1,0 @@
-# Logging Guide
-
-## Importing the Logger
-Use the helper function in utils/logger.py:
-
-```python
-from utils.logger import get_logger
-logger = get_logger(__name__)
