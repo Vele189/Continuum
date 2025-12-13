@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { projectsApi, Project, CreateProjectData } from '../api/projects';
+import { projectsApi, type Project, type CreateProjectData } from '../api/projects';
 
 export const useProjects = () => {
   const [projects, setProjects] = useState<Project[]>([]);

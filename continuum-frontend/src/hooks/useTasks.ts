@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { tasksApi, Task, CreateTaskData } from '../api/tasks';
+import { tasksApi, type Task, type CreateTaskData } from '../api/tasks';
 
 export const useTasks = (projectId?: string) => {
   const [tasks, setTasks] = useState<Task[]>([]);
