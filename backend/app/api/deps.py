@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 from app.core import security
 from app.core.config import settings
 from app.db.session import SessionLocal
-from app.models.user import User, UserRole
+from app.database import User, UserRole
 from app.schemas.user import TokenPayload
 
 reusable_oauth2 = OAuth2PasswordBearer(

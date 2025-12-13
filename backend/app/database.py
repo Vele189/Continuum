@@ -1,6 +1,8 @@
 # app/database.py
+import enum
 import logging
 from sqlalchemy import (
+    Boolean, Enum, Numeric, 
     create_engine, Column, Integer, String, Float, 
     ForeignKey, DateTime, Text, JSON, UniqueConstraint
 )
@@ -18,12 +20,20 @@ logger = get_logger(__name__)
 
 
 # --- Database Configuration ---
-DATABASE_URL = "sqlite:///./continuum.db"
+from app.core.config import settings
+DATABASE_URL = settings.DATABASE_URL
 
 # connect_args={"check_same_thread": False} is required for SQLite
 engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
+
+class UserRole(enum.Enum):
+    BACKEND = "backend"
+    FRONTEND = "frontend"
+    DESIGNER = "designer"
+    CLIENT = "client"
+    PROJECTMANAGER = "project_manager"
 
 # --- Models ---
 
@@ -35,9 +45,16 @@ class User(Base):
     # Unique & Indexed Constraints
     username = Column(String, unique=True, nullable=False, index=True)
     email = Column(String, unique=True, nullable=False, index=True)
-    password_hash = Column(String, nullable=False)
+    hashed_password = Column(String, nullable=False)
     display_name = Column(String, nullable=False)
-    hourly_rate = Column(Float, default=0.0)
+    hourly_rate = Column(Numeric(10,2), default=0.0)
+    first_name = Column(String(255))
+    last_name = Column(String(255))
+    role = Column(Enum(UserRole), default=UserRole.FRONTEND)
+    is_verified = Column(Boolean, default=False)
+    verification_token = Column(String(255))
+    refresh_token = Column(String(255), nullable=True)
+    password_reset_token = Column(String(255), nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     # Relationships

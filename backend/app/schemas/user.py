@@ -1,6 +1,6 @@
 from typing import Optional
 from pydantic import BaseModel, EmailStr
-from app.models.user import UserRole
+from app.database import UserRole
 
 # Shared properties
 class UserBase(BaseModel):
