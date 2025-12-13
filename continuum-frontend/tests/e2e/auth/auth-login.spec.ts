@@ -35,7 +35,7 @@ test.describe('Login Page', () => {
     await expect(page.locator('a:has-text("Privacy Policy")')).toBeVisible();
   });
 
-  //====================================Should validate empty fields using HTML5 validation========================================================
+  //====================================Should validate empty field========================================================
   test('should validate empty email field', async ({ page }) => {
     const emailInput = page.locator(selectors.email_input);
     

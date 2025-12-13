@@ -42,17 +42,18 @@ export const selectors ={
   // Common
   email_input: 'input[type="email"]',
   password_input: 'input[type="password"]',
+  confirm_password_input: 'input[type="confirm-password"]',
   submit_button: 'button[type="submit"]',
   error_message: '[class*="bg-red-50"]',
   success_message: '[class*="bg-green-50"]',
   
   show_password_button: 'button[type="button"]',
   forgot_password_link: 'a[href="/forgotpassword"]',
-  signup_link: 'a[href="\\\\register"]',
+  signup_link: 'a[href="/register"]',
   
   firstname_input: 'input#firstname',
   lastname_input: 'input#lastname',
-  confirm_password_input: 'input#confirm-password',
+//   confirm_password_input: 'input#confirm-password',
   login_link: 'a[href="/login"]',
   
   
