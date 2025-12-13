@@ -183,7 +183,7 @@ General purpose application logging.
 
 ---
 
-## 4. 🧠 Design Rationale Section
+## 4.Design Rationale Section
 
 ### Why certain relationships exist
 
