@@ -1,0 +1,8 @@
+fastapi
+uvicorn
+pytest
+httpx
+pre-commit
+sqlalchemy
+pydantic-settings
+
