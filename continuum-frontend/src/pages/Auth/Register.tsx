@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useAuth } from '../../hooks/useAuth';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 const Register = () => {
   const [firstname, setFirstName] = useState('');
@@ -228,7 +228,7 @@ const Register = () => {
           </p>
 
           <div className="text-sm text-gray-600 text-center">
-            Already have an account? <a href="/login" className="text-blue-600 font-medium no-underline hover:underline">Log in</a>
+            Already have an account? <Link to="/login" className="text-blue-600 font-medium no-underline hover:underline">Log in</Link>
           </div>
         </div>
       </div>

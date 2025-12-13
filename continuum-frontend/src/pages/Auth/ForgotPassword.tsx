@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState('');
@@ -55,12 +56,12 @@ const ForgotPassword = () => {
             <div className="mb-6 p-4 bg-green-50 border border-green-200 text-green-700 rounded-md text-sm">
               Reset link sent! Check your email for instructions to reset your password.
             </div>
-            <button 
-              onClick={() => setSuccess(false)}
-              className="block w-full text-center bg-blue-600 text-white font-semibold py-3 rounded-md text-base hover:bg-blue-700 transition-colors border-0 cursor-pointer"
+            <Link 
+              to="/login"
+              className="block w-full text-center bg-blue-600 text-white font-semibold py-3 rounded-md text-base hover:bg-blue-700 transition-colors border-0 cursor-pointer no-underline"
             >
               Back to Login
-            </button>
+            </Link>
           </div>
         ) : (
           <div className="text-left">
@@ -103,7 +104,7 @@ const ForgotPassword = () => {
             </button>
 
             <div className="text-sm text-gray-600 text-center">
-              Remember your password? <a href="/login" className="text-blue-600 font-medium no-underline hover:underline">Login</a>
+              Remember your password? <Link to="/login" className="text-blue-600 font-medium no-underline hover:underline">Login</Link>
             </div>
           </div>
         )}
