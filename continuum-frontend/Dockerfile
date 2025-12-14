@@ -1,6 +1,13 @@
 # Use Node 20 slim image as base
 FROM node:20-slim
 
+# Install build dependencies needed for native modules
+RUN apt-get update && apt-get install -y \
+    python3 \
+    make \
+    g++ \
+    && rm -rf /var/lib/apt/lists/*
+
 # Set working directory
 WORKDIR /app
 
