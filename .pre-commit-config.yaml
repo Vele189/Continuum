@@ -5,7 +5,7 @@ repos:
         name: Backend Tests
         entry: pytest
         language: python
-        additional_dependencies: [pytest, httpx, fastapi, uvicorn, sqlalchemy, pydantic-settings,pydantic, python-jose[cryptography], passlib[bcrypt],bcrypt==4.0.1]
+        additional_dependencies: [pytest, httpx, fastapi, uvicorn, sqlalchemy, pydantic-settings, pydantic, "python-jose[cryptography]", "passlib[bcrypt]", "bcrypt==4.0.1"]
         types: [python]
         files: ^backend/
         pass_filenames: false
