@@ -5,16 +5,15 @@ from app.database import UserRole
 # Shared properties
 class UserBase(BaseModel):
     email: Optional[EmailStr] = None
-    first_name: Optional[str] = None
-    last_name: Optional[str] = None
+    first_name: str
+    last_name: str
     role: Optional[UserRole] = UserRole.FRONTEND
 
 # Properties to receive via API on creation
 class UserCreate(UserBase):
     email: EmailStr
     password: str
-    first_name: str
-    last_name: str
+
 
 # Properties to receive via API on update
 class UserUpdate(UserBase):
@@ -22,8 +21,7 @@ class UserUpdate(UserBase):
 
 class UserInDBBase(UserBase):
     id: Optional[int] = None
-    first_name: str
-    last_name: str
+
     
     class Config:
         orm_mode = True
