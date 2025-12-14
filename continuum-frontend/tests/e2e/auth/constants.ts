@@ -3,8 +3,8 @@
 export const routes ={
     login: '/login',
     register: '/register',
-    forgotPassword: '/forgotpassword',
-    resetPassword: '/resetpassword',
+    forgotPassword: '/forgot-password',
+    resetPassword: '/reset-password',
     dashboard: '/dashboard',
 } as const;
   
