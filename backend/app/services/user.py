@@ -14,7 +14,7 @@ def create(db: Session, obj_in: UserCreate) -> User:
     db_obj = User(
         email=obj_in.email,
         hashed_password=hash_password(obj_in.password),
-        first_name=obj_in.first_name, 
+        first_name=obj_in.first_name,
         last_name=obj_in.last_name,
         role=obj_in.role,
         is_verified=False,
@@ -23,14 +23,14 @@ def create(db: Session, obj_in: UserCreate) -> User:
     db.add(db_obj)
     db.commit()
     db.refresh(db_obj)
-    
+
     # Mock sending email
-    print(f"--- MOCK EMAIL ---")
-    print(f"To: {obj_in.email}")
-    print(f"Subject: Verify your email")
-    print(f"Link: http://localhost:8000/api/v1/users/verify-email?token={verification_token}")
-    print(f"------------------")
-    
+    print("--- MOCK EMAIL ---")
+    print("To: " + obj_in.email)
+    print("Subject: Verify your email")
+    print("Link: http://localhost:8000/api/v1/users/verify-email?token=" + verification_token)
+    print("------------------")
+
     return db_obj
 
 def authenticate(db: Session, email: str, password: str) -> Optional[User]:
@@ -53,7 +53,7 @@ def verify_email(db: Session, token: str) -> Optional[User]:
     if not user:
         return None
     user.is_verified = True
-    user.verification_token = None # Clear token after use
+    user.verification_token = None  # Clear token after use
     db.add(user)
     db.commit()
     db.refresh(user)
@@ -63,29 +63,29 @@ def initiate_password_reset(db: Session, email: str) -> Optional[User]:
     user = get_by_email(db, email=email)
     if not user:
         return None
-    
+
     reset_token = str(uuid.uuid4())
     user.password_reset_token = reset_token
     db.add(user)
     db.commit()
     db.refresh(user)
-    
+
     # Mock sending email
-    print(f"--- MOCK EMAIL ---")
-    print(f"To: {email}")
-    print(f"Subject: Reset your password")
-    print(f"Token: {reset_token}")
-    print(f"------------------")
-    
+    print("--- MOCK EMAIL ---")
+    print("To: " + email)
+    print("Subject: Reset your password")
+    print("Token: " + reset_token)
+    print("------------------")
+
     return user
 
 def reset_password(db: Session, token: str, new_password: str) -> Optional[User]:
     user = db.query(User).filter(User.password_reset_token == token).first()
     if not user:
         return None
-    
+
     user.hashed_password = hash_password(new_password)
-    user.password_reset_token = None # Clear token
+    user.password_reset_token = None  # Clear token
     db.add(user)
     db.commit()
     db.refresh(user)

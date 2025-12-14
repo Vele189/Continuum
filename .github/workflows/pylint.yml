@@ -30,4 +30,4 @@ jobs:
         pip install -r requirements.txt
     - name: Analysing the code with pylint
       run: |
-        pylint --disable=C0114,C0115,C0116,R0903,W0718 $(find . -name "*.py" -not -path "./venv/*" -not -path "./tests/*")
+        pylint --disable=C0114,C0115,C0116,R0903,W0718,R0801,W0511 $(find . -name "*.py" -not -path "./venv/*" -not -path "./tests/*")

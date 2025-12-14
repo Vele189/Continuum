@@ -1,7 +1,13 @@
 import { useState, useEffect } from 'react';
 import { authApi, type AuthResponse, type User } from '../api/auth';
 
-
+interface ApiError {
+  response?: {
+    data?: {
+      message?: string;
+    };
+  };
+}
 
 export const useAuth = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -21,7 +27,7 @@ export const useAuth = () => {
     try {
       const userData = await authApi.getCurrentUser();
       setUser(userData);
-    } catch (err) {
+    } catch {
       localStorage.removeItem('token');
       setUser(null);
     } finally {
@@ -37,8 +43,9 @@ export const useAuth = () => {
       localStorage.setItem('token', response.token);
       setUser(response.user);
       return response;
-    } catch (err: any) {
-      const errorMessage = err.response?.data?.message || 'Login failed';
+    } catch (err: unknown) {
+      const apiError = err as ApiError;
+      const errorMessage = apiError.response?.data?.message || 'Login failed';
       setError(errorMessage);
       throw err;
     } finally {
@@ -54,8 +61,9 @@ export const useAuth = () => {
       localStorage.setItem('token', response.token);
       setUser(response.user);
       return response;
-    } catch (err: any) {
-      const errorMessage = err.response?.data?.message || 'Registration failed';
+    } catch (err: unknown) {
+      const apiError = err as ApiError;
+      const errorMessage = apiError.response?.data?.message || 'Registration failed';
       setError(errorMessage);
       throw err;
     } finally {
@@ -84,4 +92,3 @@ export const useAuth = () => {
     isAuthenticated: !!user,
   };
 };
-
