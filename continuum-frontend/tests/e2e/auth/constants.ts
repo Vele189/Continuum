@@ -48,7 +48,7 @@ export const selectors ={
   success_message: '[class*="bg-green-50"]',
   
   show_password_button: 'button[type="button"]',
-  forgot_password_link: 'a[href="/forgotpassword"]',
+  forgot_password_link: 'a[href="/forgot-password"]',
   signup_link: 'a[href="/register"]',
   
   firstname_input: 'input#firstname',
@@ -67,8 +67,8 @@ export const selectors ={
 export const api_endpoints = {
     login: '/api/auth/login',
     register: '/api/auth/register',
-    forgotPassword: '/api/auth/forgotpassword',
-    resetPassword: '/api/auth/resetpassword',
+    forgotPassword: '/api/auth/forgot-password',
+    resetPassword: '/api/auth/reset-password',
 } as const;
 
 export const mock_response = {
