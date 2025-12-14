@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { routes, selectors, validation_messages_for_input, success_messages } from "./constants";
+import { routes, selectors, validation_messages_for_input} from "./constants";
 
 test.describe('Reset Password Page', () => {
   test.beforeEach(async ({ page }) => {

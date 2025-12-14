@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { routes, mock_users, selectors, api_endpoints, mock_response } from "./constants";
+import { routes, mock_users, selectors, mock_response } from "./constants";
 
 
 test.describe('Register Page', () => {

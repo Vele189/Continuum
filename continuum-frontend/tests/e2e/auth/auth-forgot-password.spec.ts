@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { routes, mock_users, selectors, success_messages, api_endpoints, mock_response } from "./constants";
+import { routes, mock_users, selectors, success_messages} from "./constants";
 
 test.describe('Forgot Password Page', () => {
   test.beforeEach(async ({ page }) => {
