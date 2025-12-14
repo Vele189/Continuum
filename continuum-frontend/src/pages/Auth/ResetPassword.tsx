@@ -29,7 +29,7 @@ const ResetPassword = () => {
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 1500));
       setSuccess(true);
-    } catch (err) {
+    } catch {
       setError('Failed to reset password. Please try again.');
     } finally {
       setLoading(false);

@@ -1,6 +1,14 @@
 import { useState, useEffect } from 'react';
 import { projectsApi, type Project, type CreateProjectData } from '../api/projects';
 
+interface ApiError {
+  response?: {
+    data?: {
+      message?: string;
+    };
+  };
+}
+
 export const useProjects = () => {
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
@@ -16,8 +24,9 @@ export const useProjects = () => {
       setError(null);
       const data = await projectsApi.getAll();
       setProjects(data);
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to fetch projects');
+    } catch (err: unknown) {
+      const apiError = err as ApiError;
+      setError(apiError.response?.data?.message || 'Failed to fetch projects');
     } finally {
       setLoading(false);
     }
@@ -29,8 +38,9 @@ export const useProjects = () => {
       const newProject = await projectsApi.create(data);
       setProjects([...projects, newProject]);
       return newProject;
-    } catch (err: any) {
-      const errorMessage = err.response?.data?.message || 'Failed to create project';
+    } catch (err: unknown) {
+      const apiError = err as ApiError;
+      const errorMessage = apiError.response?.data?.message || 'Failed to create project';
       setError(errorMessage);
       throw err;
     }
@@ -42,8 +52,9 @@ export const useProjects = () => {
       const updatedProject = await projectsApi.update(id, data);
       setProjects(projects.map(p => p.id === id ? updatedProject : p));
       return updatedProject;
-    } catch (err: any) {
-      const errorMessage = err.response?.data?.message || 'Failed to update project';
+    } catch (err: unknown) {
+      const apiError = err as ApiError;
+      const errorMessage = apiError.response?.data?.message || 'Failed to update project';
       setError(errorMessage);
       throw err;
     }
@@ -54,8 +65,9 @@ export const useProjects = () => {
       setError(null);
       await projectsApi.delete(id);
       setProjects(projects.filter(p => p.id !== id));
-    } catch (err: any) {
-      const errorMessage = err.response?.data?.message || 'Failed to delete project';
+    } catch (err: unknown) {
+      const apiError = err as ApiError;
+      const errorMessage = apiError.response?.data?.message || 'Failed to delete project';
       setError(errorMessage);
       throw err;
     }
@@ -71,4 +83,3 @@ export const useProjects = () => {
     deleteProject,
   };
 };
-

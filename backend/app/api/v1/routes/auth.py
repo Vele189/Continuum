@@ -1,4 +1,3 @@
-from datetime import timedelta
 from typing import Any
 
 from jose import jwt, JWTError
@@ -10,15 +9,15 @@ from sqlalchemy.orm import Session
 from app.api import deps
 from app.core import security
 from app.core.config import settings
-from app.schemas.user import Token, UserLogin, User as UserSchema, TokenPayload, PasswordResetConfirm
+from app.schemas.user import Token, UserLogin, TokenPayload, PasswordResetConfirm
 from app.services import user as user_service
 from app.models.user import User
 
 router = APIRouter()
 
 @router.post("/refresh-token", response_model=Token)
-def refresh_token(
-    token: str,
+def refresh_access_token(
+    refresh_token: str,  # pylint: disable=redefined-outer-name
     db: Session = Depends(deps.get_db),
 ) -> Any:
     """
@@ -26,7 +25,7 @@ def refresh_token(
     """
     try:
         payload = jwt.decode(
-            token, settings.SECRET_KEY, algorithms=[security.ALGORITHM]
+            refresh_token, settings.SECRET_KEY, algorithms=[security.ALGORITHM]
         )
         token_data = TokenPayload(**payload)
 
@@ -48,7 +47,7 @@ def refresh_token(
         raise HTTPException(status_code=404, detail="User not found")
 
     # Validate token against stored token
-    if user.refresh_token != token:
+    if user.refresh_token != refresh_token:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Invalid refresh token",

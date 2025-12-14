@@ -18,7 +18,7 @@ const ForgotPassword = () => {
       // This for simulating an API call for now till BE is good
       await new Promise(resolve => setTimeout(resolve, 1500));
       setSuccess(true);
-    } catch (err) {
+    } catch {
       setError('Failed to send reset link. Please try again.');
     } finally {
       setLoading(false);
