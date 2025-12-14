@@ -1,12 +1,11 @@
 # app/database.py
 import sqlite3
-from datetime import datetime
 
 from app.utils.logger import get_logger
 
 
 # Get a logger instance specifically for the database module
-logger = get_logger(__name__) 
+logger = get_logger(__name__)
 
 DATABASE_NAME = "continuum.db"
 
@@ -23,7 +22,7 @@ def init_db():
         cursor = conn.cursor()
 
         # --- Table Creation (All SQL commands as defined) ---
-        
+
         # 1. users Table
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS users (
@@ -152,10 +151,10 @@ def init_db():
         # Commit changes and close connection
         conn.commit()
         conn.close()
-        
+
         logger.info("Database initialized successfully: all 8 tables created or verified.")
 
     except sqlite3.Error as e:
-        logger.error(f"FATAL DB ERROR: Could not complete schema creation: {e}", exc_info=True)
+        logger.error("FATAL DB ERROR: Could not complete schema creation: %s", e, exc_info=True)
         # Re-raise the exception so the main application startup can handle the failure
         raise

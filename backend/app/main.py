@@ -3,9 +3,6 @@ import os
 from fastapi import FastAPI
 from app.api.v1.routes import users, auth, admin
 from app.core.config import settings
-from app.db.base import Base
-from app.db.session import engine
-from app.models import user as user_model
 from app.utils.logger import get_logger
 from .database import init_db
 
@@ -13,17 +10,17 @@ logger = get_logger(__name__)
 
 #log startup
 env = os.getenv("ENV", "development")
-port = int(os.getenv("PORT", 8000))
+port = os.getenv("PORT", "8000")
 logger.info("Backend starting...")
-logger.info(f"Environment: {env}")
-logger.info(f"Port: {port}")
+logger.info("Environment: %s", env)
+logger.info("Port: %s", port)
 
 # Initialize the database structure
 try:
     init_db()
     logger.info("Startup complete. Database connected and verified.")
 except Exception as e:
-    logger.critical(f"FATAL ERROR during startup: Could not initialize database. {e}")
+    logger.critical("FATAL ERROR during startup: Could not initialize database. %s", e)
     raise  # Raise to prevent app from starting if DB fails
 
 app = FastAPI(title="Continuum API")
@@ -36,8 +33,8 @@ def health_check():
     try:
         logger.info("Health endpoint hit")
         response = {"status": "OK"}
-        logger.info(f"Health check response status: 200")
+        logger.info("Health check response status: 200")
         return response
     except Exception as e:
-        logger.error(f"Error in health check: {e}")
+        logger.error("Error in health check: %s", e)
         raise
