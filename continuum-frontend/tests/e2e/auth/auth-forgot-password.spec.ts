@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { routes, mock_users, selectors, api_endpoints, mock_response } from "./constants";
+import { routes, mock_users, selectors, success_messages, api_endpoints, mock_response } from "./constants";
 
 test.describe('Forgot Password Page', () => {
   test.beforeEach(async ({ page }) => {
@@ -24,13 +24,11 @@ test.describe('Forgot Password Page', () => {
     
     // here i am checking the links for signing up and forgot password
     await expect(page.locator(selectors.login_link)).toBeVisible();
-    
   });
 
-   //====================================Should validate empty field========================================================
+  //====================================Should validate empty field========================================================
   test('should validate empty email field', async ({ page }) => {
     const emailInput = page.locator(selectors.email_input);
-    
     
     await page.locator(selectors.submit_button).click();
     
@@ -39,17 +37,33 @@ test.describe('Forgot Password Page', () => {
     expect(validationMessage.length).toBeGreaterThan(0);
   });
 
-   //====================================Should show client-side validation errors========================================================
+  //====================================Should show client-side validation errors========================================================
   test('should validate invalid email format', async ({ page }) => {
     const emailInput = page.locator(selectors.email_input);
     
     await emailInput.fill('invalid-email');
     
-    
-  
     const validationMessage = await emailInput.evaluate((el: HTMLInputElement) => el.validationMessage);
     expect(validationMessage).toBeTruthy();
   });
 
+  //====================================Should allow successful submission with mock data========================================================
+  test('should allow successful submission with mock data', async ({ page }) => {
+    const emailInput = page.locator(selectors.email_input);
+    await emailInput.fill(mock_users.valid_user.email);
+    
+    const submitButton = page.locator(selectors.submit_button);
+    await submitButton.click();
+    
+    
+    await expect(submitButton).toHaveText('Sending...');
+    await expect(submitButton).toBeDisabled();
+    
+    const successMessage = page.locator('div[class*="bg-green-50"]');
+    await expect(successMessage).toBeVisible({ timeout: 3000 });
+    await expect(successMessage).toContainText(success_messages.reset_link_sent);
+  
+    await expect(emailInput).not.toBeVisible();
+  });
 
-    });
+}); 
