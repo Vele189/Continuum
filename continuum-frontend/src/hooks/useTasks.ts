@@ -1,27 +1,36 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { tasksApi, type Task, type CreateTaskData } from '../api/tasks';
+
+interface ApiError {
+  response?: {
+    data?: {
+      message?: string;
+    };
+  };
+}
 
 export const useTasks = (projectId?: string) => {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    fetchTasks();
-  }, [projectId]);
-
-  const fetchTasks = async () => {
+  const fetchTasks = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
       const data = await tasksApi.getAll(projectId);
       setTasks(data);
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to fetch tasks');
+    } catch (err: unknown) {
+      const apiError = err as ApiError;
+      setError(apiError.response?.data?.message || 'Failed to fetch tasks');
     } finally {
       setLoading(false);
     }
-  };
+  }, [projectId]);
+
+  useEffect(() => {
+    fetchTasks();
+  }, [fetchTasks]);
 
   const createTask = async (data: CreateTaskData) => {
     try {
@@ -29,8 +38,9 @@ export const useTasks = (projectId?: string) => {
       const newTask = await tasksApi.create(data);
       setTasks([...tasks, newTask]);
       return newTask;
-    } catch (err: any) {
-      const errorMessage = err.response?.data?.message || 'Failed to create task';
+    } catch (err: unknown) {
+      const apiError = err as ApiError;
+      const errorMessage = apiError.response?.data?.message || 'Failed to create task';
       setError(errorMessage);
       throw err;
     }
@@ -42,8 +52,9 @@ export const useTasks = (projectId?: string) => {
       const updatedTask = await tasksApi.update(id, data);
       setTasks(tasks.map(t => t.id === id ? updatedTask : t));
       return updatedTask;
-    } catch (err: any) {
-      const errorMessage = err.response?.data?.message || 'Failed to update task';
+    } catch (err: unknown) {
+      const apiError = err as ApiError;
+      const errorMessage = apiError.response?.data?.message || 'Failed to update task';
       setError(errorMessage);
       throw err;
     }
@@ -54,8 +65,9 @@ export const useTasks = (projectId?: string) => {
       setError(null);
       await tasksApi.delete(id);
       setTasks(tasks.filter(t => t.id !== id));
-    } catch (err: any) {
-      const errorMessage = err.response?.data?.message || 'Failed to delete task';
+    } catch (err: unknown) {
+      const apiError = err as ApiError;
+      const errorMessage = apiError.response?.data?.message || 'Failed to delete task';
       setError(errorMessage);
       throw err;
     }
@@ -71,4 +83,3 @@ export const useTasks = (projectId?: string) => {
     deleteTask,
   };
 };
-
