@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from app.api import deps
 from app.schemas.user import UserCreate, User
@@ -39,4 +39,3 @@ def verify_email(
             detail="Invalid verification token.",
         )
     return {"message": "Email verified successfully"}
-

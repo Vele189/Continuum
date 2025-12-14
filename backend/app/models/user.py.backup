@@ -1,7 +1,7 @@
 # User model
-from sqlalchemy import Column, Integer, String, Numeric, Boolean, DateTime, Enum
-from sqlalchemy.sql import func
 import enum
+
+from sqlalchemy import Column, Integer, String, Numeric, Boolean, Enum
 from app.db.base import Base
 
 class UserRole(enum.Enum):
