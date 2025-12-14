@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const ResetPassword = () => {
   const [newPassword, setNewPassword] = useState('');
@@ -8,6 +9,7 @@ const ResetPassword = () => {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState('');
+  const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -67,7 +69,7 @@ const ResetPassword = () => {
               Password changed successfully! You can now log in with your new password.
             </div>
             <button 
-              onClick={() => window.location.href = '/login'}
+              onClick={() => navigate('/login')}
               className="block w-full text-center bg-blue-600 text-white font-semibold py-3 rounded-md text-base hover:bg-blue-700 transition-colors border-0 cursor-pointer"
             >
               Go to Login
