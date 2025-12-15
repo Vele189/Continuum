@@ -1,5 +1,5 @@
-from typing import Optional
-from pydantic import BaseModel, EmailStr
+from typing import Optional, Union
+from pydantic import BaseModel, EmailStr, validator
 from app.database import UserRole
 
 # Shared properties
@@ -45,6 +45,18 @@ class Token(BaseModel):
 
 class TokenPayload(BaseModel):
     sub: Optional[int] = None
+    
+    @validator('sub', pre=True)
+    def convert_sub_to_int(cls, v):
+        """Allow sub to be string or int, convert string to int"""
+        if v is None:
+            return None
+        if isinstance(v, str):
+            try:
+                return int(v)
+            except ValueError:
+                return v
+        return v
 
 # Password Reset Schemas
 class PasswordResetRequest(BaseModel):
