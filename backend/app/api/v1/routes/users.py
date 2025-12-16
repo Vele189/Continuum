@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from app.api import deps
-from app.schemas.user import UserCreate, User
+from app.schemas.user import UserCreate, UserUpdate, User
 from app.services import user as user_service
 from app.database import User as UserModel
 
@@ -53,3 +53,19 @@ def verify_email(
             detail="Invalid verification token.",
         )
     return {"message": "Email verified successfully"}
+
+
+@router.put("/me", response_model=User)
+def update_user_profile(
+    user_update: UserUpdate,
+    current_user: UserModel = Depends(deps.get_current_user),
+    db: Session = Depends(deps.get_db),
+):
+    """
+    Update current user's profile information.
+    
+    Users can only update their own profile.
+    Updatable fields: first_name, last_name, hourly_rate, display_name
+    """
+    updated_user = user_service.update_profile(db, current_user, user_update)
+    return updated_user

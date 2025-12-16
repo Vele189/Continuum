@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 
 from app.core.security import hash_password, verify_password
 from app.database import User
-from app.schemas.user import UserCreate
+from app.schemas.user import UserCreate, UserUpdate
 
 def get_by_email(db: Session, email: str) -> Optional[User]:
     return db.query(User).filter(User.email == email).first()
@@ -88,6 +88,18 @@ def reset_password(db: Session, token: str, new_password: str) -> Optional[User]
 
     user.hashed_password = hash_password(new_password)
     user.password_reset_token = None  # Clear token
+    db.add(user)
+    db.commit()
+    db.refresh(user)
+    return user
+
+def update_profile(db: Session, user: User, user_update: UserUpdate) -> User:
+    """Update user profile with provided data"""
+    update_data = user_update.model_dump(exclude_unset=True)
+
+    for field, value in update_data.items():
+        setattr(user, field, value)
+
     db.add(user)
     db.commit()
     db.refresh(user)
