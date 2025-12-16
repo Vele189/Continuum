@@ -3,8 +3,6 @@ import os
 from fastapi import FastAPI
 from app.api.v1.routes import users, auth, admin
 from app.core.config import settings
-from app.db.base import Base
-from app.db.session import engine
 from app.utils.logger import get_logger
 from .database import init_db
 

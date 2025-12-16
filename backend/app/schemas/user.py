@@ -1,5 +1,5 @@
 from typing import Optional, Union
-from pydantic import BaseModel, EmailStr, validator
+from pydantic import BaseModel, EmailStr, field_validator, ConfigDict
 from app.database import UserRole
 
 # Shared properties
@@ -20,11 +20,9 @@ class UserUpdate(UserBase):
     password: Optional[str] = None
 
 class UserInDBBase(UserBase):
-    id: Optional[int] = None
-
+    model_config = ConfigDict(from_attributes=True)
     
-    class Config:
-        orm_mode = True
+    id: Optional[int] = None
 
 class User(UserInDBBase):
     pass
@@ -44,9 +42,12 @@ class Token(BaseModel):
     refresh_token: str
 
 class TokenPayload(BaseModel):
+    model_config = ConfigDict(extra='ignore')
+    
     sub: Optional[int] = None
     
-    @validator('sub', pre=True)
+    @field_validator('sub', mode='before')
+    @classmethod
     def convert_sub_to_int(cls, v):
         """Allow sub to be string or int, convert string to int"""
         if v is None:
