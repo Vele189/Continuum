@@ -96,10 +96,10 @@ def reset_password(db: Session, token: str, new_password: str) -> Optional[User]
 def update_profile(db: Session, user: User, user_update: UserUpdate) -> User:
     """Update user profile with provided data"""
     update_data = user_update.model_dump(exclude_unset=True)
-    
+
     for field, value in update_data.items():
         setattr(user, field, value)
-    
+
     db.add(user)
     db.commit()
     db.refresh(user)
