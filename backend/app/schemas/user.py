@@ -38,6 +38,10 @@ class UserInDBBase(UserBase):
     id: Optional[int] = None
 
 class User(UserInDBBase):
+<<<<<<< HEAD
+    hourly_rate: Optional[float] = None
+    display_name: Optional[str] = None
+=======
     """Full user response with all public fields"""
     id: int
     email: EmailStr
@@ -48,6 +52,7 @@ class User(UserInDBBase):
     display_name: str
     is_verified: bool
     created_at: datetime
+>>>>>>> User-Profile-Part-A
 
 class UserInDB(UserInDBBase):
     hashed_password: str
