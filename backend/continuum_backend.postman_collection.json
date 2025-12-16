@@ -356,6 +356,52 @@
 						"description": "Update current user profile. All fields are optional: first_name, last_name, hourly_rate, display_name"
 					},
 					"response": []
+				},
+				{
+					"name": "Change Password",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"current_password\": \"SecurePassword123!\",\n    \"new_password\": \"NewSecurePassword456!\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/users/me/password",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"users",
+								"me",
+								"password"
+							]
+						},
+						"description": "Change current user's password. Requires current password verification. User remains logged in after password change."
+					},
+					"response": []
 				}
 			],
 			"description": "User management endpoints"
