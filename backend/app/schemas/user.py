@@ -1,4 +1,6 @@
 from typing import Optional
+from datetime import datetime
+from decimal import Decimal
 from pydantic import BaseModel, EmailStr, field_validator, ConfigDict
 from app.database import UserRole
 
@@ -36,8 +38,16 @@ class UserInDBBase(UserBase):
     id: Optional[int] = None
 
 class User(UserInDBBase):
-    hourly_rate: Optional[float] = None
-    display_name: Optional[str] = None
+    """Full user response with all public fields"""
+    id: int
+    email: EmailStr
+    first_name: str
+    last_name: str
+    role: UserRole
+    hourly_rate: Decimal
+    display_name: str
+    is_verified: bool
+    created_at: datetime
 
 class UserInDB(UserInDBBase):
     hashed_password: str
