@@ -1,4 +1,4 @@
 # Models package
-from .user import User, UserRole
+from app.database import User, UserRole
 
 __all__ = ['User', 'UserRole']

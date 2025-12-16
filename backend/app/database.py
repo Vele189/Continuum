@@ -1,160 +1,292 @@
 # app/database.py
-import sqlite3
+# pylint: disable=not-callable
+import enum
+import logging
 
-from app.utils.logger import get_logger
+from sqlalchemy import (
+    Boolean,
+    Enum,
+    Numeric,
+    create_engine,
+    Column,
+    Integer,
+    String,
+    Float,
+    ForeignKey,
+    DateTime,
+    Text,
+    JSON,
+    UniqueConstraint
+)
+from sqlalchemy.orm import sessionmaker, relationship, declarative_base
+from sqlalchemy.sql import func
 
+from app.core.config import settings
 
-# Get a logger instance specifically for the database module
+# --- Logger Setup ---
+try:
+    from utils.logger import get_logger
+except ImportError:
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(levelname)s | [%(name)s] %(message)s"
+    )
+
+    def get_logger(name: str):
+        return logging.getLogger(name)
+
 logger = get_logger(__name__)
 
-DATABASE_NAME = "continuum.db"
+
+# --- Database Configuration ---
+DATABASE_URL = settings.DATABASE_URL
+
+# connect_args={"check_same_thread": False} is required for SQLite
+engine = create_engine(
+    DATABASE_URL,
+    connect_args={"check_same_thread": False}
+)
+# pylint: disable=invalid-name
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+Base = declarative_base()
+
+class UserRole(enum.Enum):
+    BACKEND = "backend"
+    FRONTEND = "frontend"
+    DESIGNER = "designer"
+    CLIENT = "client"
+    PROJECTMANAGER = "project_manager"
+
+# --- Models ---
+
+class User(Base):
+    __tablename__ = "users"
+
+    # Explicit Primary Key
+    id = Column(Integer, primary_key=True, index=True)
+    # Unique & Indexed Constraints
+    username = Column(String, unique=True, nullable=False, index=True)
+    email = Column(String, unique=True, nullable=False, index=True)
+    hashed_password = Column(String, nullable=False)
+    display_name = Column(String, nullable=False)
+    hourly_rate = Column(Numeric(10,2), default=0.0)
+    first_name = Column(String(255), nullable=False)
+    last_name = Column(String(255), nullable=False)
+    role = Column(Enum(UserRole), default=UserRole.FRONTEND)
+    is_verified = Column(Boolean, default=False)
+    verification_token = Column(String(255))
+    refresh_token = Column(String(255), nullable=True)
+    password_reset_token = Column(String(255), nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    # Relationships
+    projects_owned = relationship("Client", back_populates="creator")
+    tasks_assigned = relationship("Task", back_populates="assignee")
+    logged_hours = relationship("LoggedHour", back_populates="user")
+    git_contributions = relationship("GitContribution", back_populates="user")
+    project_memberships = relationship("ProjectMember", back_populates="user")
+
+class Client(Base):
+    __tablename__ = "clients"
+
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, nullable=False)
+    email = Column(String, nullable=True, index=True)
+
+    # ADDED: index=True for frequently queried FK
+    # ADDED: onupdate="CASCADE" for strict referential integrity
+    created_by = Column(
+        Integer,
+        ForeignKey("users.id", ondelete="SET NULL", onupdate="CASCADE"),
+        nullable=True,
+        index=True
+    )
+
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    # Relationships
+    creator = relationship("User", back_populates="projects_owned")
+    projects = relationship("Project", back_populates="client")
+
+class Project(Base):
+    __tablename__ = "projects"
+
+    id = Column(Integer, primary_key=True, index=True)
+    client_id = Column(
+        Integer,
+        ForeignKey("clients.id", ondelete="CASCADE", onupdate="CASCADE"),
+        nullable=False,
+        index=True
+    )
+    name = Column(String, nullable=False)
+    description = Column(Text, nullable=True)
+    status = Column(String, default="active", index=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    # Relationships
+    client = relationship("Client", back_populates="projects")
+    members = relationship(
+        "ProjectMember",
+        back_populates="project",
+        cascade="all, delete-orphan"
+    )
+    tasks = relationship(
+        "Task",
+        back_populates="project",
+        cascade="all, delete-orphan"
+    )
+    logged_hours = relationship("LoggedHour", back_populates="project")
+    git_contributions = relationship("GitContribution", back_populates="project")
+
+class ProjectMember(Base):
+    __tablename__ = "project_members"
+
+    # ADDED: Composite Unique Constraint
+    # Ensures a user isn't added to a project twice
+    __table_args__ = (
+        UniqueConstraint('project_id', 'user_id', name='uix_project_member'),
+    )
+
+    id = Column(Integer, primary_key=True, index=True)
+    project_id = Column(
+        Integer,
+        ForeignKey("projects.id", ondelete="CASCADE", onupdate="CASCADE"),
+        nullable=False,
+        index=True
+    )
+    user_id = Column(
+        Integer,
+        ForeignKey("users.id", ondelete="CASCADE", onupdate="CASCADE"),
+        nullable=False,
+        index=True
+    )
+    role = Column(String, default="member")
+    added_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    # Relationships
+    project = relationship("Project", back_populates="members")
+    user = relationship("User", back_populates="project_memberships")
+
+class Task(Base):
+    __tablename__ = "tasks"
+
+    id = Column(Integer, primary_key=True, index=True)
+    project_id = Column(
+        Integer,
+        ForeignKey("projects.id", ondelete="CASCADE", onupdate="CASCADE"),
+        nullable=False,
+        index=True
+    )
+    title = Column(String, nullable=False)
+    description = Column(Text, nullable=True)
+    status = Column(String, default="todo", index=True)
+
+    # Foreign Key with SET NULL on delete
+    assigned_to = Column(
+        Integer,
+        ForeignKey("users.id", ondelete="SET NULL", onupdate="CASCADE"),
+        nullable=True,
+        index=True
+    )
+
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(
+        DateTime(timezone=True),
+        onupdate=func.now(),
+        server_default=func.now()
+    )
+
+    # Relationships
+    project = relationship("Project", back_populates="tasks")
+    assignee = relationship("User", back_populates="tasks_assigned")
+    logged_hours = relationship("LoggedHour", back_populates="task")
+
+class LoggedHour(Base):
+    __tablename__ = "logged_hours"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(
+        Integer,
+        ForeignKey("users.id", ondelete="CASCADE", onupdate="CASCADE"),
+        nullable=False,
+        index=True
+    )
+    task_id = Column(
+        Integer,
+        ForeignKey("tasks.id", ondelete="SET NULL", onupdate="CASCADE"),
+        nullable=True,
+        index=True
+    )
+    project_id = Column(
+        Integer,
+        ForeignKey("projects.id", ondelete="CASCADE", onupdate="CASCADE"),
+        nullable=False,
+        index=True
+    )
+    hours = Column(Float, nullable=False)
+    note = Column(Text, nullable=True)
+    logged_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    # Relationships
+    user = relationship("User", back_populates="logged_hours")
+    task = relationship("Task", back_populates="logged_hours")
+    project = relationship("Project", back_populates="logged_hours")
+
+class GitContribution(Base):
+    __tablename__ = "git_contributions"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(
+        Integer,
+        ForeignKey("users.id", ondelete="SET NULL", onupdate="CASCADE"),
+        nullable=True,
+        index=True
+    )
+    project_id = Column(
+        Integer,
+        ForeignKey("projects.id", ondelete="CASCADE", onupdate="CASCADE"),
+        nullable=False,
+        index=True
+    )
+
+    # Unique Constraint explicitly required
+    commit_hash = Column(String, nullable=False, unique=True)
+
+    commit_message = Column(Text, nullable=True)
+    branch = Column(String, nullable=True)
+    committed_at = Column(DateTime(timezone=True), nullable=False)
+
+    # Relationships
+    user = relationship("User", back_populates="git_contributions")
+    project = relationship("Project", back_populates="git_contributions")
+
+class SystemLog(Base):
+    __tablename__ = "system_logs"
+
+    id = Column(Integer, primary_key=True, index=True)
+    level = Column(String, nullable=False)
+    message = Column(Text, nullable=False)
+    meta = Column(JSON, nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+# --- Initialization Logic ---
 
 def init_db():
-    """
-    Initializes the SQLite database, connecting and creating all necessary tables
-    if they do not already exist, and logging progress via the centralized logger.
-    """
     logger.info("Starting database initialization process.")
-
     try:
-        # Connect to the SQLite database file
-        conn = sqlite3.connect(DATABASE_NAME)
-        cursor = conn.cursor()
+        Base.metadata.create_all(bind=engine)
+        logger.info("Database initialized successfully.")
+    except Exception as e:
+        logger.error(
+            "FATAL DB ERROR: Could not complete schema creation: %s",
+            e,
+            exc_info=True
+        )
+        raise e
 
-        # --- Table Creation (All SQL commands as defined) ---
-
-        # 1. users Table
-        cursor.execute("""
-            CREATE TABLE IF NOT EXISTS users (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                username TEXT NOT NULL UNIQUE,
-                email TEXT NOT NULL UNIQUE,
-                password_hash TEXT NOT NULL,
-                display_name TEXT NOT NULL,
-                hourly_rate REAL DEFAULT 0.00,
-                created_at TEXT DEFAULT (strftime('%Y-%m-%d %H:%M:%S', 'now'))
-            );
-        """)
-        logger.debug("Table 'users' verified/created.")
-
-
-        # 2. clients Table
-        cursor.execute("""
-            CREATE TABLE IF NOT EXISTS clients (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                name TEXT NOT NULL,
-                email TEXT,
-                created_by INTEGER,
-                created_at TEXT DEFAULT (strftime('%Y-%m-%d %H:%M:%S', 'now')),
-                FOREIGN KEY (created_by) REFERENCES users (id)
-            );
-        """)
-        logger.debug("Table 'clients' verified/created.")
-
-
-        # 3. projects Table
-        cursor.execute("""
-            CREATE TABLE IF NOT EXISTS projects (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                client_id INTEGER,
-                name TEXT NOT NULL,
-                description TEXT,
-                status TEXT NOT NULL DEFAULT 'Active',
-                created_at TEXT DEFAULT (strftime('%Y-%m-%d %H:%M:%S', 'now')),
-                FOREIGN KEY (client_id) REFERENCES clients (id)
-            );
-        """)
-        logger.debug("Table 'projects' verified/created.")
-
-
-        # 4. project_members Table
-        cursor.execute("""
-            CREATE TABLE IF NOT EXISTS project_members (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                project_id INTEGER NOT NULL,
-                user_id INTEGER NOT NULL,
-                role TEXT NOT NULL DEFAULT 'Member',
-                added_at TEXT DEFAULT (strftime('%Y-%m-%d %H:%M:%S', 'now')),
-                FOREIGN KEY (project_id) REFERENCES projects (id),
-                FOREIGN KEY (user_id) REFERENCES users (id),
-                UNIQUE (project_id, user_id)
-            );
-        """)
-        logger.debug("Table 'project_members' verified/created.")
-
-
-        # 5. tasks Table
-        cursor.execute("""
-            CREATE TABLE IF NOT EXISTS tasks (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                project_id INTEGER NOT NULL,
-                title TEXT NOT NULL,
-                description TEXT,
-                status TEXT NOT NULL DEFAULT 'To Do',
-                assigned_to INTEGER,
-                created_at TEXT DEFAULT (strftime('%Y-%m-%d %H:%M:%S', 'now')),
-                updated_at TEXT DEFAULT (strftime('%Y-%m-%d %H:%M:%S', 'now')),
-                FOREIGN KEY (project_id) REFERENCES projects (id),
-                FOREIGN KEY (assigned_to) REFERENCES users (id)
-            );
-        """)
-        logger.debug("Table 'tasks' verified/created.")
-
-
-        # 6. logged_hours Table
-        cursor.execute("""
-            CREATE TABLE IF NOT EXISTS logged_hours (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                user_id INTEGER NOT NULL,
-                task_id INTEGER,
-                project_id INTEGER NOT NULL,
-                hours REAL NOT NULL,
-                note TEXT,
-                logged_at TEXT DEFAULT (strftime('%Y-%m-%d %H:%M:%S', 'now')),
-                FOREIGN KEY (user_id) REFERENCES users (id),
-                FOREIGN KEY (task_id) REFERENCES tasks (id),
-                FOREIGN KEY (project_id) REFERENCES projects (id)
-            );
-        """)
-        logger.debug("Table 'logged_hours' verified/created.")
-
-
-        # 7. git_contributions Table
-        cursor.execute("""
-            CREATE TABLE IF NOT EXISTS git_contributions (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                user_id INTEGER NOT NULL,
-                project_id INTEGER NOT NULL,
-                commit_hash TEXT NOT NULL UNIQUE,
-                commit_message TEXT,
-                branch TEXT,
-                committed_at TEXT NOT NULL,
-                FOREIGN KEY (user_id) REFERENCES users (id),
-                FOREIGN KEY (project_id) REFERENCES projects (id)
-            );
-        """)
-        logger.debug("Table 'git_contributions' verified/created.")
-
-
-        # 8. system_logs Table
-        cursor.execute("""
-            CREATE TABLE IF NOT EXISTS system_logs (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                level TEXT NOT NULL,
-                message TEXT NOT NULL,
-                meta TEXT,
-                created_at TEXT DEFAULT (strftime('%Y-%m-%d %H:%M:%S', 'now'))
-            );
-        """)
-        logger.debug("Table 'system_logs' verified/created.")
-
-        # Commit changes and close connection
-        conn.commit()
-        conn.close()
-
-        logger.info("Database initialized successfully: all 8 tables created or verified.")
-
-    except sqlite3.Error as e:
-        logger.error("FATAL DB ERROR: Could not complete schema creation: %s", e, exc_info=True)
-        # Re-raise the exception so the main application startup can handle the failure
-        raise
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()

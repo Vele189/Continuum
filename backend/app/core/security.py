@@ -1,20 +1,20 @@
 # Security utilities
+
 from datetime import datetime, timedelta
 
-from passlib.context import CryptContext
+from passlib import hash as passlib_hash
 from jose import jwt
 
 from app.core.config import settings
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 ALGORITHM = settings.ALGORITHM
-
 def hash_password(password: str):
-    return pwd_context.hash(password)
+    return passlib_hash.pbkdf2_sha256.hash(password)
+
 
 def verify_password(password: str, hashed: str):
-    return pwd_context.verify(password, hashed)
+    return passlib_hash.pbkdf2_sha256.verify(password, hashed)
 
 def create_access_token(data: dict):
     expire = datetime.utcnow() + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)

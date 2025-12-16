@@ -1,20 +1,19 @@
 from typing import Optional
 from pydantic import BaseModel, EmailStr
-from app.models.user import UserRole
+from app.database import UserRole
 
 # Shared properties
 class UserBase(BaseModel):
     email: Optional[EmailStr] = None
-    first_name: Optional[str] = None
-    last_name: Optional[str] = None
+    first_name: str
+    last_name: str
     role: Optional[UserRole] = UserRole.FRONTEND
 
 # Properties to receive via API on creation
 class UserCreate(UserBase):
     email: EmailStr
     password: str
-    first_name: str
-    last_name: str
+
 
 # Properties to receive via API on update
 class UserUpdate(UserBase):
