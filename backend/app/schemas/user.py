@@ -1,4 +1,4 @@
-from typing import Optional, Union
+from typing import Optional
 from pydantic import BaseModel, EmailStr, field_validator, ConfigDict
 from app.database import UserRole
 
@@ -21,7 +21,7 @@ class UserUpdate(UserBase):
 
 class UserInDBBase(UserBase):
     model_config = ConfigDict(from_attributes=True)
-    
+
     id: Optional[int] = None
 
 class User(UserInDBBase):
@@ -43,9 +43,9 @@ class Token(BaseModel):
 
 class TokenPayload(BaseModel):
     model_config = ConfigDict(extra='ignore')
-    
+
     sub: Optional[int] = None
-    
+
     @field_validator('sub', mode='before')
     @classmethod
     def convert_sub_to_int(cls, v):

@@ -4,7 +4,7 @@ from pydantic import ConfigDict
 
 class Settings(BaseSettings):
     model_config = ConfigDict(env_file=".env")
-    
+
     PROJECT_NAME: str = "Continuum API"
     API_V1_STR: str = "/api/v1"
 

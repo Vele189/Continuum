@@ -163,5 +163,5 @@ def logout(
     """
     # Clear refresh token (idempotent - safe to call multiple times)
     user_service.update_refresh_token(db, current_user, None)
-    
+
     return {"message": "Logged out successfully"}
