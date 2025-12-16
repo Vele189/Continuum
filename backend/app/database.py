@@ -1,30 +1,52 @@
 # app/database.py
+# pylint: disable=not-callable
 import enum
 import logging
+
 from sqlalchemy import (
-    Boolean, Enum, Numeric, 
-    create_engine, Column, Integer, String, Float, 
-    ForeignKey, DateTime, Text, JSON, UniqueConstraint
+    Boolean,
+    Enum,
+    Numeric,
+    create_engine,
+    Column,
+    Integer,
+    String,
+    Float,
+    ForeignKey,
+    DateTime,
+    Text,
+    JSON,
+    UniqueConstraint
 )
 from sqlalchemy.orm import sessionmaker, relationship, declarative_base
 from sqlalchemy.sql import func
+
+from app.core.config import settings
 
 # --- Logger Setup ---
 try:
     from utils.logger import get_logger
 except ImportError:
-    logging.basicConfig(level=logging.INFO, format="%(levelname)s | [%(name)s] %(message)s")
-    def get_logger(name: str): return logging.getLogger(name)
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(levelname)s | [%(name)s] %(message)s"
+    )
+
+    def get_logger(name: str):
+        return logging.getLogger(name)
 
 logger = get_logger(__name__)
 
 
 # --- Database Configuration ---
-from app.core.config import settings
 DATABASE_URL = settings.DATABASE_URL
 
 # connect_args={"check_same_thread": False} is required for SQLite
-engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
+engine = create_engine(
+    DATABASE_URL,
+    connect_args={"check_same_thread": False}
+)
+# pylint: disable=invalid-name
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
@@ -70,11 +92,16 @@ class Client(Base):
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, nullable=False)
     email = Column(String, nullable=True, index=True)
-    
+
     # ADDED: index=True for frequently queried FK
     # ADDED: onupdate="CASCADE" for strict referential integrity
-    created_by = Column(Integer, ForeignKey("users.id", ondelete="SET NULL", onupdate="CASCADE"), nullable=True, index=True)
-    
+    created_by = Column(
+        Integer,
+        ForeignKey("users.id", ondelete="SET NULL", onupdate="CASCADE"),
+        nullable=True,
+        index=True
+    )
+
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     # Relationships
@@ -85,7 +112,12 @@ class Project(Base):
     __tablename__ = "projects"
 
     id = Column(Integer, primary_key=True, index=True)
-    client_id = Column(Integer, ForeignKey("clients.id", ondelete="CASCADE", onupdate="CASCADE"), nullable=False, index=True)
+    client_id = Column(
+        Integer,
+        ForeignKey("clients.id", ondelete="CASCADE", onupdate="CASCADE"),
+        nullable=False,
+        index=True
+    )
     name = Column(String, nullable=False)
     description = Column(Text, nullable=True)
     status = Column(String, default="active", index=True)
@@ -93,22 +125,41 @@ class Project(Base):
 
     # Relationships
     client = relationship("Client", back_populates="projects")
-    members = relationship("ProjectMember", back_populates="project", cascade="all, delete-orphan")
-    tasks = relationship("Task", back_populates="project", cascade="all, delete-orphan")
+    members = relationship(
+        "ProjectMember",
+        back_populates="project",
+        cascade="all, delete-orphan"
+    )
+    tasks = relationship(
+        "Task",
+        back_populates="project",
+        cascade="all, delete-orphan"
+    )
     logged_hours = relationship("LoggedHour", back_populates="project")
     git_contributions = relationship("GitContribution", back_populates="project")
 
 class ProjectMember(Base):
     __tablename__ = "project_members"
-    
-    # ADDED: Composite Unique Constraint to ensure a user isn't added to a project twice
+
+    # ADDED: Composite Unique Constraint
+    # Ensures a user isn't added to a project twice
     __table_args__ = (
         UniqueConstraint('project_id', 'user_id', name='uix_project_member'),
     )
 
     id = Column(Integer, primary_key=True, index=True)
-    project_id = Column(Integer, ForeignKey("projects.id", ondelete="CASCADE", onupdate="CASCADE"), nullable=False, index=True)
-    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE", onupdate="CASCADE"), nullable=False, index=True)
+    project_id = Column(
+        Integer,
+        ForeignKey("projects.id", ondelete="CASCADE", onupdate="CASCADE"),
+        nullable=False,
+        index=True
+    )
+    user_id = Column(
+        Integer,
+        ForeignKey("users.id", ondelete="CASCADE", onupdate="CASCADE"),
+        nullable=False,
+        index=True
+    )
     role = Column(String, default="member")
     added_at = Column(DateTime(timezone=True), server_default=func.now())
 
@@ -120,16 +171,30 @@ class Task(Base):
     __tablename__ = "tasks"
 
     id = Column(Integer, primary_key=True, index=True)
-    project_id = Column(Integer, ForeignKey("projects.id", ondelete="CASCADE", onupdate="CASCADE"), nullable=False, index=True)
+    project_id = Column(
+        Integer,
+        ForeignKey("projects.id", ondelete="CASCADE", onupdate="CASCADE"),
+        nullable=False,
+        index=True
+    )
     title = Column(String, nullable=False)
     description = Column(Text, nullable=True)
     status = Column(String, default="todo", index=True)
-    
+
     # Foreign Key with SET NULL on delete
-    assigned_to = Column(Integer, ForeignKey("users.id", ondelete="SET NULL", onupdate="CASCADE"), nullable=True, index=True)
-    
+    assigned_to = Column(
+        Integer,
+        ForeignKey("users.id", ondelete="SET NULL", onupdate="CASCADE"),
+        nullable=True,
+        index=True
+    )
+
     created_at = Column(DateTime(timezone=True), server_default=func.now())
-    updated_at = Column(DateTime(timezone=True), onupdate=func.now(), server_default=func.now())
+    updated_at = Column(
+        DateTime(timezone=True),
+        onupdate=func.now(),
+        server_default=func.now()
+    )
 
     # Relationships
     project = relationship("Project", back_populates="tasks")
@@ -140,9 +205,24 @@ class LoggedHour(Base):
     __tablename__ = "logged_hours"
 
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE", onupdate="CASCADE"), nullable=False, index=True)
-    task_id = Column(Integer, ForeignKey("tasks.id", ondelete="SET NULL", onupdate="CASCADE"), nullable=True, index=True)
-    project_id = Column(Integer, ForeignKey("projects.id", ondelete="CASCADE", onupdate="CASCADE"), nullable=False, index=True)
+    user_id = Column(
+        Integer,
+        ForeignKey("users.id", ondelete="CASCADE", onupdate="CASCADE"),
+        nullable=False,
+        index=True
+    )
+    task_id = Column(
+        Integer,
+        ForeignKey("tasks.id", ondelete="SET NULL", onupdate="CASCADE"),
+        nullable=True,
+        index=True
+    )
+    project_id = Column(
+        Integer,
+        ForeignKey("projects.id", ondelete="CASCADE", onupdate="CASCADE"),
+        nullable=False,
+        index=True
+    )
     hours = Column(Float, nullable=False)
     note = Column(Text, nullable=True)
     logged_at = Column(DateTime(timezone=True), server_default=func.now())
@@ -156,12 +236,22 @@ class GitContribution(Base):
     __tablename__ = "git_contributions"
 
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id", ondelete="SET NULL", onupdate="CASCADE"), nullable=True, index=True)
-    project_id = Column(Integer, ForeignKey("projects.id", ondelete="CASCADE", onupdate="CASCADE"), nullable=False, index=True)
-    
+    user_id = Column(
+        Integer,
+        ForeignKey("users.id", ondelete="SET NULL", onupdate="CASCADE"),
+        nullable=True,
+        index=True
+    )
+    project_id = Column(
+        Integer,
+        ForeignKey("projects.id", ondelete="CASCADE", onupdate="CASCADE"),
+        nullable=False,
+        index=True
+    )
+
     # Unique Constraint explicitly required
     commit_hash = Column(String, nullable=False, unique=True)
-    
+
     commit_message = Column(Text, nullable=True)
     branch = Column(String, nullable=True)
     committed_at = Column(DateTime(timezone=True), nullable=False)
@@ -187,7 +277,11 @@ def init_db():
         Base.metadata.create_all(bind=engine)
         logger.info("Database initialized successfully.")
     except Exception as e:
-        logger.error(f"FATAL DB ERROR: Could not complete schema creation: {e}", exc_info=True)
+        logger.error(
+            "FATAL DB ERROR: Could not complete schema creation: %s",
+            e,
+            exc_info=True
+        )
         raise e
 
 def get_db():
