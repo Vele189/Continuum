@@ -1,45 +1,60 @@
-import { Code2, MonitorPlay, Rocket } from 'lucide-react';
+import { motion, useInView } from 'framer-motion';
+import { useRef } from 'react';
 
 const TargetAudience = () => {
+  const ref = useRef(null);
+  const isInView = useInView(ref, { once: true, margin: "-50px" });
+
   const audiences = [
     {
-      icon: <Code2 className="w-8 h-8 text-white relative z-10" />,
       title: 'Engineering Teams',
-      description: 'Who need to track sprints, manage bugs, and link code to tasks seamlessly.'
+      description: 'Track sprints, manage bugs, and link code to tasks seamlessly. See exactly what your team is working on and when it ships.',
     },
     {
-      icon: <Rocket className="w-8 h-8 text-white relative z-10" />,
       title: 'Product Managers',
-      description: 'Who need visibility into roadmaps and progress without nagging engineers.'
+      description: 'Get visibility into roadmaps and progress without nagging engineers. Real-time updates and automated status reports.',
     },
     {
-      icon: <MonitorPlay className="w-8 h-8 text-white relative z-10" />,
-      title: 'Startups',
-      description: 'Who need a tool that scales from the first MVP to global enterprise deployment.'
+      title: 'Freelancers & Startups',
+      description: 'Scale from your first MVP to global enterprise. One tool that grows with you, from solo freelancer to full team.',
     }
   ];
 
   return (
-    <section id="audience" className="py-20 bg-primary-950 text-white">
-      <div className="container mx-auto px-6">
-        <div className="text-center mb-16">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">Who is Continuum for?</h2>
-          <p className="text-primary-200/80 max-w-2xl mx-auto text-lg">
-            Built specifically for those who build the future.
+    <section id="audience" className="py-24 bg-white">
+      <div className="container mx-auto px-6 max-w-5xl" ref={ref}>
+        {/* Section Header */}
+        <motion.div
+          className="text-center mb-16"
+          initial={{ opacity: 0, y: 20 }}
+          animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
+          transition={{ duration: 0.6 }}
+        >
+          <h2 className="text-3xl md:text-4xl font-light text-gray-900 mb-4 tracking-tight">
+            Built for modern teams
+          </h2>
+          <p className="text-lg text-gray-600 max-w-2xl mx-auto font-light">
+            Whether you're a solo freelancer or a growing team, Continuum adapts to your workflow.
           </p>
-        </div>
+        </motion.div>
 
+        {/* Audience Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {audiences.map((item, index) => (
-            <div key={index} className="bg-white/5 border border-white/10 p-8 rounded-2xl backdrop-blur-sm hover:bg-white/10 transition-colors">
-              <div className="w-14 h-14 rounded-xl bg-primary-600 flex items-center justify-center mb-6 shadow-lg shadow-primary-500/20">
-                {item.icon}
-              </div>
-              <h3 className="text-xl font-bold mb-3">{item.title}</h3>
-              <p className="text-primary-100/70 leading-relaxed">
+            <motion.div
+              key={index}
+              initial={{ opacity: 0, y: 20 }}
+              animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
+              transition={{ delay: index * 0.1, duration: 0.6 }}
+              className="border-t border-gray-200 pt-6"
+            >
+              <h3 className="text-lg font-medium text-gray-900 mb-3">
+                {item.title}
+              </h3>
+              <p className="text-gray-600 leading-relaxed font-light">
                 {item.description}
               </p>
-            </div>
+            </motion.div>
           ))}
         </div>
       </div>
@@ -48,9 +63,3 @@ const TargetAudience = () => {
 };
 
 export default TargetAudience;
-
-
-
-
-
-
