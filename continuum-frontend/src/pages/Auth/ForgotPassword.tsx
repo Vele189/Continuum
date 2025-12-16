@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState('');
@@ -18,7 +19,7 @@ const ForgotPassword = () => {
       // This for simulating an API call for now till BE is good
       await new Promise(resolve => setTimeout(resolve, 1500));
       setSuccess(true);
-    } catch (err) {
+    } catch {
       setError('Failed to send reset link. Please try again.');
     } finally {
       setLoading(false);
@@ -103,7 +104,7 @@ const ForgotPassword = () => {
             </button>
 
             <div className="text-sm text-gray-600 text-center">
-              Remember your password? <a href="/login" className="text-blue-600 font-medium no-underline hover:underline">Login</a>
+              Remember your password? <Link to="/login" className="text-blue-600 font-medium no-underline hover:underline">Login</Link>
             </div>
           </div>
         )}

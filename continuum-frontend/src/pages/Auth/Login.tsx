@@ -117,7 +117,7 @@ const Login = () => {
               {error}
             </div>
           )}
-<Link to="/forgotpassword" className="text-sm text-blue-600 no-underline hover:underline">
+<Link to="/forgot-password" className="text-sm text-blue-600 no-underline hover:underline">
                 Forgot Password?
               </Link>
           
@@ -138,7 +138,7 @@ const Login = () => {
         </p>
 
         <div className="text-sm text-gray-600 text-center">
-          Don't have an account? <a href="\register" className="text-blue-600 font-medium no-underline hover:underline">Sign up</a>
+          Don't have an account? <Link to="/register" className="text-blue-600 font-medium no-underline hover:underline">Sign up</Link>
         </div>
       </div>
     </div>

@@ -1,30 +1,28 @@
 from typing import Optional
-from pydantic import BaseModel, EmailStr
-from app.models.user import UserRole
+from pydantic import BaseModel, EmailStr, field_validator, ConfigDict
+from app.database import UserRole
 
 # Shared properties
 class UserBase(BaseModel):
     email: Optional[EmailStr] = None
-    first_name: Optional[str] = None
-    last_name: Optional[str] = None
+    first_name: str
+    last_name: str
     role: Optional[UserRole] = UserRole.FRONTEND
 
 # Properties to receive via API on creation
 class UserCreate(UserBase):
     email: EmailStr
     password: str
-    first_name: str
-    last_name: str
+
 
 # Properties to receive via API on update
 class UserUpdate(UserBase):
     password: Optional[str] = None
 
 class UserInDBBase(UserBase):
+    model_config = ConfigDict(from_attributes=True)
+
     id: Optional[int] = None
-    
-    class Config:
-        orm_mode = True
 
 class User(UserInDBBase):
     pass
@@ -44,7 +42,22 @@ class Token(BaseModel):
     refresh_token: str
 
 class TokenPayload(BaseModel):
+    model_config = ConfigDict(extra='ignore')
+
     sub: Optional[int] = None
+
+    @field_validator('sub', mode='before')
+    @classmethod
+    def convert_sub_to_int(cls, v):
+        """Allow sub to be string or int, convert string to int"""
+        if v is None:
+            return None
+        if isinstance(v, str):
+            try:
+                return int(v)
+            except ValueError:
+                return v
+        return v
 
 # Password Reset Schemas
 class PasswordResetRequest(BaseModel):

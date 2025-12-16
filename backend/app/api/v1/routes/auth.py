@@ -1,7 +1,7 @@
-from datetime import timedelta
 from typing import Any
-from pydantic import ValidationError
 
+from jose import jwt, JWTError
+from pydantic import ValidationError
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
@@ -9,17 +9,15 @@ from sqlalchemy.orm import Session
 from app.api import deps
 from app.core import security
 from app.core.config import settings
-from app.schemas.user import Token, UserLogin, User, TokenPayload, PasswordResetConfirm
+from app.schemas.user import Token, UserLogin, TokenPayload, PasswordResetConfirm
 from app.services import user as user_service
-from app.models.user import User
-
-from jose import jwt, JWTError
+from app.database import User
 
 router = APIRouter()
 
 @router.post("/refresh-token", response_model=Token)
-def refresh_token(
-    refresh_token: str,
+def refresh_access_token(
+    refresh_token: str,  # pylint: disable=redefined-outer-name
     db: Session = Depends(deps.get_db),
 ) -> Any:
     """
@@ -30,34 +28,34 @@ def refresh_token(
             refresh_token, settings.SECRET_KEY, algorithms=[security.ALGORITHM]
         )
         token_data = TokenPayload(**payload)
-        
+
         # Verify it's a refresh token
         if payload.get("type") != "refresh":
-             raise HTTPException(
+            raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Invalid token type",
             )
-            
-    except (JWTError, ValidationError):
+
+    except (JWTError, ValidationError) as exc:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Could not validate credentials",
-        )
-        
+        ) from exc
+
     user = db.query(User).filter(User.id == token_data.sub).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
-        
+
     # Validate token against stored token
     if user.refresh_token != refresh_token:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Invalid refresh token",
         )
-        
-    access_token = security.create_access_token({"sub": str(user.id)})
-    new_refresh_token = security.create_refresh_token({"sub": str(user.id)})
-    
+
+    access_token = security.create_access_token({"sub": user.id})
+    new_refresh_token = security.create_refresh_token({"sub": user.id})
+
     # Update stored refresh token
     user_service.update_refresh_token(db, user, new_refresh_token)
 
@@ -80,19 +78,17 @@ def login(
     )
     if not user:
         raise HTTPException(status_code=400, detail="Incorrect email or password")
-    
-    access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
-    
-    access_token = security.create_access_token({"sub": str(user.id)})
-    refresh_token = security.create_refresh_token({"sub": str(user.id)})
-    
+
+    access_token = security.create_access_token({"sub": user.id})
+    new_refresh_token = security.create_refresh_token({"sub": user.id})
+
     # Store refresh token in DB
-    user_service.update_refresh_token(db, user, refresh_token)
-    
+    user_service.update_refresh_token(db, user, new_refresh_token)
+
     return {
         "access_token": access_token,
         "token_type": "bearer",
-        "refresh_token": refresh_token,
+        "refresh_token": new_refresh_token,
     }
 
 @router.post("/login/access-token", response_model=Token)
@@ -103,23 +99,22 @@ def login_access_token(
     OAuth2 compatible token login, get an access token for future requests
     """
     user = user_service.authenticate(
-        db, email=form_data.username, # OAuth2 spec uses 'username', mapping to email
+        db, email=form_data.username,  # OAuth2 spec uses 'username', mapping to email
         password=form_data.password
     )
     if not user:
         raise HTTPException(status_code=400, detail="Incorrect email or password")
-    access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
-    
-    access_token = security.create_access_token({"sub": str(user.id)})
-    refresh_token = security.create_refresh_token({"sub": str(user.id)})
-    
+
+    access_token = security.create_access_token({"sub": user.id})
+    new_refresh_token = security.create_refresh_token({"sub": user.id})
+
     # Store refresh token in DB
-    user_service.update_refresh_token(db, user, refresh_token)
-    
+    user_service.update_refresh_token(db, user, new_refresh_token)
+
     return {
         "access_token": access_token,
         "token_type": "bearer",
-        "refresh_token": refresh_token,
+        "refresh_token": new_refresh_token,
     }
 
 
@@ -129,12 +124,12 @@ def recover_password(email: str, db: Session = Depends(deps.get_db)) -> Any:
     Password Recovery
     """
     user = user_service.initiate_password_reset(db, email=email)
-    
+
     if not user:
         # Don't reveal if user exists or not for security
         # But for this task/development, let's just return success anyway
         pass
-        
+
     return {"message": "If this email exists, a password reset token has been sent."}
 
 
@@ -155,3 +150,18 @@ def reset_password(
             detail="Invalid or expired token.",
         )
     return {"message": "Password updated successfully"}
+
+
+@router.post("/logout", response_model=dict)
+def logout(
+    current_user: User = Depends(deps.get_current_user),
+    db: Session = Depends(deps.get_db),
+) -> Any:
+    """
+    Logout user by invalidating refresh token.
+    Idempotent: can be called multiple times safely.
+    """
+    # Clear refresh token (idempotent - safe to call multiple times)
+    user_service.update_refresh_token(db, current_user, None)
+
+    return {"message": "Logged out successfully"}
