@@ -215,6 +215,37 @@
 						"description": "Reset password using token from email"
 					},
 					"response": []
+				},
+				{
+					"name": "Logout",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/auth/logout",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"auth",
+								"logout"
+							]
+						},
+						"description": "Logout user by invalidating refresh token. Idempotent - can be called multiple times safely."
+					},
+					"response": []
 				}
 			],
 			"description": "Authentication endpoints"

@@ -43,7 +43,7 @@ def authenticate(db: Session, email: str, password: str) -> Optional[User]:
         return None
     return user
 
-def update_refresh_token(db: Session, user: User, token: str) -> User:
+def update_refresh_token(db: Session, user: User, token: Optional[str]) -> User:
     user.refresh_token = token
     db.add(user)
     db.commit()
