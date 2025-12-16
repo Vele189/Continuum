@@ -2,6 +2,16 @@ import { motion, useMotionValue, useSpring } from 'framer-motion';
 import { useEffect, useState } from 'react';
 import GravityText from '../GravityText';
 
+// Generate particles outside the component to avoid impure function calls during render
+const generateParticles = () =>
+  Array.from({ length: 20 }, (_, i) => ({
+    id: i,
+    x: Math.random() * 100,
+    y: Math.random() * 100,
+    size: Math.random() * 3 + 1,
+    opacity: Math.random() * 0.3 + 0.1,
+  }));
+
 const Hero = () => {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const [isHovering, setIsHovering] = useState(true);
@@ -42,14 +52,8 @@ const Hero = () => {
     };
   }, [cursorX, cursorY]);
 
-  // Generate particles
-  const particles = Array.from({ length: 20 }, (_, i) => ({
-    id: i,
-    x: Math.random() * 100,
-    y: Math.random() * 100,
-    size: Math.random() * 3 + 1,
-    opacity: Math.random() * 0.3 + 0.1,
-  }));
+  // Use lazy state initialization to generate particles only once
+  const [particles] = useState(generateParticles);
 
   return (
     <section className="min-h-screen flex items-center justify-center bg-white pt-20 pb-20 relative overflow-hidden">
