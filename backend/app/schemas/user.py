@@ -15,9 +15,20 @@ class UserCreate(UserBase):
     password: str
 
 
-# Properties to receive via API on update
-class UserUpdate(UserBase):
-    password: Optional[str] = None
+# Properties to receive via API on update (for profile update)
+class UserUpdate(BaseModel):
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
+    hourly_rate: Optional[float] = None
+    display_name: Optional[str] = None
+
+    @field_validator('hourly_rate')
+    @classmethod
+    def validate_hourly_rate(cls, v):
+        """Validate that hourly_rate is positive if provided"""
+        if v is not None and v < 0:
+            raise ValueError('hourly_rate must be positive')
+        return v
 
 class UserInDBBase(UserBase):
     model_config = ConfigDict(from_attributes=True)
@@ -25,7 +36,8 @@ class UserInDBBase(UserBase):
     id: Optional[int] = None
 
 class User(UserInDBBase):
-    pass
+    hourly_rate: Optional[float] = None
+    display_name: Optional[str] = None
 
 class UserInDB(UserInDBBase):
     hashed_password: str

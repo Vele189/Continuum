@@ -334,7 +334,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"first_name\": \"Jane\",\n    \"last_name\": \"Doe\",\n    \"hourly_rate\": 75.00\n}",
+							"raw": "{\n    \"first_name\": \"Jane\",\n    \"last_name\": \"Doe\",\n    \"hourly_rate\": 75.00,\n    \"display_name\": \"Jane D.\"\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -353,7 +353,7 @@
 								"me"
 							]
 						},
-						"description": "Update current user profile (to be implemented)"
+						"description": "Update current user profile. All fields are optional: first_name, last_name, hourly_rate, display_name"
 					},
 					"response": []
 				}
