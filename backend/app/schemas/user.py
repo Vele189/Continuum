@@ -93,10 +93,10 @@ class PasswordResetConfirm(BaseModel):
 class PasswordChangeRequest(BaseModel):
     current_password: str
     new_password: str
-    
+
     @field_validator('new_password')
     @classmethod
-    def validate_new_password(cls, v, info):
+    def validate_new_password(cls, v):
         """Validate that new password meets security requirements"""
         if len(v) < 8:
             raise ValueError('Password must be at least 8 characters long')
