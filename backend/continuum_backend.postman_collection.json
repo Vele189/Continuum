@@ -308,7 +308,7 @@
 								"me"
 							]
 						},
-						"description": "Get current authenticated user profile (to be implemented)"
+						"description": "Get current authenticated user profile. Returns full user object including id, email, first_name, last_name, role, hourly_rate, display_name, is_verified, and created_at. Requires Bearer token authentication."
 					},
 					"response": []
 				},
