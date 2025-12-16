@@ -11,7 +11,7 @@ from app.core import security
 from app.core.config import settings
 from app.schemas.user import Token, UserLogin, TokenPayload, PasswordResetConfirm
 from app.services import user as user_service
-from app.models.user import User
+from app.database import User
 
 router = APIRouter()
 
@@ -53,8 +53,8 @@ def refresh_access_token(
             detail="Invalid refresh token",
         )
 
-    access_token = security.create_access_token({"sub": str(user.id)})
-    new_refresh_token = security.create_refresh_token({"sub": str(user.id)})
+    access_token = security.create_access_token({"sub": user.id})
+    new_refresh_token = security.create_refresh_token({"sub": user.id})
 
     # Update stored refresh token
     user_service.update_refresh_token(db, user, new_refresh_token)
@@ -79,8 +79,8 @@ def login(
     if not user:
         raise HTTPException(status_code=400, detail="Incorrect email or password")
 
-    access_token = security.create_access_token({"sub": str(user.id)})
-    new_refresh_token = security.create_refresh_token({"sub": str(user.id)})
+    access_token = security.create_access_token({"sub": user.id})
+    new_refresh_token = security.create_refresh_token({"sub": user.id})
 
     # Store refresh token in DB
     user_service.update_refresh_token(db, user, new_refresh_token)
@@ -105,8 +105,8 @@ def login_access_token(
     if not user:
         raise HTTPException(status_code=400, detail="Incorrect email or password")
 
-    access_token = security.create_access_token({"sub": str(user.id)})
-    new_refresh_token = security.create_refresh_token({"sub": str(user.id)})
+    access_token = security.create_access_token({"sub": user.id})
+    new_refresh_token = security.create_refresh_token({"sub": user.id})
 
     # Store refresh token in DB
     user_service.update_refresh_token(db, user, new_refresh_token)
@@ -150,3 +150,18 @@ def reset_password(
             detail="Invalid or expired token.",
         )
     return {"message": "Password updated successfully"}
+
+
+@router.post("/logout", response_model=dict)
+def logout(
+    current_user: User = Depends(deps.get_current_user),
+    db: Session = Depends(deps.get_db),
+) -> Any:
+    """
+    Logout user by invalidating refresh token.
+    Idempotent: can be called multiple times safely.
+    """
+    # Clear refresh token (idempotent - safe to call multiple times)
+    user_service.update_refresh_token(db, current_user, None)
+
+    return {"message": "Logged out successfully"}

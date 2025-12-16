@@ -1,7 +1,7 @@
 from fastapi.testclient import TestClient
 from app.core.config import settings
 from app.db.session import SessionLocal
-from app.models.user import User, UserRole
+from app.database import User, UserRole
 
 def create_and_login_user(client: TestClient, email: str, role: UserRole):
     # Register/Create user manually to set role

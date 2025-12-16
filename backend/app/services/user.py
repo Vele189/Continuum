@@ -3,7 +3,7 @@ import uuid
 from sqlalchemy.orm import Session
 
 from app.core.security import hash_password, verify_password
-from app.models.user import User
+from app.database import User
 from app.schemas.user import UserCreate
 
 def get_by_email(db: Session, email: str) -> Optional[User]:
@@ -12,6 +12,8 @@ def get_by_email(db: Session, email: str) -> Optional[User]:
 def create(db: Session, obj_in: UserCreate) -> User:
     verification_token = str(uuid.uuid4())
     db_obj = User(
+        username=obj_in.email,
+        display_name=f"{obj_in.first_name} {obj_in.last_name}",
         email=obj_in.email,
         hashed_password=hash_password(obj_in.password),
         first_name=obj_in.first_name,
@@ -41,7 +43,7 @@ def authenticate(db: Session, email: str, password: str) -> Optional[User]:
         return None
     return user
 
-def update_refresh_token(db: Session, user: User, token: str) -> User:
+def update_refresh_token(db: Session, user: User, token: Optional[str]) -> User:
     user.refresh_token = token
     db.add(user)
     db.commit()

@@ -3,8 +3,8 @@ services:
   backend:
     build: ./backend
     container_name: continuum-backend
-    # ports:
-    #   - "8000:8000"  # Commented out to avoid port conflicts - frontend communicates via Docker network
+    ports:
+      - "8001:8000"  # Map to 8001 on host to avoid conflict with jc-backend
     volumes:
       - ./backend:/app  # maps local backend folder for live code changes
     restart: unless-stopped
