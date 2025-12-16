@@ -1,7 +1,7 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from app.api import deps
-from app.schemas.user import UserCreate, UserUpdate, User
+from app.schemas.user import UserCreate, UserUpdate, User, PasswordChangeRequest
 from app.services import user as user_service
 from app.database import User as UserModel
 
@@ -69,3 +69,33 @@ def update_user_profile(
     """
     updated_user = user_service.update_profile(db, current_user, user_update)
     return updated_user
+
+
+@router.patch("/me/password")
+def change_password(
+    password_change: PasswordChangeRequest,
+    current_user: UserModel = Depends(deps.get_current_user),
+    db: Session = Depends(deps.get_db),
+):
+    """
+    Change current user's password.
+    
+    Requires authentication. Users must provide their current password
+    and a new password that meets security requirements.
+    The user remains logged in after password change.
+    """
+    # Attempt to change password
+    updated_user = user_service.change_password(
+        db, 
+        current_user, 
+        password_change.current_password,
+        password_change.new_password
+    )
+    
+    if not updated_user:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Current password is incorrect",
+        )
+    
+    return {"message": "Password updated successfully"}

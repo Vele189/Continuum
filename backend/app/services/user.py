@@ -104,3 +104,16 @@ def update_profile(db: Session, user: User, user_update: UserUpdate) -> User:
     db.commit()
     db.refresh(user)
     return user
+
+def change_password(db: Session, user: User, current_password: str, new_password: str) -> Optional[User]:
+    """Change user password after verifying current password"""
+    # Verify current password
+    if not verify_password(current_password, user.hashed_password):
+        return None
+    
+    # Hash and update new password
+    user.hashed_password = hash_password(new_password)
+    db.add(user)
+    db.commit()
+    db.refresh(user)
+    return user

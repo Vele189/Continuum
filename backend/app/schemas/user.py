@@ -38,10 +38,6 @@ class UserInDBBase(UserBase):
     id: Optional[int] = None
 
 class User(UserInDBBase):
-<<<<<<< HEAD
-    hourly_rate: Optional[float] = None
-    display_name: Optional[str] = None
-=======
     """Full user response with all public fields"""
     id: int
     email: EmailStr
@@ -52,7 +48,6 @@ class User(UserInDBBase):
     display_name: str
     is_verified: bool
     created_at: datetime
->>>>>>> User-Profile-Part-A
 
 class UserInDB(UserInDBBase):
     hashed_password: str
@@ -93,3 +88,16 @@ class PasswordResetRequest(BaseModel):
 class PasswordResetConfirm(BaseModel):
     token: str
     new_password: str
+
+# Password Change Schema
+class PasswordChangeRequest(BaseModel):
+    current_password: str
+    new_password: str
+    
+    @field_validator('new_password')
+    @classmethod
+    def validate_new_password(cls, v, info):
+        """Validate that new password meets security requirements"""
+        if len(v) < 8:
+            raise ValueError('Password must be at least 8 characters long')
+        return v
