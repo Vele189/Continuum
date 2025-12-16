@@ -3,8 +3,22 @@ from sqlalchemy.orm import Session
 from app.api import deps
 from app.schemas.user import UserCreate, User
 from app.services import user as user_service
+from app.database import User as UserModel
 
 router = APIRouter()
+
+@router.get("/me", response_model=User)
+def get_current_user_profile(
+    current_user: UserModel = Depends(deps.get_current_user),
+):
+    """
+    Get current authenticated user's profile.
+    
+    Returns the full user profile for the currently authenticated user.
+    No user ID is required - the user is identified from the JWT token.
+    """
+    return current_user
+
 
 @router.post("/", response_model=User)
 def create_user(
