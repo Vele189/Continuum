@@ -4,6 +4,7 @@ import GravityText from '../GravityText';
 import FlexibleText from './FlexibleText';
 import HoverTimer from './HoverTimer';
 import MoneyRain from './MoneyRain';
+import ClientPortalEffect from './ClientPortalEffect';
 
 // Generate particles outside the component to avoid impure function calls during render
 const generateParticles = () =>
@@ -29,6 +30,7 @@ const Hero = ({ onVacuumStateChange }: HeroProps) => {
   const [isTimeTrackingHovered, setIsTimeTrackingHovered] = useState(false);
   const [isTaskManagementHovered, setIsTaskManagementHovered] = useState(false);
   const [isAutoInvoicingHovered, setIsAutoInvoicingHovered] = useState(false);
+  const [isClientPortalHovered, setIsClientPortalHovered] = useState(false);
 
   // Update global vacuum state when local hover state changes
   useEffect(() => {
@@ -251,6 +253,7 @@ const Hero = ({ onVacuumStateChange }: HeroProps) => {
       </div>
 
       <MoneyRain isActive={isAutoInvoicingHovered} />
+      <ClientPortalEffect isActive={isClientPortalHovered} />
       <div className="container mx-auto px-6 max-w-4xl relative z-10">
         <motion.div
           className="text-center"
@@ -305,7 +308,13 @@ const Hero = ({ onVacuumStateChange }: HeroProps) => {
               Auto Invoicing
             </span>
             <span className="text-gray-300">•</span>
-            <span>Client Portal</span>
+            <span
+              className="cursor-default transition-colors hover:text-gray-900"
+              onMouseEnter={() => setIsClientPortalHovered(true)}
+              onMouseLeave={() => setIsClientPortalHovered(false)}
+            >
+              Client Portal
+            </span>
           </div>
         </motion.div>
       </div>
