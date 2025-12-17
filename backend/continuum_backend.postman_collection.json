@@ -308,7 +308,7 @@
 								"me"
 							]
 						},
-						"description": "Get current authenticated user profile (to be implemented)"
+						"description": "Get current authenticated user profile. Returns full user object including id, email, first_name, last_name, role, hourly_rate, display_name, is_verified, and created_at. Requires Bearer token authentication."
 					},
 					"response": []
 				},
@@ -334,7 +334,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"first_name\": \"Jane\",\n    \"last_name\": \"Doe\",\n    \"hourly_rate\": 75.00\n}",
+							"raw": "{\n    \"first_name\": \"Jane\",\n    \"last_name\": \"Doe\",\n    \"hourly_rate\": 75.00,\n    \"display_name\": \"Jane D.\"\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -353,7 +353,53 @@
 								"me"
 							]
 						},
-						"description": "Update current user profile (to be implemented)"
+						"description": "Update current user profile. All fields are optional: first_name, last_name, hourly_rate, display_name"
+					},
+					"response": []
+				},
+				{
+					"name": "Change Password",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"current_password\": \"SecurePassword123!\",\n    \"new_password\": \"NewSecurePassword456!\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/users/me/password",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"users",
+								"me",
+								"password"
+							]
+						},
+						"description": "Change current user's password. Requires current password verification. User remains logged in after password change."
 					},
 					"response": []
 				}

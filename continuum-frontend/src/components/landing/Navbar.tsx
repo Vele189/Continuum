@@ -1,9 +1,13 @@
 import { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
+import { Menu, X } from 'lucide-react';
 import logo from '../../assets/logo.png';
+import MagneticButton from '../MagneticButton';
 
 const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -14,56 +18,130 @@ const Navbar = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  const navItems = [
+    { label: 'Features', href: '#features' },
+    { label: 'About', href: '#audience' },
+  ];
+
+  const handleNavClick = (href: string) => {
+    if (href.startsWith('#')) {
+      const element = document.querySelector(href);
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth' });
+      }
+    }
+    setIsMobileMenuOpen(false);
+  };
+
   return (
-    <nav 
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        isScrolled 
-          ? 'bg-white/90 backdrop-blur-md shadow-sm py-4' 
-          : 'bg-white/50 backdrop-blur-sm py-6'
-      }`}
+    <motion.nav
+      initial={{ y: -100 }}
+      animate={{ y: 0 }}
+      transition={{ duration: 0.4 }}
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-200 ${isScrolled
+        ? 'bg-white/95 backdrop-blur-sm border-b border-gray-200 py-4'
+        : 'bg-white/80 backdrop-blur-sm py-6'
+        }`}
     >
-      <div className="container mx-auto px-6 flex items-center justify-between relative">
-        <div className="hidden md:flex items-center gap-8 w-1/3">
-          {['Features', 'About'].map((item) => (
-            <a 
-              key={item} 
-              href={`#${item.toLowerCase()}`}
-              className="text-sm font-medium transition-colors hover:text-primary-600 text-gray-600"
+      <div className="container mx-auto px-6 flex items-center justify-between max-w-7xl">
+        {/* Logo */}
+        <Link to="/" className="flex items-center gap-3">
+          <img src={logo} alt="Continuum Logo" className="h-8 w-auto" />
+          <span className="text-xl font-medium text-gray-900 tracking-tight">
+            Continuum
+          </span>
+        </Link>
+
+        {/* Desktop Navigation */}
+        <div className="hidden md:flex items-center gap-8">
+          {navItems.map((item) => (
+            <a
+              key={item.label}
+              href={item.href}
+              onClick={(e) => {
+                e.preventDefault();
+                handleNavClick(item.href);
+              }}
+              className="text-sm text-gray-600 hover:text-gray-900 transition-colors font-medium"
             >
-              {item}
+              {item.label}
             </a>
           ))}
         </div>
 
-        <div className="flex items-center gap-4 justify-center absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 md:static md:translate-x-0 md:translate-y-0 md:w-1/3 md:justify-center">
-          <img src={logo} alt="Continuum Logo" className="h-16 md:h-20 w-auto drop-shadow-sm transition-all" />
-          <span className="text-3xl md:text-5xl font-bold tracking-tighter text-gray-900 transition-all">
-            Continuum
-          </span>
-        </div>
+        {/* Right Side */}
+        <div className="flex items-center gap-4">
+          <MagneticButton>
+            <Link
+              to="/login"
+              className="hidden md:block text-sm text-gray-600 hover:text-gray-900 transition-colors font-medium px-4 py-2" // Added padding for magnetic feel
+            >
+              Log in
+            </Link>
+          </MagneticButton>
+          <MagneticButton>
+            <Link
+              to="/register"
+              className="px-4 py-2 bg-gray-900 hover:bg-gray-800 text-white text-sm font-medium transition-colors rounded-lg" // Added rounded-lg
+            >
+              Get Started
+            </Link>
+          </MagneticButton>
 
-        <div className="flex items-center gap-4 w-1/3 justify-end">
-          <Link 
-            to="/login" 
-            className="hidden md:block text-sm font-medium transition-colors hover:text-primary-600 text-gray-900"
+          {/* Mobile Menu Button */}
+          <button
+            className="md:hidden p-2 text-gray-600 hover:text-gray-900 transition-colors"
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            aria-label="Toggle menu"
           >
-            Log in
-          </Link>
-          <Link 
-            to="/register"
-            className="bg-primary-600 hover:bg-primary-700 text-white px-5 py-2.5 rounded-full text-sm font-semibold transition-all shadow-lg hover:shadow-primary-500/25 cursor-pointer"
-          >
-            Get Started
-          </Link>
+            {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+          </button>
         </div>
       </div>
-    </nav>
+
+      {/* Mobile Menu */}
+      {isMobileMenuOpen && (
+        <motion.div
+          initial={{ opacity: 0, height: 0 }}
+          animate={{ opacity: 1, height: 'auto' }}
+          exit={{ opacity: 0, height: 0 }}
+          className="md:hidden bg-white border-t border-gray-200"
+        >
+          <div className="container mx-auto px-6 py-6 space-y-4">
+            {navItems.map((item) => (
+              <a
+                key={item.label}
+                href={item.href}
+                onClick={(e) => {
+                  e.preventDefault();
+                  handleNavClick(item.href);
+                }}
+                className="block text-base text-gray-600 hover:text-gray-900 transition-colors py-2"
+              >
+                {item.label}
+              </a>
+            ))}
+            <div className="pt-4 border-t border-gray-200 space-y-3">
+              <Link
+                to="/login"
+                className="block text-center py-2 text-gray-600 hover:text-gray-900 transition-colors"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                Log in
+              </Link>
+              <Link
+                to="/register"
+                className="block text-center py-2 bg-gray-900 text-white transition-colors"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                Get Started
+              </Link>
+            </div>
+          </div>
+        </motion.div>
+      )}
+    </motion.nav>
   );
 };
 
 export default Navbar;
-
-
-
-
-
