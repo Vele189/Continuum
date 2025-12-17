@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from 'framer-motion';
-import { FileText, MessageSquare, CheckCircle2, User, CreditCard } from 'lucide-react';
+import { FileText, MessageSquare, CheckCircle2, CreditCard } from 'lucide-react';
 
 interface ClientPortalEffectProps {
     isActive: boolean;
