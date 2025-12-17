@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import GravityText from '../GravityText';
 import FlexibleText from './FlexibleText';
 import HoverTimer from './HoverTimer';
+import MoneyRain from './MoneyRain';
 
 // Generate particles outside the component to avoid impure function calls during render
 const generateParticles = () =>
@@ -27,6 +28,7 @@ const Hero = ({ onVacuumStateChange }: HeroProps) => {
   const [isHovering, setIsHovering] = useState(true);
   const [isTimeTrackingHovered, setIsTimeTrackingHovered] = useState(false);
   const [isTaskManagementHovered, setIsTaskManagementHovered] = useState(false);
+  const [isAutoInvoicingHovered, setIsAutoInvoicingHovered] = useState(false);
 
   // Update global vacuum state when local hover state changes
   useEffect(() => {
@@ -248,6 +250,7 @@ const Hero = ({ onVacuumStateChange }: HeroProps) => {
         </motion.svg>
       </div>
 
+      <MoneyRain isActive={isAutoInvoicingHovered} />
       <div className="container mx-auto px-6 max-w-4xl relative z-10">
         <motion.div
           className="text-center"
@@ -294,14 +297,20 @@ const Hero = ({ onVacuumStateChange }: HeroProps) => {
               Task Management
             </span>
             <span className="text-gray-300">•</span>
-            <span>Auto Invoicing</span>
+            <span
+              className="relative inline-block cursor-default transition-colors hover:text-gray-900"
+              onMouseEnter={() => setIsAutoInvoicingHovered(true)}
+              onMouseLeave={() => setIsAutoInvoicingHovered(false)}
+            >
+              Auto Invoicing
+            </span>
             <span className="text-gray-300">•</span>
             <span>Client Portal</span>
           </div>
         </motion.div>
       </div>
 
-      <HoverTimer isActive={isTimeTrackingHovered} />
+      <HoverTimer isActive={isTimeTrackingHovered || isAutoInvoicingHovered} />
     </section>
   );
 };
