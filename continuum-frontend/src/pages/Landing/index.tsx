@@ -1,16 +1,14 @@
-import { Navbar, Hero, HowTo, TargetAudience, Features, Footer } from '../../components/landing';
+import { Navbar, Hero } from '../../components/landing';
+import CursorGravity from '../../components/CursorGravity';
 
 const Landing = () => {
   return (
-    <div className="min-h-screen bg-white font-sans text-gray-900">
-      <Navbar />
-      <main className="pt-28">
+    <div className="min-h-screen bg-white font-sans text-gray-900 overflow-x-hidden relative">
+      <CursorGravity />
+      <div className="relative z-10">
+        <Navbar />
         <Hero />
-        <HowTo />
-        <TargetAudience />
-        <Features />
-      </main>
-      <Footer />
+      </div>
     </div>
   );
 };
