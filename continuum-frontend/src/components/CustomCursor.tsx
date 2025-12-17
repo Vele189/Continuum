@@ -1,7 +1,11 @@
 import { useEffect, useState } from 'react';
 import { motion, useMotionValue, useSpring } from 'framer-motion';
 
-const CustomCursor = () => {
+interface CustomCursorProps {
+    isVacuumActive?: boolean;
+}
+
+const CustomCursor = ({ isVacuumActive = false }: CustomCursorProps) => {
     const [isHovering, setIsHovering] = useState(false);
     const cursorX = useMotionValue(-100);
     const cursorY = useMotionValue(-100);
@@ -78,8 +82,8 @@ const CustomCursor = () => {
                     y: cursorYSpring,
                     translateX: '-50%',
                     translateY: '-50%',
-                    width: isHovering ? 48 : 24,
-                    height: isHovering ? 48 : 24,
+                    width: isVacuumActive ? 80 : isHovering ? 48 : 24,
+                    height: isVacuumActive ? 80 : isHovering ? 48 : 24,
                     opacity: 0.6,
                 }}
                 transition={{

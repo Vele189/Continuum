@@ -12,12 +12,39 @@ const generateParticles = () =>
     y: Math.random() * 100,
     size: Math.random() * 6 + 2, // Increased size: 2 to 8px
     opacity: Math.random() * 0.3 + 0.1,
+    splashX: (Math.random() - 0.5) * 300, // Random splash direction X
+    splashY: (Math.random() - 0.5) * 300, // Random splash direction Y
+    vacuumOffsetX: (Math.random() - 0.5) * 30, // Random offset when vacuumed
+    vacuumOffsetY: (Math.random() - 0.5) * 30, // Random offset when vacuumed
   }));
 
-const Hero = () => {
+interface HeroProps {
+  onVacuumStateChange?: (isActive: boolean) => void;
+}
+
+const Hero = ({ onVacuumStateChange }: HeroProps) => {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const [isHovering, setIsHovering] = useState(true);
   const [isTimeTrackingHovered, setIsTimeTrackingHovered] = useState(false);
+  const [isTaskManagementHovered, setIsTaskManagementHovered] = useState(false);
+
+  // Update global vacuum state when local hover state changes
+  useEffect(() => {
+    onVacuumStateChange?.(isTaskManagementHovered);
+  }, [isTaskManagementHovered, onVacuumStateChange]);
+
+  const [isSplashing, setIsSplashing] = useState(false);
+  // Track previous hover state to detect release
+  const [wasTaskManagementHovered, setWasTaskManagementHovered] = useState(false);
+
+  useEffect(() => {
+    if (!isTaskManagementHovered && wasTaskManagementHovered) {
+      setIsSplashing(true);
+      const timer = setTimeout(() => setIsSplashing(false), 500); // Splash duration
+      return () => clearTimeout(timer);
+    }
+    setWasTaskManagementHovered(isTaskManagementHovered);
+  }, [isTaskManagementHovered]);
 
   // Smooth spring values for slime blob
   const cursorX = useMotionValue(0);
@@ -69,8 +96,8 @@ const Hero = () => {
         }}
         initial={{ scale: 0, opacity: 0 }}
         animate={{
-          scale: isHovering ? 1 : 0.6,
-          opacity: isHovering ? 0.2 : 0.05,
+          scale: isTaskManagementHovered ? 2.5 : isHovering ? 1 : 0.6,
+          opacity: isTaskManagementHovered ? 0.4 : isHovering ? 0.2 : 0.05,
         }}
         transition={{ duration: 0.4 }}
       >
@@ -138,8 +165,17 @@ const Hero = () => {
       {/* Background particles that follow cursor */}
       <div className="absolute inset-0 pointer-events-none">
         {particles.map((particle) => {
-          const offsetX = (mousePosition.x / window.innerWidth - 0.5) * 30;
-          const offsetY = (mousePosition.y / window.innerHeight - 0.5) * 30;
+          // Standard parallax offset
+          const parallaxX = (mousePosition.x / window.innerWidth - 0.5) * 30;
+          const parallaxY = (mousePosition.y / window.innerHeight - 0.5) * 30;
+
+          // Vacuum offset: Calculate difference between mouse position and particle origin
+          // Particle origin in pixels approx:
+          const originX = (particle.x / 100) * window.innerWidth;
+          const originY = (particle.y / 100) * window.innerHeight;
+
+          const vacuumDeltaX = mousePosition.x - originX;
+          const vacuumDeltaY = mousePosition.y - originY;
 
           return (
             <motion.div
@@ -153,13 +189,20 @@ const Hero = () => {
                 opacity: particle.opacity,
               }}
               animate={{
-                x: offsetX * (particle.id % 3 === 0 ? 0.5 : particle.id % 3 === 1 ? 0.3 : 0.7),
-                y: offsetY * (particle.id % 3 === 0 ? 0.5 : particle.id % 3 === 1 ? 0.3 : 0.7),
+                x: isTaskManagementHovered ? vacuumDeltaX + (particle as any).vacuumOffsetX
+                  : isSplashing ? vacuumDeltaX + (particle as any).splashX
+                    : parallaxX * (particle.id % 3 === 0 ? 0.5 : particle.id % 3 === 1 ? 0.3 : 0.7),
+                y: isTaskManagementHovered ? vacuumDeltaY + (particle as any).vacuumOffsetY
+                  : isSplashing ? vacuumDeltaY + (particle as any).splashY
+                    : parallaxY * (particle.id % 3 === 0 ? 0.5 : particle.id % 3 === 1 ? 0.3 : 0.7),
+                scale: isTaskManagementHovered ? 0.6 : 1, // Stay visible but smaller
               }}
               transition={{
-                type: "spring",
-                stiffness: 50,
-                damping: 20,
+                type: isSplashing ? "tween" : "spring",
+                ease: isSplashing ? "easeOut" : undefined,
+                duration: isSplashing ? 0.4 : undefined,
+                stiffness: isTaskManagementHovered ? 20 : 50, // Much lower stiffness for slower movement
+                damping: isTaskManagementHovered ? 15 : 20, // Lower damping
               }}
             />
           );
@@ -243,7 +286,13 @@ const Hero = () => {
               Time Tracking
             </span>
             <span className="text-gray-300">•</span>
-            <span>Task Management</span>
+            <span
+              className="cursor-none transition-colors hover:text-gray-900"
+              onMouseEnter={() => setIsTaskManagementHovered(true)}
+              onMouseLeave={() => setIsTaskManagementHovered(false)}
+            >
+              Task Management
+            </span>
             <span className="text-gray-300">•</span>
             <span>Auto Invoicing</span>
             <span className="text-gray-300">•</span>

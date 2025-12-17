@@ -1,7 +1,62 @@
 import { useEffect, useRef } from 'react';
 
-const CursorGravity = () => {
+interface CursorGravityProps {
+    isVacuumActive?: boolean;
+}
+
+interface Particle {
+    x: number;
+    y: number;
+    vx: number;
+    vy: number;
+    radius: number;
+    originalRadius: number;
+    color: string;
+    originalX: number;
+    originalY: number;
+    friction: number;
+    springFactor: number;
+    update: () => void;
+    draw: () => void;
+}
+
+const CursorGravity = ({ isVacuumActive = false }: CursorGravityProps) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
+    const isVacuumActiveRef = useRef(isVacuumActive);
+    const particlesRef = useRef<Particle[]>([]);
+    const mouseRef = useRef({ x: -1000, y: -1000 });
+
+    // Keep ref in sync & handle splash
+    useEffect(() => {
+        // Trigger splash when vacuum stops
+        if (!isVacuumActive && isVacuumActiveRef.current) {
+            const lastMouseX = mouseRef.current.x;
+            const lastMouseY = mouseRef.current.y;
+
+            particlesRef.current.forEach((p) => {
+                p.radius = p.originalRadius; // Restore radius
+
+                // Calculate direction from last mouse position
+                const dx = p.x - lastMouseX;
+                const dy = p.y - lastMouseY;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+
+                // Apply an outward force
+                const explosionForce = 10 + Math.random() * 10; // Random force magnitude
+
+                // If very close to center, explosion is stronger and random direction
+                if (dist < 50) {
+                    const angle = Math.random() * Math.PI * 2;
+                    p.vx += Math.cos(angle) * (explosionForce * 1.5);
+                    p.vy += Math.sin(angle) * (explosionForce * 1.5);
+                } else {
+                    p.vx += (dx / dist) * explosionForce;
+                    p.vy += (dy / dist) * explosionForce;
+                }
+            });
+        }
+        isVacuumActiveRef.current = isVacuumActive;
+    }, [isVacuumActive]);
 
     useEffect(() => {
         const canvas = canvasRef.current;
@@ -16,19 +71,17 @@ const CursorGravity = () => {
         canvas.height = height;
 
         // Physics parameters
-        const PARTICLE_COUNT = 300; // Matter.js style often has many small items, but we'll use simple particles for "Google Gravity" feel
+        const PARTICLE_COUNT = 300;
         const CURSOR_RADIUS = 150;
         const MAX_VELOCITY = 15;
 
-        // Mouse state
-        const mouse = { x: -1000, y: -1000 };
-
-        class Particle {
+        class ParticleImpl implements Particle {
             x: number;
             y: number;
             vx: number;
             vy: number;
             radius: number;
+            originalRadius: number;
             color: string;
             originalX: number;
             originalY: number;
@@ -42,8 +95,8 @@ const CursorGravity = () => {
                 this.originalY = y;
                 this.vx = 0;
                 this.vy = 0;
-                this.radius = Math.random() * 2 + 1;
-                // Google Gravity style colors often simple, or we can use brand colors
+                this.originalRadius = Math.random() * 2 + 1;
+                this.radius = this.originalRadius;
                 const colors = ['#4285F4', '#EA4335', '#FBBC05', '#34A853', '#A0C3FF', '#FF9E9E'];
                 this.color = colors[Math.floor(Math.random() * colors.length)];
                 this.friction = 0.9 + Math.random() * 0.05;
@@ -51,38 +104,66 @@ const CursorGravity = () => {
             }
 
             update() {
-                const dx = mouse.x - this.x;
-                const dy = mouse.y - this.y;
+                const dx = mouseRef.current.x - this.x;
+                const dy = mouseRef.current.y - this.y;
                 const dist = Math.sqrt(dx * dx + dy * dy);
 
-                // Attraction to mouse (anti-gravity / magnetic feel)
-                // Or repulsion? The user said "follows my cursor around", but often "anti-gravity" implies falling/floating. 
-                // "Google Gravity" usually means everything falls down. "Anti-gravity" usually means floating.
-                // User said: "follows my cursor around" -> ATTRACTOR.
-
-                if (dist < CURSOR_RADIUS) {
-                    // Calculate force for attraction
-                    const force = (CURSOR_RADIUS - dist) / CURSOR_RADIUS;
+                if (isVacuumActiveRef.current) {
+                    // Global Vacuum Mode
                     const angle = Math.atan2(dy, dx);
-                    const fx = Math.cos(angle) * force * 2; // Strength
-                    const fy = Math.sin(angle) * force * 2;
+                    const force = 0.1; // Drastically reduced for gentle suction
 
-                    this.vx += fx;
-                    this.vy += fy;
+                    this.vx += Math.cos(angle) * force;
+                    this.vy += Math.sin(angle) * force;
+
+                    this.vx *= 0.95;
+                    this.vy *= 0.95;
+
+                    // "Caught" effect - slow down when close, don't shrink
+                    // Prevent collapsing to single point by adding short-range repulsion
+                    if (dist < 30) {
+                        this.vx *= 0.7;
+                        this.vy *= 0.7;
+                        // Push away slightly if TOO close
+                        if (dist < 10) {
+                            this.vx -= Math.cos(angle) * 2;
+                            this.vy -= Math.sin(angle) * 2;
+                        }
+                    }
+                } else {
+                    // Normal Mode
+                    // Restore radius slowly
+                    if (this.radius < this.originalRadius) {
+                        this.radius += 0.1;
+                    }
+
+                    // Return to original position (homing)
+                    const dxHome = this.originalX - this.x;
+                    const dyHome = this.originalY - this.y;
+
+                    this.vx += dxHome * this.springFactor;
+                    this.vy += dyHome * this.springFactor;
+
+                    // Mouse repulsion/attraction in normal mode
+                    if (dist < CURSOR_RADIUS) {
+                        const force = (CURSOR_RADIUS - dist) / CURSOR_RADIUS;
+                        const angle = Math.atan2(dy, dx);
+                        const fx = Math.cos(angle) * force * 2;
+                        const fy = Math.sin(angle) * force * 2;
+
+                        this.vx += fx;
+                        this.vy += fy;
+                    }
+
+                    this.vx *= 0.90; // Slightly more friction for stable return
+                    this.vy *= 0.90;
                 }
-
-                // Return to original position (elasticity) gives it structure, 
-                // OR we can let them flow freely. 
-                // Let's make them flow freely but with some drag to not explode.
-
-                // Simulating "space" drag
-                this.vx *= 0.95;
-                this.vy *= 0.95;
 
                 // Clamp velocity
                 const speed = Math.sqrt(this.vx * this.vx + this.vy * this.vy);
-                if (speed > MAX_VELOCITY) {
-                    const ratio = MAX_VELOCITY / speed;
+                const limit = isVacuumActiveRef.current ? 4 : MAX_VELOCITY; // Slower speed limit for vacuum
+                if (speed > limit) {
+                    const ratio = limit / speed;
                     this.vx *= ratio;
                     this.vy *= ratio;
                 }
@@ -90,13 +171,15 @@ const CursorGravity = () => {
                 this.x += this.vx;
                 this.y += this.vy;
 
-                // Bounce off walls
-                if (this.x < 0 || this.x > width) this.vx *= -1;
-                if (this.y < 0 || this.y > height) this.vy *= -1;
+                // Bounce off walls (only if NOT vacuuming)
+                if (!isVacuumActiveRef.current) {
+                    if (this.x < 0 || this.x > width) this.vx *= -1;
+                    if (this.y < 0 || this.y > height) this.vy *= -1;
+                }
             }
 
             draw() {
-                if (!ctx) return;
+                if (!ctx || this.radius <= 0) return;
                 ctx.beginPath();
                 ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
                 ctx.fillStyle = this.color;
@@ -105,15 +188,16 @@ const CursorGravity = () => {
             }
         }
 
-        // Initialize particles randomly
-        const particles: Particle[] = [];
-        for (let i = 0; i < PARTICLE_COUNT; i++) {
-            particles.push(new Particle(Math.random() * width, Math.random() * height));
+        // Initialize particles randomly if empty
+        if (particlesRef.current.length === 0) {
+            for (let i = 0; i < PARTICLE_COUNT; i++) {
+                particlesRef.current.push(new ParticleImpl(Math.random() * width, Math.random() * height));
+            }
         }
 
         const animate = () => {
             ctx.clearRect(0, 0, width, height);
-            particles.forEach(p => {
+            particlesRef.current.forEach((p) => {
                 p.update();
                 p.draw();
             });
@@ -128,15 +212,14 @@ const CursorGravity = () => {
         };
 
         const handleMouseMove = (e: MouseEvent) => {
-            mouse.x = e.clientX;
-            mouse.y = e.clientY;
+            mouseRef.current.x = e.clientX;
+            mouseRef.current.y = e.clientY;
         };
 
-        // For touch devices
         const handleTouchMove = (e: TouchEvent) => {
             if (e.touches.length > 0) {
-                mouse.x = e.touches[0].clientX;
-                mouse.y = e.touches[0].clientY;
+                mouseRef.current.x = e.touches[0].clientX;
+                mouseRef.current.y = e.touches[0].clientY;
             }
         }
 
@@ -160,5 +243,4 @@ const CursorGravity = () => {
         />
     );
 };
-
 export default CursorGravity;
