@@ -26,8 +26,12 @@ const HoverTimer = ({ isActive }: HoverTimerProps) => {
             if (requestRef.current) {
                 cancelAnimationFrame(requestRef.current);
             }
-            setTime(0);
-            startTimeRef.current = null;
+            // Use setTimeout to avoid synchronous setState in effect
+            const timer = setTimeout(() => {
+                setTime(0);
+                startTimeRef.current = null;
+            }, 0);
+            return () => clearTimeout(timer);
         }
 
         return () => {

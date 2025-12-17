@@ -23,8 +23,11 @@ const MagneticButton = ({
 
     useEffect(() => {
         if (disabled) {
-            setPosition({ x: 0, y: 0 });
-            return;
+            // Use setTimeout to avoid synchronous setState in effect
+            const timer = setTimeout(() => {
+                setPosition({ x: 0, y: 0 });
+            }, 0);
+            return () => clearTimeout(timer);
         }
 
         const handleMouseMove = (e: MouseEvent) => {

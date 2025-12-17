@@ -1,5 +1,5 @@
 import { motion, useMotionValue, useSpring } from 'framer-motion';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import GravityText from '../GravityText';
 import FlexibleText from './FlexibleText';
 import HoverTimer from './HoverTimer';
@@ -7,8 +7,20 @@ import MoneyRain from './MoneyRain';
 import ClientPortalEffect from './ClientPortalEffect';
 import TaskCompletedCard from './TaskCompletedCard';
 
+interface Particle {
+  id: number;
+  x: number;
+  y: number;
+  size: number;
+  opacity: number;
+  splashX: number;
+  splashY: number;
+  vacuumOffsetX: number;
+  vacuumOffsetY: number;
+}
+
 // Generate particles outside the component to avoid impure function calls during render
-const generateParticles = () =>
+const generateParticles = (): Particle[] =>
   Array.from({ length: 20 }, (_, i) => ({
     id: i,
     x: Math.random() * 100,
@@ -40,15 +52,19 @@ const Hero = ({ onVacuumStateChange }: HeroProps) => {
 
   const [isSplashing, setIsSplashing] = useState(false);
   // Track previous hover state to detect release
-  const [wasTaskManagementHovered, setWasTaskManagementHovered] = useState(false);
+  const wasTaskManagementHoveredRef = useRef(false);
 
   useEffect(() => {
-    if (!isTaskManagementHovered && wasTaskManagementHovered) {
-      setIsSplashing(true);
-      const timer = setTimeout(() => setIsSplashing(false), 500); // Splash duration
+    if (!isTaskManagementHovered && wasTaskManagementHoveredRef.current) {
+      // Use setTimeout to avoid synchronous setState in effect
+      const timer = setTimeout(() => {
+        setIsSplashing(true);
+        setTimeout(() => setIsSplashing(false), 500); // Splash duration
+      }, 0);
+      wasTaskManagementHoveredRef.current = isTaskManagementHovered;
       return () => clearTimeout(timer);
     }
-    setWasTaskManagementHovered(isTaskManagementHovered);
+    wasTaskManagementHoveredRef.current = isTaskManagementHovered;
   }, [isTaskManagementHovered]);
 
   const [showTaskCompletion, setShowTaskCompletion] = useState(false);
@@ -61,7 +77,10 @@ const Hero = ({ onVacuumStateChange }: HeroProps) => {
         setShowTaskCompletion(true);
       }, 1000);
     } else {
-      setShowTaskCompletion(false);
+      // Use setTimeout to avoid synchronous setState in effect
+      timer = setTimeout(() => {
+        setShowTaskCompletion(false);
+      }, 0);
     }
     return () => clearTimeout(timer);
   }, [isTaskManagementHovered]);
@@ -209,11 +228,11 @@ const Hero = ({ onVacuumStateChange }: HeroProps) => {
                 opacity: particle.opacity,
               }}
               animate={{
-                x: isTaskManagementHovered ? vacuumDeltaX + (particle as any).vacuumOffsetX
-                  : isSplashing ? vacuumDeltaX + (particle as any).splashX
+                x: isTaskManagementHovered ? vacuumDeltaX + particle.vacuumOffsetX
+                  : isSplashing ? vacuumDeltaX + particle.splashX
                     : parallaxX * (particle.id % 3 === 0 ? 0.5 : particle.id % 3 === 1 ? 0.3 : 0.7),
-                y: isTaskManagementHovered ? vacuumDeltaY + (particle as any).vacuumOffsetY
-                  : isSplashing ? vacuumDeltaY + (particle as any).splashY
+                y: isTaskManagementHovered ? vacuumDeltaY + particle.vacuumOffsetY
+                  : isSplashing ? vacuumDeltaY + particle.splashY
                     : parallaxY * (particle.id % 3 === 0 ? 0.5 : particle.id % 3 === 1 ? 0.3 : 0.7),
                 scale: isTaskManagementHovered ? 0.6 : 1, // Stay visible but smaller
               }}

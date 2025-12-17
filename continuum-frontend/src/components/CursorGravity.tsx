@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 
 interface CursorGravityProps {
     isVacuumActive?: boolean;
@@ -18,6 +18,143 @@ interface Particle {
     springFactor: number;
     update: () => void;
     draw: () => void;
+}
+
+class ParticleImpl implements Particle {
+    x: number;
+    y: number;
+    vx: number;
+    vy: number;
+    radius: number;
+    originalRadius: number;
+    color: string;
+    originalX: number;
+    originalY: number;
+    friction: number;
+    springFactor: number;
+    private ctx: CanvasRenderingContext2D | null;
+    private width: number;
+    private height: number;
+    private mouseRef: React.MutableRefObject<{ x: number; y: number }>;
+    private isVacuumActiveRef: React.MutableRefObject<boolean>;
+    private CURSOR_RADIUS: number;
+    private MAX_VELOCITY: number;
+
+    constructor(
+        x: number,
+        y: number,
+        ctx: CanvasRenderingContext2D | null,
+        width: number,
+        height: number,
+        mouseRef: React.MutableRefObject<{ x: number; y: number }>,
+        isVacuumActiveRef: React.MutableRefObject<boolean>,
+        CURSOR_RADIUS: number,
+        MAX_VELOCITY: number
+    ) {
+        this.x = x;
+        this.y = y;
+        this.originalX = x;
+        this.originalY = y;
+        this.vx = 0;
+        this.vy = 0;
+        this.originalRadius = Math.random() * 2 + 1;
+        this.radius = this.originalRadius;
+        const colors = ['#4285F4', '#EA4335', '#FBBC05', '#34A853', '#A0C3FF', '#FF9E9E'];
+        this.color = colors[Math.floor(Math.random() * colors.length)];
+        this.friction = 0.9 + Math.random() * 0.05;
+        this.springFactor = 0.01 + Math.random() * 0.02;
+        this.ctx = ctx;
+        this.width = width;
+        this.height = height;
+        this.mouseRef = mouseRef;
+        this.isVacuumActiveRef = isVacuumActiveRef;
+        this.CURSOR_RADIUS = CURSOR_RADIUS;
+        this.MAX_VELOCITY = MAX_VELOCITY;
+    }
+
+    update() {
+        const dx = this.mouseRef.current.x - this.x;
+        const dy = this.mouseRef.current.y - this.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+
+        if (this.isVacuumActiveRef.current) {
+            // Global Vacuum Mode
+            const angle = Math.atan2(dy, dx);
+            const force = 0.1; // Drastically reduced for gentle suction
+
+            this.vx += Math.cos(angle) * force;
+            this.vy += Math.sin(angle) * force;
+
+            this.vx *= 0.95;
+            this.vy *= 0.95;
+
+            // "Caught" effect - slow down when close, don't shrink
+            // Prevent collapsing to single point by adding short-range repulsion
+            if (dist < 30) {
+                this.vx *= 0.7;
+                this.vy *= 0.7;
+                // Push away slightly if TOO close
+                if (dist < 10) {
+                    this.vx -= Math.cos(angle) * 2;
+                    this.vy -= Math.sin(angle) * 2;
+                }
+            }
+        } else {
+            // Normal Mode
+            // Restore radius slowly
+            if (this.radius < this.originalRadius) {
+                this.radius += 0.1;
+            }
+
+            // Return to original position (homing)
+            const dxHome = this.originalX - this.x;
+            const dyHome = this.originalY - this.y;
+
+            this.vx += dxHome * this.springFactor;
+            this.vy += dyHome * this.springFactor;
+
+            // Mouse repulsion/attraction in normal mode
+            if (dist < this.CURSOR_RADIUS) {
+                const force = (this.CURSOR_RADIUS - dist) / this.CURSOR_RADIUS;
+                const angle = Math.atan2(dy, dx);
+                const fx = Math.cos(angle) * force * 2;
+                const fy = Math.sin(angle) * force * 2;
+
+                this.vx += fx;
+                this.vy += fy;
+            }
+
+            this.vx *= 0.90; // Slightly more friction for stable return
+            this.vy *= 0.90;
+        }
+
+        // Clamp velocity
+        const speed = Math.sqrt(this.vx * this.vx + this.vy * this.vy);
+        const limit = this.isVacuumActiveRef.current ? 4 : this.MAX_VELOCITY; // Slower speed limit for vacuum
+        if (speed > limit) {
+            const ratio = limit / speed;
+            this.vx *= ratio;
+            this.vy *= ratio;
+        }
+
+        this.x += this.vx;
+        this.y += this.vy;
+
+        // Bounce off walls (only if NOT vacuuming)
+        if (!this.isVacuumActiveRef.current) {
+            if (this.x < 0 || this.x > this.width) this.vx *= -1;
+            if (this.y < 0 || this.y > this.height) this.vy *= -1;
+        }
+    }
+
+    draw() {
+        if (!this.ctx || this.radius <= 0) return;
+        this.ctx.beginPath();
+        this.ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+        this.ctx.fillStyle = this.color;
+        this.ctx.fill();
+        this.ctx.closePath();
+    }
 }
 
 const CursorGravity = ({ isVacuumActive = false }: CursorGravityProps) => {
@@ -75,123 +212,22 @@ const CursorGravity = ({ isVacuumActive = false }: CursorGravityProps) => {
         const CURSOR_RADIUS = 150;
         const MAX_VELOCITY = 15;
 
-        class ParticleImpl implements Particle {
-            x: number;
-            y: number;
-            vx: number;
-            vy: number;
-            radius: number;
-            originalRadius: number;
-            color: string;
-            originalX: number;
-            originalY: number;
-            friction: number;
-            springFactor: number;
-
-            constructor(x: number, y: number) {
-                this.x = x;
-                this.y = y;
-                this.originalX = x;
-                this.originalY = y;
-                this.vx = 0;
-                this.vy = 0;
-                this.originalRadius = Math.random() * 2 + 1;
-                this.radius = this.originalRadius;
-                const colors = ['#4285F4', '#EA4335', '#FBBC05', '#34A853', '#A0C3FF', '#FF9E9E'];
-                this.color = colors[Math.floor(Math.random() * colors.length)];
-                this.friction = 0.9 + Math.random() * 0.05;
-                this.springFactor = 0.01 + Math.random() * 0.02;
-            }
-
-            update() {
-                const dx = mouseRef.current.x - this.x;
-                const dy = mouseRef.current.y - this.y;
-                const dist = Math.sqrt(dx * dx + dy * dy);
-
-                if (isVacuumActiveRef.current) {
-                    // Global Vacuum Mode
-                    const angle = Math.atan2(dy, dx);
-                    const force = 0.1; // Drastically reduced for gentle suction
-
-                    this.vx += Math.cos(angle) * force;
-                    this.vy += Math.sin(angle) * force;
-
-                    this.vx *= 0.95;
-                    this.vy *= 0.95;
-
-                    // "Caught" effect - slow down when close, don't shrink
-                    // Prevent collapsing to single point by adding short-range repulsion
-                    if (dist < 30) {
-                        this.vx *= 0.7;
-                        this.vy *= 0.7;
-                        // Push away slightly if TOO close
-                        if (dist < 10) {
-                            this.vx -= Math.cos(angle) * 2;
-                            this.vy -= Math.sin(angle) * 2;
-                        }
-                    }
-                } else {
-                    // Normal Mode
-                    // Restore radius slowly
-                    if (this.radius < this.originalRadius) {
-                        this.radius += 0.1;
-                    }
-
-                    // Return to original position (homing)
-                    const dxHome = this.originalX - this.x;
-                    const dyHome = this.originalY - this.y;
-
-                    this.vx += dxHome * this.springFactor;
-                    this.vy += dyHome * this.springFactor;
-
-                    // Mouse repulsion/attraction in normal mode
-                    if (dist < CURSOR_RADIUS) {
-                        const force = (CURSOR_RADIUS - dist) / CURSOR_RADIUS;
-                        const angle = Math.atan2(dy, dx);
-                        const fx = Math.cos(angle) * force * 2;
-                        const fy = Math.sin(angle) * force * 2;
-
-                        this.vx += fx;
-                        this.vy += fy;
-                    }
-
-                    this.vx *= 0.90; // Slightly more friction for stable return
-                    this.vy *= 0.90;
-                }
-
-                // Clamp velocity
-                const speed = Math.sqrt(this.vx * this.vx + this.vy * this.vy);
-                const limit = isVacuumActiveRef.current ? 4 : MAX_VELOCITY; // Slower speed limit for vacuum
-                if (speed > limit) {
-                    const ratio = limit / speed;
-                    this.vx *= ratio;
-                    this.vy *= ratio;
-                }
-
-                this.x += this.vx;
-                this.y += this.vy;
-
-                // Bounce off walls (only if NOT vacuuming)
-                if (!isVacuumActiveRef.current) {
-                    if (this.x < 0 || this.x > width) this.vx *= -1;
-                    if (this.y < 0 || this.y > height) this.vy *= -1;
-                }
-            }
-
-            draw() {
-                if (!ctx || this.radius <= 0) return;
-                ctx.beginPath();
-                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
-                ctx.fillStyle = this.color;
-                ctx.fill();
-                ctx.closePath();
-            }
-        }
-
         // Initialize particles randomly if empty
         if (particlesRef.current.length === 0) {
             for (let i = 0; i < PARTICLE_COUNT; i++) {
-                particlesRef.current.push(new ParticleImpl(Math.random() * width, Math.random() * height));
+                particlesRef.current.push(
+                    new ParticleImpl(
+                        Math.random() * width,
+                        Math.random() * height,
+                        ctx,
+                        width,
+                        height,
+                        mouseRef,
+                        isVacuumActiveRef,
+                        CURSOR_RADIUS,
+                        MAX_VELOCITY
+                    )
+                );
             }
         }
 
