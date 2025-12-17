@@ -651,6 +651,8 @@
 			],
 			"description": "Client management endpoints (to be implemented)"
 		},
+		{
+			"name": "Tasks",
 			"item": [
 				{
 					"name": "Create Task",
