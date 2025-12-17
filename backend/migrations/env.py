@@ -4,8 +4,14 @@ from sqlalchemy import engine_from_config
 from sqlalchemy import pool
 from sqlmodel import SQLModel
 from alembic import context
-from app.db.base import Base  # Import your SQLModel Base
-from app.models.user import User  
+from app.database import Base  # Import your SQLModel Base
+from app.database import User, Client, Project, ProjectMember, Task, LoggedHour, GitContribution, SystemLog  # Import your models to ensure they are registered
+import logging
+logging.basicConfig()
+logging.getLogger('alembic.autogenerate').setLevel(logging.DEBUG)
+logging.getLogger('alembic.runtime.migration').setLevel(logging.DEBUG)
+logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)  # optional, shows SQL executed
+print("Tables known to Alembic metadata:", Base.metadata.tables.keys())
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
