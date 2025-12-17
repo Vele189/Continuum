@@ -18,7 +18,7 @@ const MoneyRain = ({ isActive }: MoneyRainProps) => {
     const idCounter = useRef(0);
 
     useEffect(() => {
-        let interval: NodeJS.Timeout;
+        let interval: ReturnType<typeof setInterval>;
 
         if (isActive) {
             // Spawn a new particle every 100ms
