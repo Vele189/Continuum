@@ -5,6 +5,7 @@ import FlexibleText from './FlexibleText';
 import HoverTimer from './HoverTimer';
 import MoneyRain from './MoneyRain';
 import ClientPortalEffect from './ClientPortalEffect';
+import TaskCompletedCard from './TaskCompletedCard';
 
 // Generate particles outside the component to avoid impure function calls during render
 const generateParticles = () =>
@@ -27,7 +28,7 @@ interface HeroProps {
 const Hero = ({ onVacuumStateChange }: HeroProps) => {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const [isHovering, setIsHovering] = useState(true);
-  const [isTimeTrackingHovered, setIsTimeTrackingHovered] = useState(false);
+
   const [isTaskManagementHovered, setIsTaskManagementHovered] = useState(false);
   const [isAutoInvoicingHovered, setIsAutoInvoicingHovered] = useState(false);
   const [isClientPortalHovered, setIsClientPortalHovered] = useState(false);
@@ -48,6 +49,21 @@ const Hero = ({ onVacuumStateChange }: HeroProps) => {
       return () => clearTimeout(timer);
     }
     setWasTaskManagementHovered(isTaskManagementHovered);
+  }, [isTaskManagementHovered]);
+
+  const [showTaskCompletion, setShowTaskCompletion] = useState(false);
+
+  useEffect(() => {
+    let timer: ReturnType<typeof setTimeout>;
+    if (isTaskManagementHovered) {
+      // Trigger completion popup after vacuum animation has run for a bit
+      timer = setTimeout(() => {
+        setShowTaskCompletion(true);
+      }, 1000);
+    } else {
+      setShowTaskCompletion(false);
+    }
+    return () => clearTimeout(timer);
   }, [isTaskManagementHovered]);
 
   // Smooth spring values for slime blob
@@ -254,6 +270,7 @@ const Hero = ({ onVacuumStateChange }: HeroProps) => {
 
       <MoneyRain isActive={isAutoInvoicingHovered} />
       <ClientPortalEffect isActive={isClientPortalHovered} />
+      <TaskCompletedCard isVisible={showTaskCompletion} />
       <div className="container mx-auto px-6 max-w-4xl relative z-10">
         <motion.div
           className="text-center"
@@ -284,14 +301,7 @@ const Hero = ({ onVacuumStateChange }: HeroProps) => {
 
           {/* Feature list */}
           <div className="flex flex-wrap items-center justify-center gap-6 text-sm text-gray-500">
-            <span
-              className="cursor-default transition-colors hover:text-gray-900"
-              onMouseEnter={() => setIsTimeTrackingHovered(true)}
-              onMouseLeave={() => setIsTimeTrackingHovered(false)}
-            >
-              Time Tracking
-            </span>
-            <span className="text-gray-300">•</span>
+
             <span
               className="cursor-none transition-colors hover:text-gray-900"
               onMouseEnter={() => setIsTaskManagementHovered(true)}
@@ -319,7 +329,7 @@ const Hero = ({ onVacuumStateChange }: HeroProps) => {
         </motion.div>
       </div>
 
-      <HoverTimer isActive={isTimeTrackingHovered || isAutoInvoicingHovered} />
+      <HoverTimer isActive={isAutoInvoicingHovered} />
     </section>
   );
 };
