@@ -1,135 +1,87 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import { FileText, MessageSquare, CheckCircle2, User, CreditCard } from 'lucide-react';
-import { useEffect, useState } from 'react';
 
 interface ClientPortalEffectProps {
     isActive: boolean;
 }
 
-interface PortalCardData {
-    id: number;
-    x: number;
-    y: number;
-    rotation: number;
-    scale: number;
-    icon: React.ElementType;
-    label: string;
-    color: string;
-    delay: number;
-}
+// Data for the left column (Invoices & Contracts)
+const LEFT_ITEMS = [
+    { id: 1, icon: CreditCard, label: "Invoice #1024 Paid", color: "bg-green-100 text-green-600" },
+    { id: 2, icon: FileText, label: "Contract Signed", color: "bg-orange-100 text-orange-600" },
+    { id: 3, icon: CreditCard, label: "Invoice #1025 Paid", color: "bg-green-100 text-green-600" },
+    { id: 4, icon: FileText, label: "NDA Agreement", color: "bg-orange-100 text-orange-600" },
+    { id: 5, icon: CreditCard, label: "Retainer Paid", color: "bg-green-100 text-green-600" },
+    { id: 6, icon: FileText, label: "Proposal Accepted", color: "bg-orange-100 text-orange-600" },
+];
+
+// Data for the right column (Messages & Approvals)
+const RIGHT_ITEMS = [
+    { id: 1, icon: MessageSquare, label: "New Message", color: "bg-blue-100 text-blue-600" },
+    { id: 2, icon: CheckCircle2, label: "Design Approved", color: "bg-purple-100 text-purple-600" },
+    { id: 3, icon: MessageSquare, label: "Feedback Received", color: "bg-blue-100 text-blue-600" },
+    { id: 4, icon: CheckCircle2, label: "Milestone Complete", color: "bg-purple-100 text-purple-600" },
+    { id: 5, icon: MessageSquare, label: "Meeting Request", color: "bg-blue-100 text-blue-600" },
+    { id: 6, icon: CheckCircle2, label: "Project Signed Off", color: "bg-purple-100 text-purple-600" },
+];
+
+const ScrollingColumn = ({ items, direction = "up", xPosition }: { items: typeof LEFT_ITEMS, direction?: "up" | "down", xPosition: string }) => {
+    return (
+        <div className={`absolute top-0 bottom-0 w-64 flex flex-col justify-center overflow-hidden pointer-events-none mask-gradient ${xPosition}`}>
+            {/* Gradient masks for smooth fade in/out */}
+            <div className="absolute inset-0 z-10 bg-gradient-to-b from-white via-transparent to-white pointer-events-none" />
+
+            <motion.div
+                className="flex flex-col gap-6 items-center"
+                animate={{
+                    y: direction === "up" ? [0, -500] : [-500, 0] // Approximate height based on items
+                }}
+                transition={{
+                    duration: 20,
+                    repeat: Infinity,
+                    ease: "linear"
+                }}
+            >
+                {/* Triple the items to ensure smooth loop without gaps */}
+                {[...items, ...items, ...items].map((item, idx) => (
+                    <div
+                        key={`${item.id}-${idx}`}
+                        className="bg-white/90 backdrop-blur-md px-4 py-3 rounded-xl shadow-lg flex items-center gap-3 border border-white/50 w-full transform transition-transform hover:scale-105"
+                    >
+                        <div className={`p-2 rounded-lg ${item.color}`}>
+                            <item.icon size={20} />
+                        </div>
+                        <span className="font-medium text-gray-700 text-sm whitespace-nowrap">
+                            {item.label}
+                        </span>
+                    </div>
+                ))}
+            </motion.div>
+        </div>
+    );
+};
 
 const ClientPortalEffect = ({ isActive }: ClientPortalEffectProps) => {
-    const [cards, setCards] = useState<PortalCardData[]>([]);
-
-    useEffect(() => {
-        if (isActive) {
-            // Generate set of cards to display
-            const newCards: PortalCardData[] = [
-                {
-                    id: 1,
-                    x: 20,
-                    y: 30,
-                    rotation: -10,
-                    scale: 1,
-                    icon: CreditCard,
-                    label: "Invoice Paid",
-                    color: "bg-green-100 text-green-600",
-                    delay: 0
-                },
-                {
-                    id: 2,
-                    x: 70,
-                    y: 20,
-                    rotation: 15,
-                    scale: 0.9,
-                    icon: MessageSquare,
-                    label: "New Message",
-                    color: "bg-blue-100 text-blue-600",
-                    delay: 0.1
-                },
-                {
-                    id: 3,
-                    x: 15,
-                    y: 60,
-                    rotation: 5,
-                    scale: 1.1,
-                    icon: FileText,
-                    label: "Contract.pdf",
-                    color: "bg-orange-100 text-orange-600",
-                    delay: 0.2
-                },
-                {
-                    id: 4,
-                    x: 80,
-                    y: 70,
-                    rotation: -8,
-                    scale: 0.95,
-                    icon: CheckCircle2,
-                    label: "Approved",
-                    color: "bg-purple-100 text-purple-600",
-                    delay: 0.15
-                },
-                {
-                    id: 5,
-                    x: 45,
-                    y: 85, // Bottom center
-                    rotation: 0,
-                    scale: 1.2,
-                    icon: User,
-                    label: "Client Login",
-                    color: "bg-gray-100 text-gray-800",
-                    delay: 0.3
-                }
-            ];
-            setCards(newCards);
-        } else {
-            // Optional: clear cards or let them exit via AnimatePresence
-        }
-    }, [isActive]);
-
     return (
-        <div className="fixed inset-0 pointer-events-none z-40 overflow-hidden">
+        <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
             <AnimatePresence>
-                {isActive && cards.map((card) => (
+                {isActive && (
                     <motion.div
-                        key={card.id}
-                        initial={{
-                            opacity: 0,
-                            y: window.innerHeight, // Start from bottom
-                            x: (card.x / 100) * window.innerWidth,
-                            scale: 0.5,
-                            rotate: 0
-                        }}
-                        animate={{
-                            opacity: 1,
-                            y: (card.y / 100) * window.innerHeight,
-                            x: (card.x / 100) * window.innerWidth,
-                            scale: card.scale,
-                            rotate: card.rotation
-                        }}
-                        exit={{
-                            opacity: 0,
-                            scale: 0,
-                            y: (card.y / 100) * window.innerHeight - 100 // Float up when disappearing
-                        }}
-                        transition={{
-                            type: "spring",
-                            damping: 12,
-                            stiffness: 100,
-                            delay: card.delay
-                        }}
-                        className="absolute"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.5 }}
+                        className="absolute inset-0"
                     >
-                        <div className="bg-white/90 backdrop-blur-md px-4 py-3 rounded-xl shadow-xl flex items-center gap-3 border border-white/50">
-                            <div className={`p-2 rounded-lg ${card.color}`}>
-                                <card.icon size={20} />
-                            </div>
-                            <span className="font-medium text-gray-700 text-sm whitespace-nowrap">
-                                {card.label}
-                            </span>
-                        </div>
+                        {/* Left Column - Invoices & Contracts */}
+                        <ScrollingColumn items={LEFT_ITEMS} direction="up" xPosition="left-[10%] md:left-[15%]" />
+
+                        {/* Right Column - Messages & Approvals */}
+                        <ScrollingColumn items={RIGHT_ITEMS} direction="down" xPosition="right-[10%] md:right-[15%]" />
+
+
                     </motion.div>
-                ))}
+                )}
             </AnimatePresence>
         </div>
     );
