@@ -8,6 +8,7 @@ import MagneticButton from '../MagneticButton';
 const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isLoginHovered, setIsLoginHovered] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -71,15 +72,15 @@ const Navbar = () => {
 
         {/* Right Side */}
         <div className="flex items-center gap-4">
-          <MagneticButton>
-            <Link
-              to="/login"
-              className="hidden md:block text-sm text-gray-600 hover:text-gray-900 transition-colors font-medium px-4 py-2" // Added padding for magnetic feel
-            >
-              Log in
-            </Link>
-          </MagneticButton>
-          <MagneticButton>
+          <Link
+            to="/login"
+            className="hidden md:block text-sm text-gray-600 hover:text-gray-900 transition-colors font-medium px-4 py-2" // Added padding for magnetic feel
+            onMouseEnter={() => setIsLoginHovered(true)}
+            onMouseLeave={() => setIsLoginHovered(false)}
+          >
+            Log in
+          </Link>
+          <MagneticButton range={300} strength={0.8} disabled={isLoginHovered}>
             <Link
               to="/register"
               className="px-4 py-2 bg-gray-900 hover:bg-gray-800 text-white text-sm font-medium transition-colors rounded-lg" // Added rounded-lg

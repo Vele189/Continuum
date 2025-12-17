@@ -8,7 +8,7 @@ const generateParticles = () =>
     id: i,
     x: Math.random() * 100,
     y: Math.random() * 100,
-    size: Math.random() * 3 + 1,
+    size: Math.random() * 6 + 2, // Increased size: 2 to 8px
     opacity: Math.random() * 0.3 + 0.1,
   }));
 
