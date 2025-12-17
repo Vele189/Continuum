@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { Menu, X } from 'lucide-react';
-import logo from '../../assets/logo.png';
 import MagneticButton from '../MagneticButton';
 
 const Navbar = () => {
@@ -47,10 +46,7 @@ const Navbar = () => {
       <div className="container mx-auto px-6 flex items-center justify-between max-w-7xl">
         {/* Logo */}
         <Link to="/" className="flex items-center gap-3">
-          <img src={logo} alt="Continuum Logo" className="h-8 w-auto" />
-          <span className="text-xl font-medium text-gray-900 tracking-tight">
-            Continuum
-          </span>
+          <img src="/Wordmark_colour.svg" alt="Continuum Logo" className="h-8 w-auto" />
         </Link>
 
         {/* Desktop Navigation */}
