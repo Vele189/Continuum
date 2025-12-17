@@ -66,7 +66,8 @@ def delete_task(
 ):
     # Admin check (Assuming PROJECTMANAGER is Admin)
     # The requirement said "Admins may delete any task".
-    if current_user.role != UserRole.PROJECTMANAGER and current_user.role != UserRole.CLIENT:
+    # print(f"DEBUG: User Role: {current_user.role} (Type: {type(current_user.role)})")
+    if current_user.role.value != UserRole.PROJECTMANAGER.value and current_user.role.value != UserRole.CLIENT.value:
          raise HTTPException(
             status_code=403, detail="The user doesn't have enough privileges"
         )

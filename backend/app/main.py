@@ -17,8 +17,9 @@ logger.info("Port: %s", port)
 
 # Initialize the database structure
 try:
-    init_db()
-    logger.info("Startup complete. Database connected and verified.")
+    if env != "test":
+        init_db()
+        logger.info("Startup complete. Database connected and verified.")
 except Exception as e:
     logger.critical("FATAL ERROR during startup: Could not initialize database. %s", e)
     raise  # Raise to prevent app from starting if DB fails
