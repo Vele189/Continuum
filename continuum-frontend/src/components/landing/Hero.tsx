@@ -1,6 +1,8 @@
 import { motion, useMotionValue, useSpring } from 'framer-motion';
 import { useEffect, useState } from 'react';
 import GravityText from '../GravityText';
+import FlexibleText from './FlexibleText';
+import HoverTimer from './HoverTimer';
 
 // Generate particles outside the component to avoid impure function calls during render
 const generateParticles = () =>
@@ -15,6 +17,7 @@ const generateParticles = () =>
 const Hero = () => {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const [isHovering, setIsHovering] = useState(true);
+  const [isTimeTrackingHovered, setIsTimeTrackingHovered] = useState(false);
 
   // Smooth spring values for slime blob
   const cursorX = useMotionValue(0);
@@ -213,7 +216,9 @@ const Hero = () => {
           <h1 className="text-5xl md:text-6xl lg:text-7xl font-light text-gray-900 tracking-tight mb-6 leading-tight">
             <GravityText text="Project management" className="justify-center" />
             <br />
-            <span className="font-normal text-gray-800">for freelancers</span>
+            <span className="font-normal text-gray-800">
+              for&nbsp;<FlexibleText>freelancers</FlexibleText>
+            </span>
           </h1>
 
           {/* Subheading */}
@@ -230,7 +235,13 @@ const Hero = () => {
 
           {/* Feature list */}
           <div className="flex flex-wrap items-center justify-center gap-6 text-sm text-gray-500">
-            <span>Time Tracking</span>
+            <span
+              className="cursor-default transition-colors hover:text-gray-900"
+              onMouseEnter={() => setIsTimeTrackingHovered(true)}
+              onMouseLeave={() => setIsTimeTrackingHovered(false)}
+            >
+              Time Tracking
+            </span>
             <span className="text-gray-300">•</span>
             <span>Task Management</span>
             <span className="text-gray-300">•</span>
@@ -240,6 +251,8 @@ const Hero = () => {
           </div>
         </motion.div>
       </div>
+
+      <HoverTimer isActive={isTimeTrackingHovered} />
     </section>
   );
 };
