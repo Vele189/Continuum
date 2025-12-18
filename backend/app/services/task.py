@@ -6,6 +6,15 @@ from app.models.project import Project
 from app.models.user import User
 from app.schemas.task import TaskCreate, TaskUpdate
 
+def validate_project_membership(db: Session, project_id: int, user_id: int) -> bool:
+    """
+    Validate if a user is a member of a project.
+    TODO: Implement actual membership check when ProjectMembers model exists.
+    For now, returns True (allows all authenticated users).
+    """
+    # Placeholder - will be implemented when ProjectMembers table is available
+    return True
+
 def get(db: Session, task_id: int) -> Optional[Task]:
     return db.query(Task).filter(Task.id == task_id).first()
 
@@ -54,6 +63,18 @@ def update(db: Session, db_obj: Task, obj_in: TaskUpdate) -> Task:
     db.refresh(db_obj)
     return db_obj
 
+def update_status(db: Session, task_id: int, new_status: str) -> Task:
+    """Update only the status of a task"""
+    task = get(db, task_id)
+    if not task:
+        raise HTTPException(status_code=404, detail="Task not found")
+    
+    task.status = new_status
+    db.add(task)
+    db.commit()
+    db.refresh(task)
+    return task
+
 def delete(db: Session, task_id: int) -> Task:
     obj = db.query(Task).filter(Task.id == task_id).first()
     if not obj:
@@ -71,8 +92,12 @@ def assign(db: Session, task_id: int, user_id: Optional[int]) -> Task:
         user = db.query(User).filter(User.id == user_id).first()
         if not user:
             raise HTTPException(status_code=404, detail="User not found")
-        # Optional: Validate user is member of project (requires Project Members model/table)
-        # For now, we skip this check as we don't have the ProjectMembers model loaded/created yet
+        # Validate user is member of the task's project
+        if not validate_project_membership(db, task.project_id, user_id):
+            raise HTTPException(
+                status_code=403, 
+                detail="User is not a member of this project"
+            )
     
     task.assigned_to = user_id
     db.add(task)
