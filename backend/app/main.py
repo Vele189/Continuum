@@ -1,7 +1,7 @@
 # Main application entry point
 import os
 from fastapi import FastAPI
-from app.api.v1.routes import users, auth, admin
+from app.api.v1.routes import users, auth, admin, logged_hours
 from app.core.config import settings
 from app.utils.logger import get_logger
 from .database import init_db
@@ -27,6 +27,16 @@ app = FastAPI(title="Continuum API")
 app.include_router(users.router, prefix=f"{settings.API_V1_STR}/users", tags=["Users"])
 app.include_router(auth.router, prefix=f"{settings.API_V1_STR}/auth", tags=["Auth"])
 app.include_router(admin.router, prefix=f"{settings.API_V1_STR}/admin", tags=["Admin"])
+app.include_router(
+    logged_hours.router,
+    prefix=f"{settings.API_V1_STR}/logged-hours",
+    tags=["Logged Hours"]
+)
+app.include_router(
+    logged_hours.aggregation_router,
+    prefix=f"{settings.API_V1_STR}",
+    tags=["Aggregations"]
+)
 
 @app.get("/health")
 def health_check():
