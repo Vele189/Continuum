@@ -1,20 +1,89 @@
 import { motion, useMotionValue, useSpring } from 'framer-motion';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import GravityText from '../GravityText';
+import FlexibleText from './FlexibleText';
+import HoverTimer from './HoverTimer';
+import MoneyRain from './MoneyRain';
+import ClientPortalEffect from './ClientPortalEffect';
+import TaskCompletedCard from './TaskCompletedCard';
+
+interface Particle {
+  id: number;
+  x: number;
+  y: number;
+  size: number;
+  opacity: number;
+  splashX: number;
+  splashY: number;
+  vacuumOffsetX: number;
+  vacuumOffsetY: number;
+}
 
 // Generate particles outside the component to avoid impure function calls during render
-const generateParticles = () =>
+const generateParticles = (): Particle[] =>
   Array.from({ length: 20 }, (_, i) => ({
     id: i,
     x: Math.random() * 100,
     y: Math.random() * 100,
-    size: Math.random() * 3 + 1,
+    size: Math.random() * 6 + 2, // Increased size: 2 to 8px
     opacity: Math.random() * 0.3 + 0.1,
+    splashX: (Math.random() - 0.5) * 300, // Random splash direction X
+    splashY: (Math.random() - 0.5) * 300, // Random splash direction Y
+    vacuumOffsetX: (Math.random() - 0.5) * 30, // Random offset when vacuumed
+    vacuumOffsetY: (Math.random() - 0.5) * 30, // Random offset when vacuumed
   }));
 
-const Hero = () => {
+interface HeroProps {
+  onVacuumStateChange?: (isActive: boolean) => void;
+}
+
+const Hero = ({ onVacuumStateChange }: HeroProps) => {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const [isHovering, setIsHovering] = useState(true);
+
+  const [isTaskManagementHovered, setIsTaskManagementHovered] = useState(false);
+  const [isAutoInvoicingHovered, setIsAutoInvoicingHovered] = useState(false);
+  const [isClientPortalHovered, setIsClientPortalHovered] = useState(false);
+
+  // Update global vacuum state when local hover state changes
+  useEffect(() => {
+    onVacuumStateChange?.(isTaskManagementHovered);
+  }, [isTaskManagementHovered, onVacuumStateChange]);
+
+  const [isSplashing, setIsSplashing] = useState(false);
+  // Track previous hover state to detect release
+  const wasTaskManagementHoveredRef = useRef(false);
+
+  useEffect(() => {
+    if (!isTaskManagementHovered && wasTaskManagementHoveredRef.current) {
+      // Use setTimeout to avoid synchronous setState in effect
+      const timer = setTimeout(() => {
+        setIsSplashing(true);
+        setTimeout(() => setIsSplashing(false), 500); // Splash duration
+      }, 0);
+      wasTaskManagementHoveredRef.current = isTaskManagementHovered;
+      return () => clearTimeout(timer);
+    }
+    wasTaskManagementHoveredRef.current = isTaskManagementHovered;
+  }, [isTaskManagementHovered]);
+
+  const [showTaskCompletion, setShowTaskCompletion] = useState(false);
+
+  useEffect(() => {
+    let timer: ReturnType<typeof setTimeout>;
+    if (isTaskManagementHovered) {
+      // Trigger completion popup after vacuum animation has run for a bit
+      timer = setTimeout(() => {
+        setShowTaskCompletion(true);
+      }, 1000);
+    } else {
+      // Use setTimeout to avoid synchronous setState in effect
+      timer = setTimeout(() => {
+        setShowTaskCompletion(false);
+      }, 0);
+    }
+    return () => clearTimeout(timer);
+  }, [isTaskManagementHovered]);
 
   // Smooth spring values for slime blob
   const cursorX = useMotionValue(0);
@@ -66,8 +135,8 @@ const Hero = () => {
         }}
         initial={{ scale: 0, opacity: 0 }}
         animate={{
-          scale: isHovering ? 1 : 0.6,
-          opacity: isHovering ? 0.2 : 0.05,
+          scale: isTaskManagementHovered ? 2.5 : isHovering ? 1 : 0.6,
+          opacity: isTaskManagementHovered ? 0.4 : isHovering ? 0.2 : 0.05,
         }}
         transition={{ duration: 0.4 }}
       >
@@ -135,8 +204,17 @@ const Hero = () => {
       {/* Background particles that follow cursor */}
       <div className="absolute inset-0 pointer-events-none">
         {particles.map((particle) => {
-          const offsetX = (mousePosition.x / window.innerWidth - 0.5) * 30;
-          const offsetY = (mousePosition.y / window.innerHeight - 0.5) * 30;
+          // Standard parallax offset
+          const parallaxX = (mousePosition.x / window.innerWidth - 0.5) * 30;
+          const parallaxY = (mousePosition.y / window.innerHeight - 0.5) * 30;
+
+          // Vacuum offset: Calculate difference between mouse position and particle origin
+          // Particle origin in pixels approx:
+          const originX = (particle.x / 100) * window.innerWidth;
+          const originY = (particle.y / 100) * window.innerHeight;
+
+          const vacuumDeltaX = mousePosition.x - originX;
+          const vacuumDeltaY = mousePosition.y - originY;
 
           return (
             <motion.div
@@ -150,13 +228,20 @@ const Hero = () => {
                 opacity: particle.opacity,
               }}
               animate={{
-                x: offsetX * (particle.id % 3 === 0 ? 0.5 : particle.id % 3 === 1 ? 0.3 : 0.7),
-                y: offsetY * (particle.id % 3 === 0 ? 0.5 : particle.id % 3 === 1 ? 0.3 : 0.7),
+                x: isTaskManagementHovered ? vacuumDeltaX + particle.vacuumOffsetX
+                  : isSplashing ? vacuumDeltaX + particle.splashX
+                    : parallaxX * (particle.id % 3 === 0 ? 0.5 : particle.id % 3 === 1 ? 0.3 : 0.7),
+                y: isTaskManagementHovered ? vacuumDeltaY + particle.vacuumOffsetY
+                  : isSplashing ? vacuumDeltaY + particle.splashY
+                    : parallaxY * (particle.id % 3 === 0 ? 0.5 : particle.id % 3 === 1 ? 0.3 : 0.7),
+                scale: isTaskManagementHovered ? 0.6 : 1, // Stay visible but smaller
               }}
               transition={{
-                type: "spring",
-                stiffness: 50,
-                damping: 20,
+                type: isSplashing ? "tween" : "spring",
+                ease: isSplashing ? "easeOut" : undefined,
+                duration: isSplashing ? 0.4 : undefined,
+                stiffness: isTaskManagementHovered ? 20 : 50, // Much lower stiffness for slower movement
+                damping: isTaskManagementHovered ? 15 : 20, // Lower damping
               }}
             />
           );
@@ -202,6 +287,9 @@ const Hero = () => {
         </motion.svg>
       </div>
 
+      <MoneyRain isActive={isAutoInvoicingHovered} />
+      <ClientPortalEffect isActive={isClientPortalHovered} />
+      <TaskCompletedCard isVisible={showTaskCompletion} />
       <div className="container mx-auto px-6 max-w-4xl relative z-10">
         <motion.div
           className="text-center"
@@ -213,7 +301,9 @@ const Hero = () => {
           <h1 className="text-5xl md:text-6xl lg:text-7xl font-light text-gray-900 tracking-tight mb-6 leading-tight">
             <GravityText text="Project management" className="justify-center" />
             <br />
-            <span className="font-normal text-gray-800">for freelancers</span>
+            <span className="font-normal text-gray-800">
+              for&nbsp;<FlexibleText>freelancers</FlexibleText>
+            </span>
           </h1>
 
           {/* Subheading */}
@@ -230,16 +320,35 @@ const Hero = () => {
 
           {/* Feature list */}
           <div className="flex flex-wrap items-center justify-center gap-6 text-sm text-gray-500">
-            <span>Time Tracking</span>
+
+            <span
+              className="cursor-none transition-colors hover:text-gray-900"
+              onMouseEnter={() => setIsTaskManagementHovered(true)}
+              onMouseLeave={() => setIsTaskManagementHovered(false)}
+            >
+              Task Management
+            </span>
             <span className="text-gray-300">•</span>
-            <span>Task Management</span>
+            <span
+              className="relative inline-block cursor-default transition-colors hover:text-gray-900"
+              onMouseEnter={() => setIsAutoInvoicingHovered(true)}
+              onMouseLeave={() => setIsAutoInvoicingHovered(false)}
+            >
+              Auto Invoicing
+            </span>
             <span className="text-gray-300">•</span>
-            <span>Auto Invoicing</span>
-            <span className="text-gray-300">•</span>
-            <span>Client Portal</span>
+            <span
+              className="cursor-default transition-colors hover:text-gray-900"
+              onMouseEnter={() => setIsClientPortalHovered(true)}
+              onMouseLeave={() => setIsClientPortalHovered(false)}
+            >
+              Client Portal
+            </span>
           </div>
         </motion.div>
       </div>
+
+      <HoverTimer isActive={isAutoInvoicingHovered} />
     </section>
   );
 };
