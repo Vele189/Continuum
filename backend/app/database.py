@@ -229,6 +229,15 @@ class LoggedHour(Base):
         index=True
     )
     hours = Column(Float, nullable=False)
+    description = Column(Text, nullable=True)
+    date = Column(DateTime(timezone=True), nullable=False, index=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(
+        DateTime(timezone=True),
+        onupdate=func.now(),
+        server_default=func.now()
+    )
+    # Keep note for backward compatibility (deprecated)
     note = Column(Text, nullable=True)
     logged_at = Column(DateTime(timezone=True), server_default=func.now())
 
