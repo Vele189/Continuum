@@ -2,7 +2,6 @@ from logging.config import fileConfig
 
 from sqlalchemy import engine_from_config
 from sqlalchemy import pool
-from sqlmodel import SQLModel
 from alembic import context
 from app.database import Base  # Import your SQLModel Base
 from app.database import User, Client, Project, ProjectMember, Task, LoggedHour, GitContribution, SystemLog  # Import your models to ensure they are registered
