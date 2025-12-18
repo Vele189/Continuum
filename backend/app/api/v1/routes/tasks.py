@@ -32,10 +32,18 @@ def list_tasks(
     db: Session = Depends(deps.get_db),
     current_user: User = Depends(deps.get_current_user),
 ):
-    # TODO: Filter by projects user is member of
-    return task_service.get_multi(
+    # Get all tasks based on filters
+    tasks = task_service.get_multi(
         db, skip=skip, limit=limit, project_id=project_id, status=status, assigned_to=assigned_to
     )
+    
+    # Filter tasks to only include those from projects the user is a member of
+    filtered_tasks = [
+        task for task in tasks 
+        if task_service.validate_project_membership(db, task.project_id, current_user.id)
+    ]
+    
+    return filtered_tasks
 
 @router.get("/{task_id}", response_model=Task)
 def get_task(
