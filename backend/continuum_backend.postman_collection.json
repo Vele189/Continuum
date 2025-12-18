@@ -649,7 +649,7 @@
 					"response": []
 				}
 			],
-			"description": "Client management endpoints (to be implemented)"
+			"description": "Client management endpoints (admin only - requires CLIENT role)"
 		},
 		{
 			"name": "Projects",
