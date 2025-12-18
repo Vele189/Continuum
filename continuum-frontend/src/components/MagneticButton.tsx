@@ -1,44 +1,71 @@
-import { useRef, useState } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 
 interface MagneticButtonProps {
     children: React.ReactNode;
     className?: string;
     onClick?: () => void;
+    range?: number;
+    strength?: number;
+    disabled?: boolean;
 }
 
-const MagneticButton = ({ children, className = '', onClick }: MagneticButtonProps) => {
+const MagneticButton = ({
+    children,
+    className = '',
+    onClick,
+    range = 100, // Default range in pixels
+    strength = 0.5, // Default strength multiplier
+    disabled = false
+}: MagneticButtonProps) => {
     const ref = useRef<HTMLDivElement>(null);
     const [position, setPosition] = useState({ x: 0, y: 0 });
 
-    const handleMouseMove = (e: React.MouseEvent) => {
-        const { clientX, clientY } = e;
-        const { height, width, left, top } = ref.current?.getBoundingClientRect() || { height: 0, width: 0, left: 0, top: 0 };
+    useEffect(() => {
+        if (disabled) {
+            // Use setTimeout to avoid synchronous setState in effect
+            const timer = setTimeout(() => {
+                setPosition({ x: 0, y: 0 });
+            }, 0);
+            return () => clearTimeout(timer);
+        }
 
-        const centerX = left + width / 2;
-        const centerY = top + height / 2;
+        const handleMouseMove = (e: MouseEvent) => {
+            if (!ref.current) return;
 
-        // Calculate distance from center
-        // We want the button to move towards the mouse, but not indistinguishably 1:1, 
-        // it should have a "magnetic field" feel.
+            const { clientX, clientY } = e;
+            const { height, width, left, top } = ref.current.getBoundingClientRect();
 
-        const x = (clientX - centerX) * 0.5; // Factor determines strength
-        const y = (clientY - centerY) * 0.5;
+            const centerX = left + width / 2;
+            const centerY = top + height / 2;
 
-        setPosition({ x, y });
-    };
+            const distance = Math.sqrt(
+                Math.pow(clientX - centerX, 2) + Math.pow(clientY - centerY, 2)
+            );
 
-    const handleMouseLeave = () => {
-        setPosition({ x: 0, y: 0 });
-    };
+            if (distance < range) {
+                // Determine how much to move based on distance relative to range
+                // Optional: add ease-in/out based on distance? 
+                // For now, keep it simple as proportional to offset like before, 
+                // but limited by the range check.
+
+                const x = (clientX - centerX) * strength;
+                const y = (clientY - centerY) * strength;
+                setPosition({ x, y });
+            } else {
+                setPosition({ x: 0, y: 0 });
+            }
+        };
+
+        window.addEventListener('mousemove', handleMouseMove);
+        return () => window.removeEventListener('mousemove', handleMouseMove);
+    }, [range, strength, disabled]);
 
     const { x, y } = position;
 
     return (
         <motion.div
             ref={ref}
-            onMouseMove={handleMouseMove}
-            onMouseLeave={handleMouseLeave}
             animate={{ x, y }}
             transition={{ type: "spring", stiffness: 150, damping: 15, mass: 0.1 }}
             className={`inline-block ${className}`}
