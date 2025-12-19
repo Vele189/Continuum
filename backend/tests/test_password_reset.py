@@ -50,4 +50,4 @@ def test_password_reset_flow(client: TestClient):
         f"{settings.API_V1_STR}/auth/login",
         json={"email": email, "password": old_password}
     )
-    assert fail_response.status_code == 400
+    assert fail_response.status_code == 401  # Unauthorized
