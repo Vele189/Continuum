@@ -1,0 +1,31 @@
+[MAIN]
+# Ignore test files
+ignore=tests,venv
+
+[MESSAGES CONTROL]
+# Disable the following checks:
+# C0114: Missing module docstring
+# C0115: Missing class docstring
+# C0116: Missing function docstring
+# C0103: Invalid name (for enum lowercase values)
+# R0903: Too few public methods (SQLAlchemy models)
+# R0913: Too many arguments (FastAPI endpoints with query params)
+# R0917: Too many positional arguments (FastAPI endpoints)
+# R0912: Too many branches (complex business logic)
+# W0718: Catching too general exception
+# R0801: Similar lines in files (duplicate code)
+# W0511: TODO/FIXME comments
+# E1102: func.now is not callable (SQLAlchemy false positive)
+disable=C0114,C0115,C0116,C0103,R0903,R0913,R0917,R0912,W0718,R0801,W0511,E1102
+
+[FORMAT]
+# Maximum number of characters on a single line
+max-line-length=100
+
+[DESIGN]
+# Maximum number of arguments for function / method
+max-args=10
+
+# Maximum number of branches for function / method body
+max-branches=15
+
