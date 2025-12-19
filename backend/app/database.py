@@ -56,6 +56,7 @@ class UserRole(enum.Enum):
     DESIGNER = "designer"
     CLIENT = "client"
     PROJECTMANAGER = "project_manager"
+    ADMIN = "admin"
 
 # --- Models ---
 

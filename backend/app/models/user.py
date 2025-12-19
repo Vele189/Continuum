@@ -1,7 +1,4 @@
 # User model
-
-#please replace with your actual user stuff, i just used this for testing purposes on the task stuff - unathi
-
 import enum
 
 from sqlalchemy import Column, Integer, String, Numeric, Boolean, Enum
@@ -14,6 +11,7 @@ class UserRole(enum.Enum):
     DESIGNER = "designer"
     CLIENT = "client"
     PROJECTMANAGER = "project_manager"
+    ADMIN = "admin"
 
 class User(Base):
     __tablename__ = "users"
@@ -31,7 +29,7 @@ class User(Base):
     verification_token = Column(String(255))
     refresh_token = Column(String(255), nullable=True)
     password_reset_token = Column(String(255), nullable=True)
-    
+
     username = Column(String(255), nullable=True, unique=True)
     display_name = Column(String(255), nullable=True)
     created_at = Column(String, default=func.now())

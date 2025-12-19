@@ -1,14 +1,15 @@
 from typing import List, Optional
-from fastapi import APIRouter, Depends, HTTPException, status, Query
+
+from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.orm import Session
 
-from app.api.deps import get_db, get_current_user, get_current_active_admin
-from app.database import User, UserRole
+from app.api.deps import get_db, get_current_user, get_current_active_admin, is_admin_user
+from app.database import User
 from app.schemas.project import (
     Project,
-    ProjectCreate, 
-    ProjectUpdate, 
-    ProjectMember, 
+    ProjectCreate,
+    ProjectUpdate,
+    ProjectMember,
     ProjectMemberCreate,
     ProjectDetail
 )
@@ -16,20 +17,20 @@ from app.services.project import ProjectService
 
 router = APIRouter()
 
-@router.post("/", response_model=Project)
+
+@router.post("/", response_model=Project, status_code=status.HTTP_201_CREATED)
 def create_project(
     project_in: ProjectCreate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_active_admin),
 ):
     """
     Create a new project.
+    
+    Requires admin privileges (ADMIN or PROJECTMANAGER role).
     """
-    is_admin = current_user.role == UserRole.CLIENT
-    if not is_admin:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Only admins can create projects")
-        
     return ProjectService.create_project(db, project_in, current_user.id)
+
 
 @router.get("/", response_model=List[Project])
 def list_projects(
@@ -39,18 +40,21 @@ def list_projects(
     status: Optional[str] = Query(None, description="Filter by status"),
 ):
     """
-    List projects. 
-    Returns all projects for admins, or only member-projects for regular users.
-    """
-    is_admin = current_user.role == UserRole.CLIENT
+    List projects.
     
+    - Admins see all projects
+    - Regular users see only projects they are members of
+    """
+    is_admin = is_admin_user(current_user)
+
     return ProjectService.list_projects(
-        db, 
-        current_user.id, 
+        db,
+        current_user.id,
         is_admin=is_admin,
-        client_id=client_id, 
+        client_id=client_id,
         status_filter=status
     )
+
 
 @router.get("/{project_id}", response_model=ProjectDetail)
 def get_project(
@@ -60,10 +64,13 @@ def get_project(
 ):
     """
     Get project by ID.
-    Members can view.
+    
+    - Admins can view any project
+    - Members can only view projects they belong to
     """
-    is_admin = current_user.role == UserRole.CLIENT
+    is_admin = is_admin_user(current_user)
     return ProjectService.get_project_with_check(db, project_id, current_user.id, is_admin=is_admin)
+
 
 @router.put("/{project_id}", response_model=Project)
 def update_project(
@@ -74,56 +81,57 @@ def update_project(
 ):
     """
     Update project.
-    Members can update allowed fields.
+    
+    - Admins can update any project
+    - Members can update projects they belong to
     """
-    is_admin = current_user.role == UserRole.CLIENT
+    is_admin = is_admin_user(current_user)
     return ProjectService.update_project(db, project_id, project_in, current_user.id, is_admin=is_admin)
 
-@router.delete("/{project_id}", response_model=Project)
+
+@router.delete("/{project_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_project(
     project_id: int,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_active_admin),
 ):
     """
     Delete a project.
-    This is for an Admin only(So only an admin can delete a project).
+    
+    Requires admin privileges (ADMIN or PROJECTMANAGER role).
     """
-    is_admin = current_user.role == UserRole.CLIENT
-    return ProjectService.delete_project(db, project_id, current_user.id, is_admin=is_admin)
+    ProjectService.delete_project(db, project_id)
 
-@router.post("/{project_id}/members", response_model=ProjectMember)
+
+@router.post("/{project_id}/members", response_model=ProjectMember, status_code=status.HTTP_201_CREATED)
 def add_member(
     project_id: int,
     member_in: ProjectMemberCreate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_active_admin),
 ):
     """
     Add a member to a project.
-    """
-    is_admin = current_user.role == UserRole.CLIENT
     
-    if not is_admin:
-        raise HTTPException(status_code=403, detail="Only admins can add members")
-
+    Requires admin privileges (ADMIN or PROJECTMANAGER role).
+    """
     return ProjectService.add_member(db, project_id, member_in)
 
-@router.delete("/{project_id}/members/{user_id}", response_model=ProjectMember)
+
+@router.delete("/{project_id}/members/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
 def remove_member(
     project_id: int,
     user_id: int,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_active_admin),
 ):
     """
     Remove a member from a project.
+    
+    Requires admin privileges (ADMIN or PROJECTMANAGER role).
     """
-    is_admin = current_user.role == UserRole.CLIENT
-    if not is_admin:
-        raise HTTPException(status_code=403, detail="Only admins can remove members")
-        
-    return ProjectService.remove_member(db, project_id, user_id)
+    ProjectService.remove_member(db, project_id, user_id)
+
 
 @router.get("/{project_id}/members", response_model=List[ProjectMember])
 def get_members(
@@ -133,12 +141,11 @@ def get_members(
 ):
     """
     Get project members.
+    
+    - Admins can view members of any project
+    - Members can view members of projects they belong to
     """
-    is_admin = current_user.role == UserRole.CLIENT
-    # Check access to project first?
-    try:
-        ProjectService.get_project_with_check(db, project_id, current_user.id, is_admin=is_admin)
-    except HTTPException:
-        raise # This will PROBABLY raise 403 or 404
-        
+    is_admin = is_admin_user(current_user)
+    # Verify access to project first
+    ProjectService.get_project_with_check(db, project_id, current_user.id, is_admin=is_admin)
     return ProjectService.list_members(db, project_id)

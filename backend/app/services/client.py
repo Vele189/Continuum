@@ -32,13 +32,13 @@ def get_all(db: Session, skip: int = 0, limit: int = 100) -> List[Client]:
 def update(db: Session, client: Client, obj_in: ClientUpdate) -> Client:
     """Update a client"""
     update_data = obj_in.model_dump(exclude_unset=True)
-    
+
     for field, value in update_data.items():
         setattr(client, field, value)
-    
+
     # Manually update updated_at since SQLite doesn't support onupdate triggers
     client.updated_at = datetime.now(timezone.utc)
-    
+
     db.add(client)
     db.commit()
     db.refresh(client)
@@ -50,7 +50,7 @@ def delete(db: Session, client_id: int) -> Optional[Client]:
     client = db.query(Client).filter(Client.id == client_id).first()
     if not client:
         return None
-    
+
     db.delete(client)
     db.commit()
     return client

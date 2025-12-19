@@ -1,6 +1,5 @@
 from typing import Optional, List
 from datetime import datetime
-from decimal import Decimal
 
 from sqlalchemy.orm import Session
 from sqlalchemy import and_
@@ -8,6 +7,11 @@ from fastapi import HTTPException, status
 
 from app.database import LoggedHour, Task, Project, ProjectMember, User, UserRole
 from app.schemas.logged_hour import LoggedHourCreate, LoggedHourUpdate
+
+
+def _is_admin(user: User) -> bool:
+    """Check if user has admin privileges."""
+    return user.role in {UserRole.ADMIN, UserRole.PROJECTMANAGER}
 
 
 def create(
@@ -111,9 +115,8 @@ def get_by_id(
 
     # Check permissions: owner or admin
     is_owner = logged_hour.user_id == current_user.id
-    is_admin = current_user.role == UserRole.CLIENT  # CLIENT role is admin based on existing code
 
-    if not (is_owner or is_admin):
+    if not (is_owner or _is_admin(current_user)):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="You do not have permission to view this logged hour entry"
@@ -144,7 +147,7 @@ def list_logged_hours(
     query = db.query(LoggedHour)
 
     # Permission filter: non-admins can only see their own entries
-    is_admin = current_user.role == UserRole.CLIENT
+    is_admin = _is_admin(current_user)
     if not is_admin:
         query = query.filter(LoggedHour.user_id == current_user.id)
 
@@ -285,9 +288,8 @@ def delete(
 
     # Check permissions: owner or admin
     is_owner = logged_hour.user_id == current_user.id
-    is_admin = current_user.role == UserRole.CLIENT
 
-    if not (is_owner or is_admin):
+    if not (is_owner or _is_admin(current_user)):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="You do not have permission to delete this logged hour entry"
@@ -319,7 +321,7 @@ def get_total_hours_for_task(
         )
 
     # Check permissions: user must be assigned to task, project member, or admin
-    is_admin = current_user.role == UserRole.CLIENT
+    is_admin = _is_admin(current_user)
     is_assigned = task.assigned_to == current_user.id
     is_member = db.query(ProjectMember).filter(
         and_(
@@ -379,7 +381,7 @@ def get_total_hours_for_project(
         )
 
     # Check permissions: user must be project member or admin
-    is_admin = current_user.role == UserRole.CLIENT
+    is_admin = _is_admin(current_user)
     is_member = db.query(ProjectMember).filter(
         and_(
             ProjectMember.project_id == project_id,

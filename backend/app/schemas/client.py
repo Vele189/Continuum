@@ -40,7 +40,7 @@ class ClientUpdate(BaseModel):
 class ClientInDBBase(ClientBase):
     """Base schema for database representation"""
     model_config = ConfigDict(from_attributes=True)
-    
+
     id: int
     created_by: Optional[int] = None
     created_at: datetime

@@ -58,7 +58,7 @@
 								""
 							]
 						},
-						"description": "Create a new user account. Roles: frontend, backend, designer, project_manager, client (admin)"
+						"description": "Create a new user account. Roles: frontend, backend, designer, project_manager, client, admin"
 					},
 					"response": []
 				},
@@ -155,7 +155,7 @@
 								}
 							]
 						},
-						"description": "Exchange refresh token for new access token (sent as query parameter)"
+						"description": "Exchange refresh token for new access token. Send refresh_token as query parameter."
 					},
 					"response": []
 				},
@@ -436,7 +436,7 @@
 								"dashboard"
 							]
 						},
-						"description": "Get admin dashboard (requires client/admin role)"
+						"description": "Get admin dashboard (requires ADMIN or PROJECTMANAGER role)"
 					},
 					"response": []
 				}
@@ -649,7 +649,7 @@
 					"response": []
 				}
 			],
-			"description": "Client management endpoints (admin only - requires CLIENT role)"
+			"description": "Client management endpoints (admin only - requires ADMIN or PROJECTMANAGER role)"
 		},
 		{
 			"name": "Tasks",
@@ -670,7 +670,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"title\": \"Implement Login\",\n    \"description\": \"Create login page and integration\",\n    \"project_id\": 1,\n    \"status\": \"To Do\"\n}"
+							"raw": "{\n    \"title\": \"Implement Login\",\n    \"description\": \"Create login page and integration\",\n    \"project_id\": 1,\n    \"status\": \"todo\"\n}"
 						},
 						"url": {
 							"raw": "{{base_url}}/api/v1/tasks/",
@@ -915,7 +915,7 @@
 								""
 							]
 						},
-						"description": "Create a new project (admin only, requires client_id)"
+						"description": "Create a new project (admin only - requires ADMIN or PROJECTMANAGER role, requires client_id)"
 					},
 					"response": []
 				},
@@ -1175,7 +1175,7 @@
 								}
 							]
 						},
-						"description": "Add a member to a project"
+						"description": "Add a member to a project (admin only - requires ADMIN or PROJECTMANAGER role)"
 					},
 					"response": []
 				},
@@ -1218,7 +1218,7 @@
 								}
 							]
 						},
-						"description": "Remove a member from a project"
+						"description": "Remove a member from a project (admin only - requires ADMIN or PROJECTMANAGER role)"
 					},
 					"response": []
 				},
@@ -1256,7 +1256,7 @@
 								}
 							]
 						},
-						"description": "Get project statistics (total hours, task counts, member activity) - to be implemented"
+						"description": "Get project statistics (total hours, task counts, member activity) - NOT IMPLEMENTED YET"
 					},
 					"response": []
 				},
@@ -1294,12 +1294,12 @@
 								}
 							]
 						},
-						"description": "Get project health indicators (overdue tasks, inactive members) - to be implemented"
+						"description": "Get project health indicators (overdue tasks, inactive members) - NOT IMPLEMENTED YET"
 					},
 					"response": []
 				}
 			],
-			"description": "Project management endpoints (to be implemented)"
+			"description": "Project management endpoints"
 		},
 		{
 			"name": "Tasks",
@@ -1521,7 +1521,7 @@
 								}
 							]
 						},
-						"description": "Delete task (admin or project member)"
+						"description": "Delete task (admin only - requires ADMIN or PROJECTMANAGER role)"
 					},
 					"response": []
 				},
@@ -1547,7 +1547,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"assigned_to\": 2\n}",
+							"raw": "{\n    \"user_id\": 2\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -1573,7 +1573,7 @@
 								}
 							]
 						},
-						"description": "Assign or unassign task (set assigned_to to null to unassign)"
+						"description": "Assign or unassign task. Send user_id in body (or null to unassign). Requires project membership."
 					},
 					"response": []
 				},
@@ -1630,7 +1630,7 @@
 					"response": []
 				}
 			],
-			"description": "Task management endpoints (to be implemented)"
+			"description": "Task management endpoints"
 		},
 		{
 			"name": "Logged Hours",

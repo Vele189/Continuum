@@ -1,4 +1,4 @@
-from typing import Any, List
+from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.responses import Response
 from sqlalchemy.orm import Session
@@ -18,11 +18,11 @@ def create_client(
     client_in: ClientCreate,
     db: Session = Depends(deps.get_db),
     current_user: User = Depends(deps.get_current_active_admin),
-) -> Any:
+):
     """
     Create a new client.
-    
-    Requires admin authentication.
+
+    Requires admin privileges (ADMIN or PROJECTMANAGER role).
     """
     try:
         client = client_service.create(
@@ -36,16 +36,6 @@ def create_client(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=str(e)
         ) from e
-    except Exception as e:
-        logger.error(
-            "Error creating client: %s",
-            str(e),
-            exc_info=True
-        )
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"An error occurred while creating the client: {str(e)}"
-        ) from e
 
 
 @router.get("/", response_model=List[Client])
@@ -54,11 +44,11 @@ def list_clients(
     limit: int = 100,
     db: Session = Depends(deps.get_db),
     current_user: User = Depends(deps.get_current_active_admin),
-) -> Any:
+):
     """
     List all clients.
-    
-    Requires admin authentication.
+
+    Requires admin privileges.
     Supports pagination via skip and limit query parameters.
     """
     clients = client_service.get_all(db=db, skip=skip, limit=limit)
@@ -70,11 +60,11 @@ def get_client(
     client_id: int,
     db: Session = Depends(deps.get_db),
     current_user: User = Depends(deps.get_current_active_admin),
-) -> Any:
+):
     """
     Get client details by ID.
-    
-    Requires admin authentication.
+
+    Requires admin privileges.
     """
     client = client_service.get(db=db, client_id=client_id)
     if not client:
@@ -91,11 +81,11 @@ def update_client(
     client_in: ClientUpdate,
     db: Session = Depends(deps.get_db),
     current_user: User = Depends(deps.get_current_active_admin),
-) -> Any:
+):
     """
     Update a client.
-    
-    Requires admin authentication.
+
+    Requires admin privileges.
     Only provided fields will be updated.
     """
     client = client_service.get(db=db, client_id=client_id)
@@ -104,7 +94,7 @@ def update_client(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Client not found"
         )
-    
+
     try:
         updated_client = client_service.update(
             db=db,
@@ -117,16 +107,6 @@ def update_client(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=str(e)
         ) from e
-    except Exception as e:
-        logger.error(
-            "Error updating client: %s",
-            str(e),
-            exc_info=True
-        )
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"An error occurred while updating the client: {str(e)}"
-        ) from e
 
 
 @router.delete("/{client_id}", status_code=status.HTTP_204_NO_CONTENT, response_class=Response)
@@ -137,8 +117,8 @@ def delete_client(
 ):
     """
     Delete a client.
-    
-    Requires admin authentication.
+
+    Requires admin privileges.
     """
     client = client_service.delete(db=db, client_id=client_id)
     if not client:
@@ -146,4 +126,3 @@ def delete_client(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Client not found"
         )
-
