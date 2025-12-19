@@ -652,6 +652,226 @@
 			"description": "Client management endpoints (admin only - requires CLIENT role)"
 		},
 		{
+			"name": "Tasks",
+			"item": [
+				{
+					"name": "Create Task",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+                             {
+                                "key": "Authorization",
+                                "value": "Bearer {{access_token}}"
+                            }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"title\": \"Implement Login\",\n    \"description\": \"Create login page and integration\",\n    \"project_id\": 1,\n    \"status\": \"To Do\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/tasks/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"tasks",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "List Tasks",
+					"request": {
+						"method": "GET",
+						"header": [
+                             {
+                                "key": "Authorization",
+                                "value": "Bearer {{access_token}}"
+                            }
+                        ],
+						"url": {
+							"raw": "{{base_url}}/api/v1/tasks/?project_id=1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"tasks",
+								""
+							],
+							"query": [
+								{
+									"key": "project_id",
+									"value": "1"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Task",
+					"request": {
+						"method": "GET",
+						"header": [
+                             {
+                                "key": "Authorization",
+                                "value": "Bearer {{access_token}}"
+                            }
+                        ],
+						"url": {
+							"raw": "{{base_url}}/api/v1/tasks/1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"tasks",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Task",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+                             {
+                                "key": "Authorization",
+                                "value": "Bearer {{access_token}}"
+                            }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"status\": \"In Progress\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/tasks/1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"tasks",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Task Status",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+                             {
+                                "key": "Authorization",
+                                "value": "Bearer {{access_token}}"
+                            }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"status\": \"in_progress\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/tasks/1/status",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"tasks",
+								"1",
+								"status"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Assign Task",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+                             {
+                                "key": "Authorization",
+                                "value": "Bearer {{access_token}}"
+                            }
+                        ],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"user_id\": 1\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/tasks/1/assign",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"tasks",
+								"1",
+								"assign"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Task",
+					"request": {
+						"method": "DELETE",
+						"header": [
+                             {
+                                "key": "Authorization",
+                                "value": "Bearer {{access_token}}"
+                            }
+                        ],
+						"url": {
+							"raw": "{{base_url}}/api/v1/tasks/1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"tasks",
+								"1"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
 			"name": "Projects",
 			"item": [
 				{
@@ -1917,7 +2137,7 @@
 	"variable": [
 		{
 			"key": "base_url",
-			"value": "http://localhost:8001",
+			"value": "http://localhost:8000",
 			"type": "string"
 		},
 		{
