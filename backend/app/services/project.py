@@ -8,7 +8,11 @@ from app.schemas.project import ProjectCreate, ProjectUpdate, ProjectMemberCreat
 
 class ProjectService:
     @staticmethod
-    def create_project(db: Session, project_in: ProjectCreate, current_user_id: int) -> Project:
+    def create_project(
+        db: Session,
+        project_in: ProjectCreate,
+        current_user_id: int  # pylint: disable=unused-argument
+    ) -> Project:
         """Create a new project."""
         # Verify client exists
         client = db.query(Client).filter(Client.id == project_in.client_id).first()

@@ -1,3 +1,4 @@
+# pylint: disable=unused-argument,redefined-outer-name
 from typing import List, Optional
 
 from fastapi import APIRouter, Depends, Query, status
@@ -86,7 +87,9 @@ def update_project(
     - Members can update projects they belong to
     """
     is_admin = is_admin_user(current_user)
-    return ProjectService.update_project(db, project_id, project_in, current_user.id, is_admin=is_admin)
+    return ProjectService.update_project(
+        db, project_id, project_in, current_user.id, is_admin=is_admin
+    )
 
 
 @router.delete("/{project_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -103,7 +106,11 @@ def delete_project(
     ProjectService.delete_project(db, project_id)
 
 
-@router.post("/{project_id}/members", response_model=ProjectMember, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/{project_id}/members",
+    response_model=ProjectMember,
+    status_code=status.HTTP_201_CREATED
+)
 def add_member(
     project_id: int,
     member_in: ProjectMemberCreate,

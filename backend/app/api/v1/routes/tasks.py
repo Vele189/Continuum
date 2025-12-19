@@ -1,4 +1,6 @@
+# pylint: disable=unused-argument,redefined-outer-name
 from typing import List, Optional
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
@@ -24,7 +26,9 @@ def create_task(
     """
     # Verify project membership (admins bypass this check)
     if not is_admin_user(current_user):
-        is_member = task_service.validate_project_membership(db, task_in.project_id, current_user.id)
+        is_member = task_service.validate_project_membership(
+            db, task_in.project_id, current_user.id
+        )
         if not is_member:
             raise HTTPException(status_code=403, detail="Not a member of this project")
 

@@ -1,4 +1,6 @@
+# pylint: disable=unused-argument
 from typing import List
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.responses import Response
 from sqlalchemy.orm import Session
