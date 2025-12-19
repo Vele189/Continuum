@@ -41,8 +41,9 @@ class ClientInDBBase(ClientBase):
     """Base schema for database representation"""
     model_config = ConfigDict(from_attributes=True)
     
-    id: Optional[int] = None
-    created_at: Optional[datetime] = None
+    id: int
+    created_by: Optional[int] = None
+    created_at: datetime
     updated_at: Optional[datetime] = None
 
 
@@ -51,7 +52,6 @@ class Client(ClientInDBBase):
     id: int
     name: str
     email: Optional[str] = None
+    created_by: Optional[int] = None
     created_at: datetime
-    updated_at: datetime
-
-
+    updated_at: Optional[datetime] = None

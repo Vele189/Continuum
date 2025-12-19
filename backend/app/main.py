@@ -1,8 +1,7 @@
 # Main application entry point
 import os
 from fastapi import FastAPI
-from app.api.v1.routes import users, auth, admin, tasks
-from app.api.v1.routes import users, auth, admin, logged_hours, clients
+from app.api.v1.routes import users, auth, admin, tasks, logged_hours, projects, clients
 from app.core.config import settings
 from app.utils.logger import get_logger
 from .database import init_db
@@ -40,6 +39,7 @@ app.include_router(
     prefix=f"{settings.API_V1_STR}",
     tags=["Aggregations"]
 )
+app.include_router(projects.router, prefix=f"{settings.API_V1_STR}/projects", tags=["Projects"])
 app.include_router(clients.router, prefix=f"{settings.API_V1_STR}/clients", tags=["Clients"])
 
 @app.get("/health")

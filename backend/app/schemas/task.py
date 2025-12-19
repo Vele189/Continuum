@@ -1,4 +1,4 @@
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, field_validator, ConfigDict
 from typing import Optional, List, Literal
 from datetime import datetime
 from .project import Project
@@ -10,10 +10,11 @@ class TaskBase(BaseModel):
     title: str
     description: Optional[str] = None
     status: Literal["todo", "in_progress", "done"] = "todo"
+    project_id: int
     assigned_to: Optional[int] = None
 
 class TaskCreate(TaskBase):
-    project_id: int
+    pass
 
 class TaskUpdate(BaseModel):
     title: Optional[str] = None
@@ -21,14 +22,14 @@ class TaskUpdate(BaseModel):
     status: Optional[Literal["todo", "in_progress", "done"]] = None
     assigned_to: Optional[int] = None
 
-class Task(TaskBase):
+class TaskInDBBase(TaskBase):
+    model_config = ConfigDict(from_attributes=True)
     id: int
-    project_id: int
-    created_at: Optional[datetime] = None
-    updated_at: Optional[datetime] = None
+    created_at: datetime
+    updated_at: datetime
 
-    class Config:
-        from_attributes = True
+class Task(TaskInDBBase):
+    pass
 
 class TaskWithProject(Task):
     project: Optional[Project] = None

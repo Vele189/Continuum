@@ -54,5 +54,3 @@ def delete(db: Session, client_id: int) -> Optional[Client]:
     db.delete(client)
     db.commit()
     return client
-
-
