@@ -2,7 +2,7 @@
 import os
 from fastapi import FastAPI
 from app.api.v1.routes import (
-    users, auth, admin, tasks, logged_hours, projects, clients, git_contributions
+    users, auth, admin, tasks, logged_hours, projects, clients, git_contributions, task_attachments
 )
 from app.core.config import settings
 from app.utils.logger import get_logger
@@ -47,6 +47,11 @@ app.include_router(
     git_contributions.router,
     prefix=f"{settings.API_V1_STR}/git-contributions",
     tags=["Git Contributions"]
+)
+app.include_router(
+    task_attachments.router,
+    prefix=f"{settings.API_V1_STR}",
+    tags=["Task Attachments"]
 )
 
 @app.get("/health")

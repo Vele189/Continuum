@@ -86,6 +86,7 @@ class User(Base):
     logged_hours = relationship("LoggedHour", back_populates="user")
     git_contributions = relationship("GitContribution", back_populates="user")
     project_memberships = relationship("ProjectMember", back_populates="user")
+    task_attachments = relationship("TaskAttachment", back_populates="uploader")
 
 class Client(Base):
     __tablename__ = "clients"
@@ -211,6 +212,43 @@ class Task(Base):
     project = relationship("Project", back_populates="tasks")
     assignee = relationship("User", back_populates="tasks_assigned")
     logged_hours = relationship("LoggedHour", back_populates="task")
+    attachments = relationship(
+        "TaskAttachment",
+        back_populates="task",
+        cascade="all, delete-orphan"
+    )
+
+class TaskAttachment(Base):
+    __tablename__ = "task_attachments"
+
+    id = Column(Integer, primary_key=True, index=True)
+    task_id = Column(
+        Integer,
+        ForeignKey("tasks.id", ondelete="CASCADE", onupdate="CASCADE"),
+        nullable=False,
+        index=True
+    )
+    user_id = Column(
+        Integer,
+        ForeignKey("users.id", ondelete="CASCADE", onupdate="CASCADE"),
+        nullable=False,
+        index=True
+    )
+    filename = Column(String, nullable=False)  # Internal/storage-safe name
+    original_filename = Column(String, nullable=False)  # User-uploaded name
+    file_path = Column(String, nullable=False)  # Storage location
+    file_size = Column(Integer, nullable=False)  # Size in bytes
+    mime_type = Column(String, nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(
+        DateTime(timezone=True),
+        onupdate=func.now(),
+        server_default=func.now()
+    )
+
+    # Relationships
+    task = relationship("Task", back_populates="attachments")
+    uploader = relationship("User", back_populates="task_attachments")
 
 class LoggedHour(Base):
     __tablename__ = "logged_hours"

@@ -2182,6 +2182,178 @@
 				}
 			],
 			"description": "Git contributions endpoints - Track commits linked to projects and tasks"
+		},
+		{
+			"name": "Task Attachments",
+			"item": [
+				{
+					"name": "Upload Task Attachment",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "file",
+									"type": "file",
+									"src": [],
+									"description": "File to upload (max 10MB)"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/tasks/:task_id/attachments",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"tasks",
+								":task_id",
+								"attachments"
+							],
+							"variable": [
+								{
+									"key": "task_id",
+									"value": "1",
+									"description": "Task ID"
+								}
+							]
+						},
+						"description": "Upload a file attachment to a task. Requires project membership (or admin). File size limit: 10MB. Supports all file types (configurable via ALLOWED_MIME_TYPES). Returns attachment metadata including uploader info."
+					},
+					"response": []
+				},
+				{
+					"name": "List Task Attachments",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/tasks/:task_id/attachments",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"tasks",
+								":task_id",
+								"attachments"
+							],
+							"variable": [
+								{
+									"key": "task_id",
+									"value": "1",
+									"description": "Task ID"
+								}
+							]
+						},
+						"description": "List all attachments for a task. Requires project membership (or admin). Returns list with attachment metadata including uploader info, file size, MIME type, and timestamps."
+					},
+					"response": []
+				},
+				{
+					"name": "Download Task Attachment",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/attachments/:attachment_id/download",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"attachments",
+								":attachment_id",
+								"download"
+							],
+							"variable": [
+								{
+									"key": "attachment_id",
+									"value": "1",
+									"description": "Attachment ID"
+								}
+							]
+						},
+						"description": "Download an attachment file. Requires project membership (or admin). Returns the file with appropriate Content-Type and Content-Disposition headers."
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Task Attachment",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/attachments/:attachment_id",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"attachments",
+								":attachment_id"
+							],
+							"variable": [
+								{
+									"key": "attachment_id",
+									"value": "1",
+									"description": "Attachment ID"
+								}
+							]
+						},
+						"description": "Delete an attachment. Only the uploader or admin can delete. Removes both the database record and the file from storage."
+					},
+					"response": []
+				}
+			],
+			"description": "Task attachment endpoints - Upload, view, download, and manage file attachments on tasks"
 		}
 	],
 	"variable": [
