@@ -12,9 +12,12 @@ from app.schemas.project import (
     ProjectUpdate,
     ProjectMember,
     ProjectMemberCreate,
-    ProjectDetail
+    ProjectDetail,
+    ProjectStatistics,
+    ProjectHealth
 )
 from app.services.project import ProjectService
+from app.api.deps import get_current_project_member
 
 router = APIRouter()
 
@@ -156,3 +159,34 @@ def get_members(
     # Verify access to project first
     ProjectService.get_project_with_check(db, project_id, current_user.id, is_admin=is_admin)
     return ProjectService.list_members(db, project_id)
+
+
+#we make a get requests endpoint for the project statistics
+@router.get("/{project_id}/stats", response_model=ProjectStatistics)
+def get_project_stats(
+    project_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+    member: ProjectMember = Depends(get_current_project_member),
+):
+    """
+    Get project statistics.
+    
+    - Members can view stats of projects they belong to
+    """
+    return ProjectService.get_project_statistics(db=db, project_id=project_id)
+
+#we make a get requests endpoint for the project health
+@router.get("/{project_id}/health", response_model=ProjectHealth)
+def get_project_health(
+    project_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+    member: ProjectMember = Depends(get_current_project_member),
+):
+    """
+    Get project health.
+    
+    - Members can view health of projects they belong to
+    """
+    return ProjectService.get_project_health(db=db, project_id=project_id)
