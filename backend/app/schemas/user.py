@@ -2,7 +2,7 @@ from typing import Optional
 from datetime import datetime
 from decimal import Decimal
 from pydantic import BaseModel, EmailStr, field_validator, ConfigDict
-from app.database import UserRole
+from app.dbmodels import UserRole
 
 # Shared properties
 class UserBase(BaseModel):

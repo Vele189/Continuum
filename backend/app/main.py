@@ -4,7 +4,7 @@ from fastapi import FastAPI
 from app.api.v1.routes import users, auth, admin
 from app.core.config import settings
 from app.utils.logger import get_logger
-from .database import init_db
+
 
 logger = get_logger(__name__)
 
@@ -15,13 +15,6 @@ logger.info("Backend starting...")
 logger.info("Environment: %s", env)
 logger.info("Port: %s", port)
 
-# Initialize the database structure
-try:
-    init_db()
-    logger.info("Startup complete. Database connected and verified.")
-except Exception as e:
-    logger.critical("FATAL ERROR during startup: Could not initialize database. %s", e)
-    raise  # Raise to prevent app from starting if DB fails
 
 app = FastAPI(title="Continuum API")
 app.include_router(users.router, prefix=f"{settings.API_V1_STR}/users", tags=["Users"])

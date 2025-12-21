@@ -1,7 +1,7 @@
 from typing import Any
 from fastapi import APIRouter, Depends
 from app.api import deps
-from app.database import User
+from app.dbmodels import User
 
 router = APIRouter()
 

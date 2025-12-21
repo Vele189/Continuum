@@ -14,6 +14,7 @@ class Settings(BaseSettings):
     REFRESH_TOKEN_EXPIRE_HOURS: int = 24
 
     DATABASE_URL: str = "sqlite:///./continuum.db"
+    POSTGRES_DB_URL: str = "postgresql+psycopg2://user:password@localhost:5432/fake_db" #stub db url
 
 
 settings = Settings()

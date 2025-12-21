@@ -3,7 +3,7 @@ import uuid
 from sqlalchemy.orm import Session
 
 from app.core.security import hash_password, verify_password
-from app.database import User
+from app.dbmodels import User
 from app.schemas.user import UserCreate, UserUpdate
 
 def get_by_email(db: Session, email: str) -> Optional[User]:
