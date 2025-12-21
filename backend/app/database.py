@@ -255,11 +255,16 @@ class LoggedHour(Base):
 class GitContribution(Base):
     __tablename__ = "git_contributions"
 
+    # Composite Unique Constraint: same commit hash cannot be linked twice to the same project
+    __table_args__ = (
+        UniqueConstraint('project_id', 'commit_hash', name='uix_project_commit'),
+    )
+
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(
         Integer,
-        ForeignKey("users.id", ondelete="SET NULL", onupdate="CASCADE"),
-        nullable=True,
+        ForeignKey("users.id", ondelete="CASCADE", onupdate="CASCADE"),
+        nullable=False,
         index=True
     )
     project_id = Column(
@@ -268,17 +273,27 @@ class GitContribution(Base):
         nullable=False,
         index=True
     )
+    task_id = Column(
+        Integer,
+        ForeignKey("tasks.id", ondelete="SET NULL", onupdate="CASCADE"),
+        nullable=True,
+        index=True
+    )
 
-    # Unique Constraint explicitly required
-    commit_hash = Column(String, nullable=False, unique=True)
-
-    commit_message = Column(Text, nullable=True)
+    commit_hash = Column(String, nullable=False, index=True)
     branch = Column(String, nullable=True)
-    committed_at = Column(DateTime(timezone=True), nullable=False)
+    commit_message = Column(Text, nullable=True)
+    provider = Column(String, nullable=False)  # e.g., "github", "gitlab"
+    commit_url = Column(String, nullable=True)
+
+    # Legacy column - kept for database compatibility, use created_at instead
+    committed_at = Column(DateTime(timezone=True), nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     # Relationships
     user = relationship("User", back_populates="git_contributions")
     project = relationship("Project", back_populates="git_contributions")
+    task = relationship("Task", backref="git_contributions")
 
 class SystemLog(Base):
     __tablename__ = "system_logs"
