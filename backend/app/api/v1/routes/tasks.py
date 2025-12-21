@@ -1,14 +1,16 @@
 # pylint: disable=unused-argument,redefined-outer-name
 from typing import List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
 
 from app.api import deps
 from app.api.deps import is_admin_user
 from app.database import User
 from app.schemas.task import Task, TaskCreate, TaskUpdate, AssignTaskRequest, UpdateStatusRequest
+from app.schemas.task_timeline import TaskTimelineResponse
 from app.services import task as task_service
+from app.services import task_timeline
 
 router = APIRouter()
 
@@ -179,3 +181,52 @@ def assign_task(
             raise HTTPException(status_code=403, detail="Not a member of this project")
 
     return task_service.assign(db, task_id=task_id, user_id=assign_request.user_id)
+
+
+@router.get("/{task_id}/timeline", response_model=TaskTimelineResponse)
+def get_task_timeline(
+    task_id: int,
+    skip: int = Query(0, ge=0, description="Number of activities to skip"),
+    limit: int = Query(100, ge=1, le=1000, description="Maximum number of activities to return"),
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_user),
+):
+    """
+    Get the complete activity timeline for a task.
+    
+    Returns all task-related activities in chronological order (oldest first):
+    - Task creation
+    - Status changes
+    - Assignment changes
+    - Comments (when implemented)
+    - Attachments
+    - Logged hours
+    - Linked git commits
+    
+    Requires the user to be a member of the project (or admin).
+    
+    This endpoint serves as:
+    - The source of truth for task history
+    - The backbone for client reports
+    - A primary input for AI summaries and insights
+    
+    Note: Status and assignment changes currently only show the most recent change
+    due to lack of historical tracking. For full history, a task_activities table
+    would need to be implemented.
+    """
+    # Verify task exists and user has access (handled in service)
+    activities, total = task_timeline.get_task_timeline(
+        db=db,
+        task_id=task_id,
+        user_id=current_user.id,
+        is_admin=is_admin_user(current_user),
+        skip=skip,
+        limit=limit
+    )
+
+    return TaskTimelineResponse(
+        activities=activities,
+        total=total,
+        skip=skip,
+        limit=limit
+    )
