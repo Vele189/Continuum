@@ -3,7 +3,7 @@ import os
 from fastapi import FastAPI
 from app.api.v1.routes import (
     users, auth, admin, tasks, logged_hours, projects, clients,
-    git_contributions, task_attachments, invoices
+    git_contributions, task_attachments, invoices, webhooks
 )
 from app.core.config import settings
 from app.utils.logger import get_logger
@@ -55,6 +55,11 @@ app.include_router(
     tags=["Task Attachments"]
 )
 app.include_router(invoices.router, prefix=f"{settings.API_V1_STR}/invoices", tags=["Invoices"])
+app.include_router(
+    webhooks.router,
+    prefix=f"{settings.API_V1_STR}/webhooks",
+    tags=["Webhooks"]
+)
 
 @app.get("/health")
 def health_check():

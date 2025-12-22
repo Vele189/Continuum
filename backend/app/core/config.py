@@ -20,5 +20,10 @@ class Settings(BaseSettings):
     UPLOAD_DIR: str = "./uploads"
     ALLOWED_MIME_TYPES: list[str] = []  # Empty list means all types allowed (optional whitelist)
 
+    # Webhook secrets for Git providers
+    GITHUB_WEBHOOK_SECRET: str = ""
+    GITLAB_WEBHOOK_TOKEN: str = ""
+    BITBUCKET_WEBHOOK_SECRET: str = ""
+
 
 settings = Settings()
