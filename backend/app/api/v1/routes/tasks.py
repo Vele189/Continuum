@@ -5,8 +5,12 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.api import deps
-from app.api.deps import is_admin_user, get_current_active_admin, get_current_project_member
-from app.database import User
+from app.api.deps import (
+    is_admin_user, 
+    get_current_project_member,
+    get_current_project_admin
+)
+from app.database import User, ProjectMember
 from app.schemas.task import Task, TaskCreate, TaskUpdate, AssignTaskRequest, UpdateStatusRequest
 from app.services import task as task_service
 
@@ -26,11 +30,12 @@ def create_task(
     """
     # Verify project membership (admins bypass this check)
     if not is_admin_user(current_user):
-        is_member = task_service.validate_project_membership(
-            db, task_in.project_id, current_user.id
+        # This will raise 403 if not a member
+        get_current_project_member(
+            project_id=task_in.project_id,
+            current_user=current_user,
+            db=db
         )
-        if not is_member:
-            raise HTTPException(status_code=403, detail="Not a member of this project")
 
     return task_service.create(db, obj_in=task_in)
 
@@ -60,10 +65,18 @@ def list_tasks(
         return tasks
 
     # Filter tasks to only include those from projects the user is a member of
-    filtered_tasks = [
-        task for task in tasks
-        if task_service.validate_project_membership(db, task.project_id, current_user.id)
-    ]
+    filtered_tasks = []
+    for task in tasks:
+        try:
+            get_current_project_member(
+                project_id=task.project_id,
+                current_user=current_user,
+                db=db
+            )
+            filtered_tasks.append(task)
+        except HTTPException:
+            # User is not a member of this project, skip it
+            continue
 
     return filtered_tasks
 
@@ -85,8 +98,11 @@ def get_task(
 
     # Verify project membership (admins bypass)
     if not is_admin_user(current_user):
-        if not task_service.validate_project_membership(db, task.project_id, current_user.id):
-            raise HTTPException(status_code=403, detail="Not a member of this project")
+        get_current_project_member(
+            project_id=task.project_id,
+            current_user=current_user,
+            db=db
+        )
 
     return task
 
@@ -97,7 +113,6 @@ def update_task(
     task_in: TaskUpdate,
     db: Session = Depends(deps.get_db),
     current_user: User = Depends(deps.get_current_user),
-     is_admin: User = Depends(deps.get_current_active_admin)
 ):
     """
     Update a task.
@@ -110,8 +125,11 @@ def update_task(
 
     # Verify project membership (admins bypass)
     if not is_admin_user(current_user):
-        if not task_service.validate_project_membership(db, task.project_id, current_user.id):
-            raise HTTPException(status_code=403, detail="Not a member of this project")
+        get_current_project_member(
+            project_id=task.project_id,
+            current_user=current_user,
+            db=db
+        )
 
     return task_service.update(db, db_obj=task, obj_in=task_in)
 
@@ -121,17 +139,22 @@ def delete_task(
     task_id: int,
     db: Session = Depends(deps.get_db),
     current_user: User = Depends(deps.get_current_user),
-    is_admin: User = Depends(deps.get_current_active_admin)
 ):
     """
     Delete a task.
 
     Requires admin privileges (ADMIN or PROJECTMANAGER role).
     """
-    
     task = task_service.get(db, task_id=task_id)
     if not task:
         raise HTTPException(status_code=404, detail="Task not found")
+
+    # Verify project admin privileges (will raise 403 if not admin)
+    get_current_project_admin(
+        project_id=task.project_id,
+        current_user=current_user,
+        db=db
+    )
 
     task_service.delete(db, task_id=task_id)
 
@@ -154,8 +177,11 @@ def update_task_status(
 
     # Verify project membership (admins bypass)
     if not is_admin_user(current_user):
-        if not task_service.validate_project_membership(db, task.project_id, current_user.id):
-            raise HTTPException(status_code=403, detail="Not a member of this project")
+        get_current_project_member(
+            project_id=task.project_id,
+            current_user=current_user,
+            db=db
+        )
 
     return task_service.update_status(db, task_id=task_id, new_status=status_update.status)
 
@@ -166,18 +192,21 @@ def assign_task(
     assign_request: AssignTaskRequest,
     db: Session = Depends(deps.get_db),
     current_user: User = Depends(deps.get_current_user),
-    is_admin: User = Depends(deps.get_current_active_admin)
 ):
     """
     Assign a task to a user.
 
-    Requires the user to be a member of the project (or admin).
+    Requires project admin privileges (ADMIN or PROJECTMANAGER role).
     """
     task = task_service.get(db, task_id=task_id)
     if not task:
         raise HTTPException(status_code=404, detail="Task not found")
 
-  
-
+    # Verify project admin privileges (will raise 403 if not admin)
+    get_current_project_admin(
+        project_id=task.project_id,
+        current_user=current_user,
+        db=db
+    )
 
     return task_service.assign(db, task_id=task_id, user_id=assign_request.user_id)
