@@ -1,3 +1,4 @@
+from app.database import ProjectMember, Project
 from typing import Generator, Optional
 
 from fastapi import Depends, HTTPException, status
@@ -11,6 +12,7 @@ from app.core.config import settings
 from app.db.session import SessionLocal
 from app.database import User, UserRole
 from app.schemas.user import TokenPayload
+
 
 reusable_oauth2 = OAuth2PasswordBearer(
     tokenUrl=f"{settings.API_V1_STR}/auth/login/access-token"
@@ -78,3 +80,44 @@ def get_current_active_admin(
 def is_admin_user(user: User) -> bool:
     """Helper function to check if a user has admin privileges."""
     return user.role in {UserRole.ADMIN, UserRole.PROJECTMANAGER}
+
+#==================================================get the current memebr of a project==========================
+def get_current_project_member(project_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)) -> ProjectMember:
+    """Helper function to check if the current user is a member of the project and get that member."""
+    #first we need to check if the project exists if not we return an error
+    project = db.query(Project).filter(Project.id == project_id).first()
+    if not project:
+        raise HTTPException(status_code=404, detail="This Project does not exist")
+    #then we need to check if the current user is a member of the project if it does exist if not we return an error
+    member = db.query(ProjectMember).filter(ProjectMember.project_id == project_id, ProjectMember.user_id == current_user.id).first()
+    if not member:
+        raise HTTPException(status_code=403, detail="You are not a member of this project")
+    #then we return the member
+    return member
+ 
+#==================================================get the current admin of a project==========================
+def get_current_project_admin(
+    project_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+) -> ProjectMember:
+    """Helper function to check if the current user is an admin of the project and get that admin."""
+    #first we need to check if the project exists if not we return an error
+    project = db.query(Project).filter(Project.id == project_id).first()
+    if not project:
+        raise HTTPException(status_code=404, detail="This Project does not exist")
+    #then we need to check if the current user is an admin of the project if it does exist if not we return an error and this does not need to check for membership
+    admin = db.query(ProjectMember).filter(ProjectMember.project_id == project_id, ProjectMember.role == UserRole.ADMIN).first()
+    if not admin:
+        raise HTTPException(status_code=403, detail="You are not an admin of this project")
+
+    #then we need to check if they are a second type of admin a project manager and we need to check for membership as well
+    project_manager = db.query(ProjectMember).filter(ProjectMember.project_id == project_id, ProjectMember.user_id == current_user.id, ProjectMember.role == UserRole.PROJECTMANAGER).first()
+    if project_manager:
+        return project_manager
+    
+    
+    #then we return the admin
+    return admin
