@@ -4,6 +4,9 @@ from datetime import datetime, timedelta
 from sqlalchemy.orm import Session
 from fastapi import HTTPException, status
 from app.api.deps import get_current_project_member
+from sqlalchemy import func
+
+
 from app.database import Project, ProjectMember, Client, User, Task, LoggedHour
 from app.schemas.project import (
     ProjectCreate, 
@@ -12,7 +15,8 @@ from app.schemas.project import (
     ProjectStatistics,
     ProjectHealth,
     ProjectHealthIndicator,
-    HealthFlag
+    HealthFlag,
+    TaskCount
 )
 
 
@@ -63,6 +67,8 @@ class ProjectService:
             raise HTTPException(status_code=404, detail="Project not found")
 
         if is_admin:
+            # Populate member stats even for admins
+            ProjectService._populate_member_stats(db, project_id, project.members)
             return project
 
         # Check membership for non-admin users
@@ -73,6 +79,10 @@ class ProjectService:
 
         if not member:
             raise HTTPException(status_code=403, detail="Not a member of this project")
+
+        # Populate member stats for the project's members list
+        # This ensures get_project returns members with task_count populated
+        ProjectService._populate_member_stats(db, project_id, project.members)
 
         return project
 
@@ -189,9 +199,42 @@ class ProjectService:
         return member
 
     @staticmethod
+    def _populate_member_stats(db: Session, project_id: int, members: List[ProjectMember]):
+        """Helper to populate task_count for a list of project members."""
+        now_time = datetime.now()
+        for member in members:
+            # Calculate logged hours
+            hours_logged = db.query(func.sum(LoggedHour.hours)).filter(
+                LoggedHour.project_id == project_id,
+                LoggedHour.user_id == member.user_id
+            ).scalar() or 0.0
+            
+            # Base task query for this member in this project
+            member_tasks = db.query(Task).filter(
+                Task.project_id == project_id,
+                Task.assigned_to == member.user_id
+            )
+            
+            # Assign stats to member.task_count (will be picked up by Pydantic)
+            member.task_count = TaskCount(
+                hours_logged=hours_logged,
+                tasks_count=member_tasks.count(),
+                completed_tasks_count=member_tasks.filter(Task.status == "completed").count(),
+                in_progress_tasks_count=member_tasks.filter(Task.status == "in_progress").count(),
+                todo_tasks_count=member_tasks.filter(Task.status == "todo").count(),
+                overdue_tasks_count=member_tasks.filter(
+                    Task.status != "completed",
+                    Task.due_date != None,
+                    Task.due_date < now_time
+                ).count()
+            )
+
+    @staticmethod
     def list_members(db: Session, project_id: int) -> List[ProjectMember]:
         """List all members of a project."""
-        return db.query(ProjectMember).filter(ProjectMember.project_id == project_id).all()
+        members = db.query(ProjectMember).filter(ProjectMember.project_id == project_id).all()
+        ProjectService._populate_member_stats(db, project_id, members)
+        return members
 
 #==================================================get the statistics of a project==========================
     @staticmethod
@@ -209,17 +252,21 @@ class ProjectService:
         if not project:
             raise HTTPException(status_code=404, detail="This Project does not exist")
 
-        #we have to get the project members
+        # Get project members and their stats
         members = db.query(ProjectMember).filter(ProjectMember.project_id == project_id).all()
-        
+        ProjectService._populate_member_stats(db, project_id, members)
+        now_time = datetime.now()
+      
         #we have to get the project tasks
         tasks = db.query(Task).filter(Task.project_id == project_id).all()
+
+
         
         #then we have to check the task counts of an individual task in the task array and increment the counts according to their status
         total_tasks = len(tasks)
         total_completed_tasks = 0
         total_in_progress_tasks = 0
-        total_on_hold_tasks = 0
+        total_todo_tasks = 0
         total_overdue_tasks = 0
 
         for task in tasks:
@@ -227,9 +274,10 @@ class ProjectService:
                 total_completed_tasks += 1
             elif task.status == "in_progress":
                 total_in_progress_tasks += 1
-            elif task.status == "on_hold":
-                total_on_hold_tasks += 1
-            elif task.status == "overdue":
+            elif task.status == "todo":
+                total_todo_tasks += 1
+            
+            if task.status != "completed" and task.due_date and now_time > task.due_date:
                 total_overdue_tasks += 1
 
         #then we have to get the total logged hours of the project
@@ -251,7 +299,7 @@ class ProjectService:
         total_tasks=total_tasks,
         total_completed_tasks=total_completed_tasks,
         total_in_progress_tasks=total_in_progress_tasks,
-        total_on_hold_tasks=total_on_hold_tasks,
+        total_todo_tasks=total_todo_tasks,
         total_overdue_tasks=total_overdue_tasks,
     )
 #==================================================get the health of a project==========================
