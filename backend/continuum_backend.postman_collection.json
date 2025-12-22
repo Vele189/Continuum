@@ -1972,7 +1972,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"project_id\": 1,\n    \"commit_hash\": \"abc123def456\",\n    \"commit_message\": \"Add homepage design\",\n    \"branch\": \"main\",\n    \"committed_at\": \"2024-01-15T10:30:00Z\"\n}",
+							"raw": "{\n    \"user_id\": 1,\n    \"project_id\": 1,\n    \"task_id\": null,\n    \"commit_hash\": \"abc123def456\",\n    \"commit_message\": \"Add homepage design\",\n    \"branch\": \"main\",\n    \"provider\": \"github\",\n    \"commit_url\": \"https://github.com/user/repo/commit/abc123def456\"\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -1991,7 +1991,7 @@
 								""
 							]
 						},
-						"description": "Link a git commit to a project"
+						"description": "Create a new git contribution. Requires: user_id, project_id, commit_hash, provider. Optional: task_id, branch, commit_message, commit_url. User must be a member of the project. Same commit hash cannot be linked twice to the same project."
 					},
 					"response": []
 				},
@@ -2011,7 +2011,7 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{base_url}}/api/v1/git-contributions/?user_id=2&project_id=1",
+							"raw": "{{base_url}}/api/v1/git-contributions/?user_id=1&project_id=1&provider=github",
 							"host": [
 								"{{base_url}}"
 							],
@@ -2024,7 +2024,7 @@
 							"query": [
 								{
 									"key": "user_id",
-									"value": "2",
+									"value": "1",
 									"description": "Filter by user ID",
 									"disabled": true
 								},
@@ -2033,15 +2033,21 @@
 									"value": "1",
 									"description": "Filter by project ID",
 									"disabled": true
+								},
+								{
+									"key": "provider",
+									"value": "github",
+									"description": "Filter by provider (github, gitlab, etc.)",
+									"disabled": true
 								}
 							]
 						},
-						"description": "List git contributions (filterable by user, project)"
+						"description": "List git contributions with optional filters. Filters are combinable: user_id, project_id, provider. Admins can view all contributions. Regular users can only view contributions from projects they are members of."
 					},
 					"response": []
 				},
 				{
-					"name": "Get Project Contributions",
+					"name": "Get Git Contribution",
 					"request": {
 						"auth": {
 							"type": "bearer",
@@ -2056,30 +2062,132 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{base_url}}/api/v1/projects/:project_id/contributions",
+							"raw": "{{base_url}}/api/v1/git-contributions/:contribution_id",
 							"host": [
 								"{{base_url}}"
 							],
 							"path": [
 								"api",
 								"v1",
-								"projects",
-								":project_id",
-								"contributions"
+								"git-contributions",
+								":contribution_id"
 							],
 							"variable": [
 								{
-									"key": "project_id",
-									"value": "1"
+									"key": "contribution_id",
+									"value": "1",
+									"description": "Contribution ID"
 								}
 							]
 						},
-						"description": "Get all git contributions for a specific project"
+						"description": "Get a git contribution by ID. User must be a member of the project (or admin)."
 					},
 					"response": []
 				},
 				{
-					"name": "Link Commit to Task",
+					"name": "Update Git Contribution",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"task_id\": 1,\n    \"commit_message\": \"Updated commit message\",\n    \"commit_url\": \"https://github.com/user/repo/commit/abc123def456\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/git-contributions/:contribution_id",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"git-contributions",
+								":contribution_id"
+							],
+							"variable": [
+								{
+									"key": "contribution_id",
+									"value": "1"
+								}
+							]
+						},
+						"description": "Update a git contribution. Only the contributor or admin can update. If updating task_id, task must belong to the contribution's project."
+					},
+					"response": []
+				},
+				{
+					"name": "Link Contribution to Task",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PATCH",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/git-contributions/:contribution_id/link-task?task_id=1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"git-contributions",
+								":contribution_id",
+								"link-task"
+							],
+							"query": [
+								{
+									"key": "task_id",
+									"value": "1",
+									"description": "Task ID to link (omit or set to null to unlink)"
+								}
+							],
+							"variable": [
+								{
+									"key": "contribution_id",
+									"value": "1"
+								}
+							]
+						},
+						"description": "Link a contribution to a task. Only the contributor or admin can link commits. Task must belong to the contribution's project. Omit task_id or set to null to unlink."
+					},
+					"response": []
+				}
+			],
+			"description": "Git contributions endpoints - Track commits linked to projects and tasks"
+		},
+		{
+			"name": "Task Attachments",
+			"item": [
+				{
+					"name": "Upload Task Attachment",
 					"request": {
 						"auth": {
 							"type": "bearer",
@@ -2092,23 +2200,20 @@
 							]
 						},
 						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
+						"header": [],
 						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"commit_hash\": \"abc123def456\",\n    \"commit_message\": \"Add homepage design\",\n    \"branch\": \"main\",\n    \"committed_at\": \"2024-01-15T10:30:00Z\"\n}",
-							"options": {
-								"raw": {
-									"language": "json"
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "file",
+									"type": "file",
+									"src": [],
+									"description": "File to upload (max 10MB)"
 								}
-							}
+							]
 						},
 						"url": {
-							"raw": "{{base_url}}/api/v1/tasks/:task_id/link-commit",
+							"raw": "{{base_url}}/api/v1/tasks/:task_id/attachments",
 							"host": [
 								"{{base_url}}"
 							],
@@ -2117,21 +2222,138 @@
 								"v1",
 								"tasks",
 								":task_id",
-								"link-commit"
+								"attachments"
 							],
 							"variable": [
 								{
 									"key": "task_id",
-									"value": "1"
+									"value": "1",
+									"description": "Task ID"
 								}
 							]
 						},
-						"description": "Link a commit to a task (future: webhook integration)"
+						"description": "Upload a file attachment to a task. Requires project membership (or admin). File size limit: 10MB. Supports all file types (configurable via ALLOWED_MIME_TYPES). Returns attachment metadata including uploader info."
+					},
+					"response": []
+				},
+				{
+					"name": "List Task Attachments",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/tasks/:task_id/attachments",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"tasks",
+								":task_id",
+								"attachments"
+							],
+							"variable": [
+								{
+									"key": "task_id",
+									"value": "1",
+									"description": "Task ID"
+								}
+							]
+						},
+						"description": "List all attachments for a task. Requires project membership (or admin). Returns list with attachment metadata including uploader info, file size, MIME type, and timestamps."
+					},
+					"response": []
+				},
+				{
+					"name": "Download Task Attachment",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/attachments/:attachment_id/download",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"attachments",
+								":attachment_id",
+								"download"
+							],
+							"variable": [
+								{
+									"key": "attachment_id",
+									"value": "1",
+									"description": "Attachment ID"
+								}
+							]
+						},
+						"description": "Download an attachment file. Requires project membership (or admin). Returns the file with appropriate Content-Type and Content-Disposition headers."
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Task Attachment",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/attachments/:attachment_id",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"attachments",
+								":attachment_id"
+							],
+							"variable": [
+								{
+									"key": "attachment_id",
+									"value": "1",
+									"description": "Attachment ID"
+								}
+							]
+						},
+						"description": "Delete an attachment. Only the uploader or admin can delete. Removes both the database record and the file from storage."
 					},
 					"response": []
 				}
 			],
-			"description": "Git contributions endpoints (to be implemented)"
+			"description": "Task attachment endpoints - Upload, view, download, and manage file attachments on tasks"
 		}
 	],
 	"variable": [

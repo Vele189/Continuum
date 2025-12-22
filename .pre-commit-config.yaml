@@ -22,3 +22,18 @@ repos:
         files: ^backend/
         pass_filenames: false
         args: ["backend/tests"]
+      - id: backend-pylint
+        name: Backend Pylint
+        entry: pylint
+        language: python
+        additional_dependencies:
+          - pylint
+          - sqlalchemy
+          - fastapi
+          - pydantic
+          - pydantic-settings
+          - python-jose[cryptography]
+          - passlib[bcrypt]
+        types: [python]
+        files: ^backend/app/
+        args: ["--rcfile=backend/.pylintrc", "--disable=import-error"]
