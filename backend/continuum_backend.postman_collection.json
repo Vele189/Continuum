@@ -1628,6 +1628,59 @@
 						"description": "Update task status (todo, in_progress, done)"
 					},
 					"response": []
+				},
+				{
+					"name": "Get Task Timeline",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/tasks/:task_id/timeline?skip=0&limit=100",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"tasks",
+								":task_id",
+								"timeline"
+							],
+							"query": [
+								{
+									"key": "skip",
+									"value": "0",
+									"description": "Number of activities to skip (pagination)",
+									"disabled": true
+								},
+								{
+									"key": "limit",
+									"value": "100",
+									"description": "Maximum number of activities to return (1-1000)",
+									"disabled": true
+								}
+							],
+							"variable": [
+								{
+									"key": "task_id",
+									"value": "1",
+									"description": "Task ID"
+								}
+							]
+						},
+						"description": "Get the complete activity timeline for a task. Returns all task-related activities in chronological order (oldest first): task creation, status changes, assignment changes, attachments, logged hours, and linked git commits. Requires project membership (or admin). This endpoint serves as the source of truth for task history, backbone for client reports, and primary input for AI summaries and insights."
+					},
+					"response": []
 				}
 			],
 			"description": "Task management endpoints"
