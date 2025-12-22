@@ -6,7 +6,7 @@ from fastapi.responses import Response
 from sqlalchemy.orm import Session
 
 from app.api import deps
-from app.database import User
+from app.dbmodels import User
 from app.schemas.client import Client, ClientCreate, ClientUpdate
 from app.services import client as client_service
 from app.utils.logger import get_logger

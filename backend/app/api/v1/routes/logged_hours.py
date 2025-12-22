@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
 
 from app.api import deps
-from app.database import User
+from app.dbmodels import User
 from app.schemas.logged_hour import (
     LoggedHourCreate,
     LoggedHourUpdate,
