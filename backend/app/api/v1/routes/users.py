@@ -2,9 +2,11 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.api import deps
-from app.schemas.user import UserCreate, UserUpdate, User, PasswordChangeRequest
+from app.schemas.user import UserCreate, UserUpdate, User, PasswordChangeRequest, UserProjects, UserHoursResponse
 from app.services import user as user_service
 from app.database import User as UserModel
+from typing import Optional
+from datetime import datetime
 
 router = APIRouter()
 
@@ -72,6 +74,18 @@ def update_user_profile(
     updated_user = user_service.update_profile(db, current_user, user_update)
     return updated_user
 
+# @router.get("/me", response_model=UserProfile)
+# def get_profile(
+#     current_user: UserModel = Depends(deps.get_current_user),
+#     db: Session = Depends(deps.get_db),
+# ):
+#     """
+#     Get current authenticated user's profile.
+
+#     Returns the full user profile for the currently authenticated user.
+#     No user ID is required - the user is identified from the JWT token.
+#     """
+#     return user_service.get_profile(db, current_user)
 
 @router.patch("/me/password")
 def change_password(
@@ -99,3 +113,33 @@ def change_password(
         )
 
     return {"message": "Password updated successfully"}
+
+@router.get("/me/projects", response_model=UserProjects)   
+def get_user_projects(
+    current_user: UserModel = Depends(deps.get_current_user),
+    db: Session = Depends(deps.get_db),
+):
+    """
+    Get current user's projects.
+
+    Returns a list of projects that the current user is a member of.
+    """
+    return user_service.get_user_projects(db, current_user)
+
+
+@router.get("/me/hours", response_model=UserHoursResponse)
+def get_user_hours(
+    current_user: UserModel = Depends(deps.get_current_user),
+    db: Session = Depends(deps.get_db),
+    start_date: Optional[datetime] = None,
+    end_date: Optional[datetime] = None,
+):
+    """
+    Get current user's logged hours grouped by project.
+    
+    Optional query parameters:
+    - start_date: Filter hours from this date (ISO format: YYYY-MM-DD)
+    - end_date: Filter hours until this date (ISO format: YYYY-MM-DD)
+    """
+
+    return user_service.get_user_hours(db, current_user, start_date, end_date)
