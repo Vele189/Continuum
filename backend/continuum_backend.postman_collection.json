@@ -2407,6 +2407,237 @@
 				}
 			],
 			"description": "Task attachment endpoints - Upload, view, download, and manage file attachments on tasks"
+		},
+		{
+			"name": "Invoices",
+			"item": [
+				{
+					"name": "Generate Invoice",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"project_id\": 1,\n    \"billing_period_start\": \"2024-01-01T00:00:00Z\",\n    \"billing_period_end\": \"2024-01-31T23:59:59Z\",\n    \"tax_rate\": 0.10\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/invoices/generate",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"invoices",
+								"generate"
+							]
+						},
+						"description": "Generate an invoice from logged hours for a project. Requires project membership or admin. Billing period must contain logged hours. All users involved must have hourly rates set. Invoice items snapshot hours and rates at generation time. PDF is generated and stored automatically."
+					},
+					"response": []
+				},
+				{
+					"name": "List Invoices",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/invoices/?project_id=1&skip=0&limit=100",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"invoices",
+								""
+							],
+							"query": [
+								{
+									"key": "project_id",
+									"value": "1",
+									"description": "Filter by project ID",
+									"disabled": true
+								},
+								{
+									"key": "skip",
+									"value": "0",
+									"description": "Number of records to skip",
+									"disabled": true
+								},
+								{
+									"key": "limit",
+									"value": "100",
+									"description": "Maximum number of records to return (1-1000)",
+									"disabled": true
+								}
+							]
+						},
+						"description": "List invoices. Users can only see invoices for projects they're members of. Admins can see all invoices. Can filter by project_id."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Invoice",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/invoices/:invoice_id",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"invoices",
+								":invoice_id"
+							],
+							"variable": [
+								{
+									"key": "invoice_id",
+									"value": "1",
+									"description": "Invoice ID"
+								}
+							]
+						},
+						"description": "Get invoice details with all line items. User must be a project member or admin. Returns full invoice with all line items including user, task, hours, rates, and totals."
+					},
+					"response": []
+				},
+				{
+					"name": "Update Invoice Status",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"status\": \"sent\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/invoices/:invoice_id",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"invoices",
+								":invoice_id"
+							],
+							"variable": [
+								{
+									"key": "invoice_id",
+									"value": "1",
+									"description": "Invoice ID"
+								}
+							]
+						},
+						"description": "Update invoice status (admin only). Valid statuses: draft, sent, paid, overdue, cancelled. Totals are immutable and cannot be changed."
+					},
+					"response": []
+				},
+				{
+					"name": "Download Invoice PDF",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/invoices/:invoice_id/pdf",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"invoices",
+								":invoice_id",
+								"pdf"
+							],
+							"variable": [
+								{
+									"key": "invoice_id",
+									"value": "1",
+									"description": "Invoice ID"
+								}
+							]
+						},
+						"description": "Download invoice PDF. User must be a project member or admin. Generates PDF if it doesn't exist. Returns PDF file for download with filename invoice_{invoice_number}.pdf"
+					},
+					"response": []
+				}
+			],
+			"description": "Invoice endpoints - Generate invoices from logged hours, manage invoice status, and download PDFs"
 		}
 	],
 	"variable": [

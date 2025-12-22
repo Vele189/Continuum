@@ -144,6 +144,7 @@ class Project(Base):
         cascade="all, delete-orphan"
     )
     logged_hours = relationship("LoggedHour", back_populates="project")
+    invoices = relationship("Invoice", back_populates="project")
     git_contributions = relationship("GitContribution", back_populates="project")
 
     @property
@@ -341,6 +342,107 @@ class SystemLog(Base):
     message = Column(Text, nullable=False)
     meta = Column(JSON, nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+
+class InvoiceStatus(enum.Enum):
+    """Invoice lifecycle status"""
+    DRAFT = "draft"
+    SENT = "sent"
+    PAID = "paid"
+    OVERDUE = "overdue"
+    CANCELLED = "cancelled"
+
+
+class Invoice(Base):
+    __tablename__ = "invoices"
+
+    id = Column(Integer, primary_key=True, index=True)
+    project_id = Column(
+        Integer,
+        ForeignKey("projects.id", ondelete="CASCADE", onupdate="CASCADE"),
+        nullable=False,
+        index=True
+    )
+    invoice_number = Column(String, unique=True, nullable=False, index=True)
+    status = Column(Enum(InvoiceStatus), default=InvoiceStatus.DRAFT, nullable=False, index=True)
+
+    # Billing period
+    billing_period_start = Column(DateTime(timezone=True), nullable=False)
+    billing_period_end = Column(DateTime(timezone=True), nullable=False)
+
+    # Financial totals (stored as immutable snapshots)
+    subtotal = Column(Numeric(10, 2), nullable=False)
+    tax_rate = Column(Numeric(5, 4), default=0.0, nullable=False)  # e.g., 0.1000 for 10%
+    tax_amount = Column(Numeric(10, 2), default=0.0, nullable=False)
+    total = Column(Numeric(10, 2), nullable=False)
+
+    # PDF storage
+    pdf_path = Column(String, nullable=True)
+
+    # Metadata
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+    created_by = Column(
+        Integer,
+        ForeignKey("users.id", ondelete="SET NULL", onupdate="CASCADE"),
+        nullable=True,
+        index=True
+    )
+
+    # Relationships
+    project = relationship("Project", back_populates="invoices")
+    items = relationship("InvoiceItem", back_populates="invoice", cascade="all, delete-orphan")
+    creator = relationship("User", foreign_keys=[created_by])
+
+
+class InvoiceItem(Base):
+    __tablename__ = "invoice_items"
+
+    id = Column(Integer, primary_key=True, index=True)
+    invoice_id = Column(
+        Integer,
+        ForeignKey("invoices.id", ondelete="CASCADE", onupdate="CASCADE"),
+        nullable=False,
+        index=True
+    )
+
+    # Snapshot of logged hour data (immutable)
+    user_id = Column(
+        Integer,
+        ForeignKey("users.id", ondelete="SET NULL", onupdate="CASCADE"),
+        nullable=False,
+        index=True
+    )
+    task_id = Column(
+        Integer,
+        ForeignKey("tasks.id", ondelete="SET NULL", onupdate="CASCADE"),
+        nullable=True,
+        index=True
+    )
+    logged_hour_id = Column(
+        Integer,
+        ForeignKey("logged_hours.id", ondelete="SET NULL", onupdate="CASCADE"),
+        nullable=True,
+        index=True
+    )
+
+    # Immutable billing data
+    description = Column(Text, nullable=True)
+    hours = Column(Numeric(10, 2), nullable=False)
+    hourly_rate = Column(Numeric(10, 2), nullable=False)  # Snapshot at generation time
+    line_total = Column(Numeric(10, 2), nullable=False)  # hours * hourly_rate
+
+    # Date of work (from logged hour)
+    work_date = Column(DateTime(timezone=True), nullable=False)
+
+    # Metadata
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    # Relationships
+    invoice = relationship("Invoice", back_populates="items")
+    user = relationship("User", foreign_keys=[user_id])
+    task = relationship("Task", foreign_keys=[task_id])
+    logged_hour = relationship("LoggedHour", foreign_keys=[logged_hour_id])
 
 # --- Initialization Logic ---
 
