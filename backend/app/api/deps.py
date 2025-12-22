@@ -109,12 +109,12 @@ def get_current_project_admin(
     if not project:
         raise HTTPException(status_code=404, detail="This Project does not exist")
     #then we need to check if the current user is an admin of the project if it does exist if not we return an error and this does not need to check for membership
-    admin = db.query(ProjectMember).filter(ProjectMember.project_id == project_id, ProjectMember.role == UserRole.ADMIN).first()
+    admin = db.query(ProjectMember).filter(ProjectMember.project_id == project_id, ProjectMember.user_id == current_user.id, ProjectMember.role == UserRole.ADMIN.value).first()
     if not admin:
         raise HTTPException(status_code=403, detail="You are not an admin of this project")
 
     #then we need to check if they are a second type of admin a project manager and we need to check for membership as well
-    project_manager = db.query(ProjectMember).filter(ProjectMember.project_id == project_id, ProjectMember.user_id == current_user.id, ProjectMember.role == UserRole.PROJECTMANAGER).first()
+    project_manager = db.query(ProjectMember).filter(ProjectMember.project_id == project_id, ProjectMember.user_id == current_user.id, ProjectMember.role == UserRole.PROJECTMANAGER.value).first()
     if project_manager:
         return project_manager
     
