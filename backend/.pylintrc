@@ -1,6 +1,6 @@
 [MAIN]
 # Ignore test files
-ignore=tests,venv
+ignore=tests,venv,migrations
 
 [MESSAGES CONTROL]
 # Disable the following checks:
