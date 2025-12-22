@@ -14,3 +14,4 @@ class Project(Base):
     created_at = Column(String, default=func.now())
 
     tasks = relationship("Task", back_populates="project")
+    milestones = relationship("Milestone", back_populates="project")

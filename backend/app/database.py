@@ -142,6 +142,11 @@ class Project(Base):
         back_populates="project",
         cascade="all, delete-orphan"
     )
+    milestones = relationship(
+        "Milestone",
+        back_populates="project",
+        cascade="all, delete-orphan"
+    )
     logged_hours = relationship("LoggedHour", back_populates="project")
     git_contributions = relationship("GitContribution", back_populates="project")
 
@@ -178,6 +183,30 @@ class ProjectMember(Base):
     project = relationship("Project", back_populates="members")
     user = relationship("User", back_populates="project_memberships")
 
+class Milestone(Base):
+    __tablename__ = "milestones"
+
+    id = Column(Integer, primary_key=True, index=True)
+    project_id = Column(
+        Integer,
+        ForeignKey("projects.id", ondelete="CASCADE", onupdate="CASCADE"),
+        nullable=False,
+        index=True
+    )
+    name = Column(String, nullable=False)
+    due_date = Column(DateTime(timezone=True), nullable=True)
+    status = Column(String, default="not_started", index=True) # not_started, in_progress, completed, overdue
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(
+        DateTime(timezone=True),
+        onupdate=func.now(),
+        server_default=func.now()
+    )
+
+    # Relationships
+    project = relationship("Project", back_populates="milestones")
+    tasks = relationship("Task", back_populates="milestone")
+
 class Task(Base):
     __tablename__ = "tasks"
 
@@ -186,6 +215,13 @@ class Task(Base):
         Integer,
         ForeignKey("projects.id", ondelete="CASCADE", onupdate="CASCADE"),
         nullable=False,
+        index=True
+    )
+    # ADDED: Milestone Link
+    milestone_id = Column(
+        Integer,
+        ForeignKey("milestones.id", ondelete="SET NULL", onupdate="CASCADE"),
+        nullable=True,
         index=True
     )
     title = Column(String, nullable=False)
@@ -209,6 +245,7 @@ class Task(Base):
 
     # Relationships
     project = relationship("Project", back_populates="tasks")
+    milestone = relationship("Milestone", back_populates="tasks")
     assignee = relationship("User", back_populates="tasks_assigned")
     logged_hours = relationship("LoggedHour", back_populates="task")
 

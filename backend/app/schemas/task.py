@@ -11,6 +11,7 @@ class TaskBase(BaseModel):
     description: Optional[str] = None
     status: Literal["todo", "in_progress", "done"] = "todo"
     project_id: int
+    milestone_id: Optional[int] = None
     assigned_to: Optional[int] = None
 
 
@@ -23,6 +24,7 @@ class TaskUpdate(BaseModel):
     description: Optional[str] = None
     status: Optional[Literal["todo", "in_progress", "done"]] = None
     assigned_to: Optional[int] = None
+    milestone_id: Optional[int] = None
 
 
 class TaskInDBBase(TaskBase):
