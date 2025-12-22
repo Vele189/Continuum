@@ -277,7 +277,7 @@ class ProjectService:
             elif task.status == "todo":
                 total_todo_tasks += 1
             
-            if task.status != "completed" and task.due_date and now_time > task.due_date:
+            if task.status != "completed" and now_time > task.due_date:
                 total_overdue_tasks += 1
 
         #then we have to get the total logged hours of the project
@@ -325,7 +325,7 @@ class ProjectService:
        
         #to get a project health we will use these 4 indicators:
         #1. we check for overdues tasks
-        overdue_tasks = db.query(Task).filter(Task.project_id == project_id, Task.status == "overdue").all()
+        overdue_tasks = db.query(Task).filter(Task.project_id == project_id, Task.status != "completed" and datetime.now() > Task.due_date).all()
         overdue_count = len(overdue_tasks)
         overdue_indicator = ProjectHealthIndicator(
             status=HealthFlag.alert if overdue_count > 0 else HealthFlag.ok,
