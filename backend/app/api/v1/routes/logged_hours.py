@@ -2,6 +2,7 @@ from typing import Optional, List
 from datetime import datetime
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
+from app.database import ProjectMember
 
 from app.api import deps
 from app.database import User
@@ -161,8 +162,8 @@ def get_task_hours(
 @aggregation_router.get("/projects/{project_id}/hours")
 def get_project_hours(
     project_id: int,
-    current_user: User = Depends(deps.get_current_user),
     db: Session = Depends(deps.get_db),
+    member: ProjectMember = Depends(deps.get_current_project_member),
 ):
     """
     Get all hours for a project.
@@ -175,5 +176,5 @@ def get_project_hours(
     return logged_hour_service.get_total_hours_for_project(
         db=db,
         project_id=project_id,
-        current_user=current_user
+        current_user=member.user # Use user from member record
     )
