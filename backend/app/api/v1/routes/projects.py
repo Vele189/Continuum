@@ -26,7 +26,8 @@ router = APIRouter()
 def create_project(
     project_in: ProjectCreate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_active_admin),
+    current_user: User = Depends(get_current_user),
+    is_admin: User = Depends(get_current_active_admin)
 ):
     """
     Create a new project.
@@ -99,7 +100,8 @@ def update_project(
 def delete_project(
     project_id: int,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_active_admin),
+    current_user: User = Depends(get_current_user),
+    is_admin: User = Depends(get_current_active_admin),
 ):
     """
     Delete a project.
