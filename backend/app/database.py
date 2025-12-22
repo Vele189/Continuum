@@ -211,6 +211,37 @@ class Task(Base):
     project = relationship("Project", back_populates="tasks")
     assignee = relationship("User", back_populates="tasks_assigned")
     logged_hours = relationship("LoggedHour", back_populates="task")
+    comments = relationship("TaskComment", back_populates="task", cascade="all, delete-orphan")
+
+class TaskComment(Base):
+    __tablename__ = "task_comments"
+
+    id = Column(Integer, primary_key=True, index=True)
+    task_id = Column(
+        Integer,
+        ForeignKey("tasks.id", ondelete="CASCADE", onupdate="CASCADE"),
+        nullable=False,
+        index=True
+    )
+    user_id = Column(
+        Integer,
+        ForeignKey("users.id", ondelete="SET NULL", onupdate="CASCADE"),
+        nullable=True,  # Nullable for soft delete
+        index=True
+    )
+    content = Column(Text, nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        onupdate=func.now()
+    )
+
+    # Relationships
+    task = relationship("Task", back_populates="comments")
+    user = relationship("User", backref="task_comments")
+
+
 
 class LoggedHour(Base):
     __tablename__ = "logged_hours"
