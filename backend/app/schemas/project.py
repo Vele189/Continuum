@@ -2,16 +2,15 @@ from typing import Optional, List
 from datetime import datetime
 from enum import Enum
 from pydantic import BaseModel, ConfigDict
-
 from app.schemas.client import Client
 from app.schemas.user import User
-
+from app.schemas.task import Task
+from decimal import Decimal
 
 class ProjectStatus(str, Enum):
     active = "active"
     completed = "completed"
     on_hold = "on_hold"
-    overdue = "overdue"
 
 
 class ProjectBase(BaseModel):
@@ -57,21 +56,27 @@ class ProjectMemberBase(BaseModel):
 class ProjectMemberCreate(ProjectMemberBase):
     pass
 
+class TaskCount(BaseModel):
+    """Schema for task statistics and logged hours of a project member."""
+    hours_logged: Decimal = 0.0
+    tasks_count: int = 0
+    completed_tasks_count: int = 0
+    in_progress_tasks_count: int = 0
+    todo_tasks_count: int = 0
+    overdue_tasks_count: int = 0 
 
 class ProjectMember(ProjectMemberBase):
+    """Schema for a project member, including user details and optional task statistics."""
     model_config = ConfigDict(from_attributes=True)
     id: int
     added_at: datetime
     user: Optional[User] = None
-    hours_logged: float = 0.0
-    tasks_count: int = 0
-    completed_tasks_count: int = 0
-    in_progress_tasks_count: int = 0
-    on_hold_tasks_count: int = 0
-    overdue_tasks_count: int = 0
+    task_count: Optional[TaskCount] = None
+
 
 
 class ProjectWithMembers(Project):
+    """Schema for a project including its list of members."""
     members: List[ProjectMember] = []
 
 
@@ -90,18 +95,21 @@ class TaskSummary(BaseModel):
     updated_at: datetime
 
 
+
 class ProjectDetail(ProjectWithMembers):
-    tasks: List[TaskSummary] = []
+    """Detailed project schema including tasks and total logged hours."""
+    tasks: List[Task] = []
     total_logged_hours: float = 0.0
 
 
 #This is the project statistics schema
 class ProjectStatistics(ProjectDetail):
+    """Schema for comprehensive project statistics, aggregating data across all tasks and members."""
     total_logged_hours: float = 0.0
     total_tasks: int = 0
     total_completed_tasks: int = 0
     total_in_progress_tasks: int = 0
-    total_on_hold_tasks: int = 0
+    total_todo_tasks: int = 0
     total_overdue_tasks: int = 0
 
 class HealthFlag(str, Enum):
@@ -111,13 +119,16 @@ class HealthFlag(str, Enum):
     alert = "alert"
 
 class ProjectHealthIndicator(BaseModel):
+    """Schema for an individual health indicator, providing a status flag and descriptive message."""
     status: HealthFlag
     message: str
     details: Optional[dict] = None
     
 class ProjectHealth(BaseModel):
+    """Schema for overall project health, composed of multiple specific indicators."""
     project_id: int
     overdue_tasks: ProjectHealthIndicator
     inactive_members: ProjectHealthIndicator
     unassigned_tasks: ProjectHealthIndicator
     activity_dropoff: ProjectHealthIndicator
+
