@@ -59,7 +59,8 @@ def create(db: Session, obj_in: TaskCreate) -> Task:
         description=obj_in.description,
         status=obj_in.status,
         project_id=obj_in.project_id,
-        assigned_to=obj_in.assigned_to
+        assigned_to=obj_in.assigned_to,
+        due_date=obj_in.due_date
     )
     db.add(db_obj)
     db.commit()
