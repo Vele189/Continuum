@@ -12,5 +12,6 @@ class Project(Base):
     description = Column(String)
     status = Column(String, default="Active")
     created_at = Column(String, default=func.now())
+    
 
     tasks = relationship("Task", back_populates="project")
