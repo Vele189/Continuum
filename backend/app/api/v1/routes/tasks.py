@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.api import deps
-from app.api.deps import is_admin_user
+from app.api.deps import is_admin_user, get_current_active_admin, get_current_project_member
 from app.database import User
 from app.schemas.task import Task, TaskCreate, TaskUpdate, AssignTaskRequest, UpdateStatusRequest
 from app.services import task as task_service
@@ -97,6 +97,7 @@ def update_task(
     task_in: TaskUpdate,
     db: Session = Depends(deps.get_db),
     current_user: User = Depends(deps.get_current_user),
+     is_admin: User = Depends(deps.get_current_active_admin)
 ):
     """
     Update a task.
@@ -119,13 +120,15 @@ def update_task(
 def delete_task(
     task_id: int,
     db: Session = Depends(deps.get_db),
-    current_user: User = Depends(deps.get_current_active_admin),
+    current_user: User = Depends(deps.get_current_user),
+    is_admin: User = Depends(deps.get_current_active_admin)
 ):
     """
     Delete a task.
 
     Requires admin privileges (ADMIN or PROJECTMANAGER role).
     """
+    
     task = task_service.get(db, task_id=task_id)
     if not task:
         raise HTTPException(status_code=404, detail="Task not found")
@@ -163,6 +166,7 @@ def assign_task(
     assign_request: AssignTaskRequest,
     db: Session = Depends(deps.get_db),
     current_user: User = Depends(deps.get_current_user),
+    is_admin: User = Depends(deps.get_current_active_admin)
 ):
     """
     Assign a task to a user.
@@ -173,9 +177,7 @@ def assign_task(
     if not task:
         raise HTTPException(status_code=404, detail="Task not found")
 
-    # Verify project membership (admins bypass)
-    if not is_admin_user(current_user):
-        if not task_service.validate_project_membership(db, task.project_id, current_user.id):
-            raise HTTPException(status_code=403, detail="Not a member of this project")
+  
+
 
     return task_service.assign(db, task_id=task_id, user_id=assign_request.user_id)
