@@ -1,10 +1,14 @@
-from typing import Optional
-import uuid
-from sqlalchemy.orm import Session
 
+from typing import Optional, List, Dict 
+import uuid
+from datetime import datetime
+from sqlalchemy.orm import Session
 from app.core.security import hash_password, verify_password
-from app.database import User
-from app.schemas.user import UserCreate, UserUpdate
+from app.database import User, ProjectMember, Project, LoggedHour
+from app.schemas.user import UserCreate, UserUpdate, UserProjects, UserProject, UserHoursResponse, ProjectHours
+from app.schemas.project import ProjectStatus
+from collections import defaultdict
+from sqlalchemy import func
 
 def get_by_email(db: Session, email: str) -> Optional[User]:
     return db.query(User).filter(User.email == email).first()
@@ -122,3 +126,76 @@ def change_password(
     db.commit()
     db.refresh(user)
     return user
+
+def get_user_projects(db: Session, user: User) -> UserProjects:
+    """Get all projects the user is a member of with their id, name, roles and project status"""
+    
+    user_projects = db.query(ProjectMember).filter(ProjectMember.user_id == user.id).all()
+    
+    
+    projects_list = [
+        UserProject(
+            project_id=membership.project_id,
+            name=membership.project.name,
+            role=membership.role,
+            status=membership.project.status
+        )
+        for membership in user_projects
+    ]
+    
+    return UserProjects(projects=projects_list)
+
+
+def get_user_hours(
+    db: Session,
+    user: User,
+    start_date: Optional[datetime] = None,
+    end_date: Optional[datetime] = None
+) -> UserHoursResponse:
+    """
+    Get all logged hours for a user, grouped by project.
+    Optionally filter by date range.
+    """
+    # Get all projects the user is a member of
+    memberships = (
+        db.query(ProjectMember)
+        .join(Project, ProjectMember.project_id == Project.id)
+        .filter(ProjectMember.user_id == user.id)
+        .all()
+    )
+
+    total_hours = 0.0
+    projects_list = []
+
+    for membership in memberships:
+        # Query total hours for this user and project
+        hours_query = db.query(func.sum(LoggedHour.hours)).filter(
+            LoggedHour.project_id == membership.project_id,
+            LoggedHour.user_id == user.id
+        )
+
+        # Apply date filters if provided
+        if start_date:
+            hours_query = hours_query.filter(LoggedHour.date >= start_date)
+        if end_date:
+            hours_query = hours_query.filter(LoggedHour.date <= end_date)
+
+        project_hours = hours_query.scalar() or 0.0
+        
+        # Include all projects the user is a member of, even those with 0 hours
+        projects_list.append(
+            ProjectHours(
+                project_id=membership.project_id,
+                project_name=membership.project.name,
+                total_hours=float(project_hours)
+            )
+        )
+        total_hours += float(project_hours)
+
+    # Sort projects by total hours (descending)
+    projects_list.sort(key=lambda p: p.total_hours, reverse=True)
+
+    return UserHoursResponse(
+        total_hours=total_hours,
+        projects=projects_list
+    )
