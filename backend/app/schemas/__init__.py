@@ -11,6 +11,13 @@ from .user import (
     PasswordResetRequest,
     PasswordResetConfirm,
 )
+from .client import (
+    ClientBase,
+    ClientCreate,
+    ClientUpdate,
+    Client,
+    ClientInDBBase,
+)
 
 __all__ = [
     'UserBase',
@@ -23,4 +30,9 @@ __all__ = [
     'TokenPayload',
     'PasswordResetRequest',
     'PasswordResetConfirm',
+    'ClientBase',
+    'ClientCreate',
+    'ClientUpdate',
+    'Client',
+    'ClientInDBBase',
 ]

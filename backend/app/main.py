@@ -1,7 +1,7 @@
 # Main application entry point
 import os
 from fastapi import FastAPI
-from app.api.v1.routes import users, auth, admin
+from app.api.v1.routes import users, auth, admin, tasks, logged_hours, projects, clients
 from app.core.config import settings
 from app.utils.logger import get_logger
 
@@ -20,6 +20,19 @@ app = FastAPI(title="Continuum API")
 app.include_router(users.router, prefix=f"{settings.API_V1_STR}/users", tags=["Users"])
 app.include_router(auth.router, prefix=f"{settings.API_V1_STR}/auth", tags=["Auth"])
 app.include_router(admin.router, prefix=f"{settings.API_V1_STR}/admin", tags=["Admin"])
+app.include_router(tasks.router, prefix=f"{settings.API_V1_STR}/tasks", tags=["Tasks"])
+app.include_router(
+    logged_hours.router,
+    prefix=f"{settings.API_V1_STR}/logged-hours",
+    tags=["Logged Hours"]
+)
+app.include_router(
+    logged_hours.aggregation_router,
+    prefix=f"{settings.API_V1_STR}",
+    tags=["Aggregations"]
+)
+app.include_router(projects.router, prefix=f"{settings.API_V1_STR}/projects", tags=["Projects"])
+app.include_router(clients.router, prefix=f"{settings.API_V1_STR}/clients", tags=["Clients"])
 
 @app.get("/health")
 def health_check():

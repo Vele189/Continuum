@@ -58,7 +58,7 @@
 								""
 							]
 						},
-						"description": "Create a new user account. Roles: frontend, backend, designer, project_manager, client (admin)"
+						"description": "Create a new user account. Roles: frontend, backend, designer, project_manager, client, admin"
 					},
 					"response": []
 				},
@@ -155,7 +155,7 @@
 								}
 							]
 						},
-						"description": "Exchange refresh token for new access token (sent as query parameter)"
+						"description": "Exchange refresh token for new access token. Send refresh_token as query parameter."
 					},
 					"response": []
 				},
@@ -436,7 +436,7 @@
 								"dashboard"
 							]
 						},
-						"description": "Get admin dashboard (requires client/admin role)"
+						"description": "Get admin dashboard (requires ADMIN or PROJECTMANAGER role)"
 					},
 					"response": []
 				}
@@ -649,7 +649,227 @@
 					"response": []
 				}
 			],
-			"description": "Client management endpoints (to be implemented)"
+			"description": "Client management endpoints (admin only - requires ADMIN or PROJECTMANAGER role)"
+		},
+		{
+			"name": "Tasks",
+			"item": [
+				{
+					"name": "Create Task",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+                             {
+                                "key": "Authorization",
+                                "value": "Bearer {{access_token}}"
+                            }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"title\": \"Implement Login\",\n    \"description\": \"Create login page and integration\",\n    \"project_id\": 1,\n    \"status\": \"todo\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/tasks/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"tasks",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "List Tasks",
+					"request": {
+						"method": "GET",
+						"header": [
+                             {
+                                "key": "Authorization",
+                                "value": "Bearer {{access_token}}"
+                            }
+                        ],
+						"url": {
+							"raw": "{{base_url}}/api/v1/tasks/?project_id=1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"tasks",
+								""
+							],
+							"query": [
+								{
+									"key": "project_id",
+									"value": "1"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Task",
+					"request": {
+						"method": "GET",
+						"header": [
+                             {
+                                "key": "Authorization",
+                                "value": "Bearer {{access_token}}"
+                            }
+                        ],
+						"url": {
+							"raw": "{{base_url}}/api/v1/tasks/1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"tasks",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Task",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+                             {
+                                "key": "Authorization",
+                                "value": "Bearer {{access_token}}"
+                            }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"status\": \"In Progress\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/tasks/1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"tasks",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Task Status",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+                             {
+                                "key": "Authorization",
+                                "value": "Bearer {{access_token}}"
+                            }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"status\": \"in_progress\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/tasks/1/status",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"tasks",
+								"1",
+								"status"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Assign Task",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+                             {
+                                "key": "Authorization",
+                                "value": "Bearer {{access_token}}"
+                            }
+                        ],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"user_id\": 1\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/tasks/1/assign",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"tasks",
+								"1",
+								"assign"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Task",
+					"request": {
+						"method": "DELETE",
+						"header": [
+                             {
+                                "key": "Authorization",
+                                "value": "Bearer {{access_token}}"
+                            }
+                        ],
+						"url": {
+							"raw": "{{base_url}}/api/v1/tasks/1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"tasks",
+								"1"
+							]
+						}
+					},
+					"response": []
+				}
+			]
 		},
 		{
 			"name": "Projects",
@@ -695,7 +915,7 @@
 								""
 							]
 						},
-						"description": "Create a new project (admin only, requires client_id)"
+						"description": "Create a new project (admin only - requires ADMIN or PROJECTMANAGER role, requires client_id)"
 					},
 					"response": []
 				},
@@ -955,7 +1175,7 @@
 								}
 							]
 						},
-						"description": "Add a member to a project"
+						"description": "Add a member to a project (admin only - requires ADMIN or PROJECTMANAGER role)"
 					},
 					"response": []
 				},
@@ -998,7 +1218,7 @@
 								}
 							]
 						},
-						"description": "Remove a member from a project"
+						"description": "Remove a member from a project (admin only - requires ADMIN or PROJECTMANAGER role)"
 					},
 					"response": []
 				},
@@ -1036,7 +1256,7 @@
 								}
 							]
 						},
-						"description": "Get project statistics (total hours, task counts, member activity) - to be implemented"
+						"description": "Get project statistics (total hours, task counts, member activity) - NOT IMPLEMENTED YET"
 					},
 					"response": []
 				},
@@ -1074,12 +1294,12 @@
 								}
 							]
 						},
-						"description": "Get project health indicators (overdue tasks, inactive members) - to be implemented"
+						"description": "Get project health indicators (overdue tasks, inactive members) - NOT IMPLEMENTED YET"
 					},
 					"response": []
 				}
 			],
-			"description": "Project management endpoints (to be implemented)"
+			"description": "Project management endpoints"
 		},
 		{
 			"name": "Tasks",
@@ -1301,7 +1521,7 @@
 								}
 							]
 						},
-						"description": "Delete task (admin or project member)"
+						"description": "Delete task (admin only - requires ADMIN or PROJECTMANAGER role)"
 					},
 					"response": []
 				},
@@ -1327,7 +1547,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"assigned_to\": 2\n}",
+							"raw": "{\n    \"user_id\": 2\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -1353,7 +1573,7 @@
 								}
 							]
 						},
-						"description": "Assign or unassign task (set assigned_to to null to unassign)"
+						"description": "Assign or unassign task. Send user_id in body (or null to unassign). Requires project membership."
 					},
 					"response": []
 				},
@@ -1410,7 +1630,7 @@
 					"response": []
 				}
 			],
-			"description": "Task management endpoints (to be implemented)"
+			"description": "Task management endpoints"
 		},
 		{
 			"name": "Logged Hours",
@@ -1437,7 +1657,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"task_id\": 1,\n    \"project_id\": 1,\n    \"hours\": 2.5,\n    \"note\": \"Worked on homepage design mockups\"\n}",
+							"raw": "{\n    \"task_id\": 1,\n    \"project_id\": 1,\n    \"hours\": 2.5,\n    \"description\": \"Worked on homepage design mockups\",\n    \"date\": \"2024-01-15T10:30:00Z\"\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -1456,7 +1676,7 @@
 								""
 							]
 						},
-						"description": "Log hours for a task or project (requires task_id or project_id)"
+						"description": "Log hours for a task or project. Requires project_id (task_id is optional). Users can only log hours to tasks they are assigned to OR projects they are members of."
 					},
 					"response": []
 				},
@@ -1476,7 +1696,7 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{base_url}}/api/v1/logged-hours/?user_id=2&task_id=1&project_id=1&start_date=2024-01-01&end_date=2024-12-31",
+							"raw": "{{base_url}}/api/v1/logged-hours/?user_id=2&task_id=1&project_id=1&start_date=2024-01-01T00:00:00Z&end_date=2024-12-31T23:59:59Z",
 							"host": [
 								"{{base_url}}"
 							],
@@ -1507,14 +1727,14 @@
 								},
 								{
 									"key": "start_date",
-									"value": "2024-01-01",
-									"description": "Start date (YYYY-MM-DD)",
+									"value": "2024-01-01T00:00:00Z",
+									"description": "Start date (ISO 8601 format)",
 									"disabled": true
 								},
 								{
 									"key": "end_date",
-									"value": "2024-12-31",
-									"description": "End date (YYYY-MM-DD)",
+									"value": "2024-12-31T23:59:59Z",
+									"description": "End date (ISO 8601 format)",
 									"disabled": true
 								}
 							]
@@ -1582,7 +1802,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"hours\": 3.0,\n    \"note\": \"Updated note\"\n}",
+							"raw": "{\n    \"hours\": 3.0,\n    \"description\": \"Updated description\",\n    \"date\": \"2024-01-15T14:00:00Z\"\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -1682,7 +1902,7 @@
 								}
 							]
 						},
-						"description": "Get all logged hours for a specific task"
+						"description": "Get all logged hours for a specific task. Returns total hours and optional breakdown per user (if admin or task assignee)."
 					},
 					"response": []
 				},
@@ -1720,12 +1940,12 @@
 								}
 							]
 						},
-						"description": "Get all logged hours for a specific project"
+						"description": "Get all logged hours for a specific project. Returns total hours and breakdown per user. Users can view hours for projects they are members of."
 					},
 					"response": []
 				}
 			],
-			"description": "Logged hours / work sessions endpoints (to be implemented)"
+			"description": "Logged hours / work sessions endpoints - Implemented and ready to test"
 		},
 		{
 			"name": "Git Contributions",
@@ -1917,7 +2137,7 @@
 	"variable": [
 		{
 			"key": "base_url",
-			"value": "http://localhost:8001",
+			"value": "http://localhost:8000",
 			"type": "string"
 		},
 		{
