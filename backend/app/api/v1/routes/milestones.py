@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 
 from app.api import deps
 from app.api.deps import is_admin_user
-from app.database import User
+from app.database import User, Client
 from app.schemas.milestone import Milestone, MilestoneCreate, MilestoneUpdate
 from app.services.milestone import MilestoneService
 from app.services.project import ProjectService
@@ -22,17 +22,20 @@ def create_milestone(
     
     Requires Admin or Project Manager privileges.
     """
-    # Verify Admin/PM privileges
-    if not is_admin_user(current_user):
+    # Verify permissions: Admin or Project Owner
+    is_admin = is_admin_user(current_user)
+    is_owner = ProjectService.is_project_owner(db, milestone_in.project_id, current_user.id)
+    
+    if not (is_admin or is_owner):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Not enough permissions to create milestones"
         )
         
-    # Verify Project Exists
-    # We use get_project_with_check to ensure consistency, though admin check effectively bypasses membership
+    # Verify Project Exists (already checked in is_project_owner or handled by get_project_with_check)
+    # But we call get_project_with_check to ensure consistency and membership logging if needed
     ProjectService.get_project_with_check(
-        db, milestone_in.project_id, current_user.id, is_admin=True
+        db, milestone_in.project_id, current_user.id, is_admin=is_admin
     )
     
     return MilestoneService.create(db, milestone_in)
@@ -84,8 +87,11 @@ def update_milestone(
     if not milestone:
         raise HTTPException(status_code=404, detail="Milestone not found")
 
-    # Verify Admin/PM privileges
-    if not is_admin_user(current_user):
+    # Verify permissions: Admin or Project Owner
+    is_admin = is_admin_user(current_user)
+    is_owner = ProjectService.is_project_owner(db, milestone.project_id, current_user.id)
+
+    if not (is_admin or is_owner):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Not enough permissions to update milestones"
@@ -111,8 +117,15 @@ def delete_milestone(
     
     Requires Admin or Project Manager privileges.
     """
-    # Verify Admin/PM privileges
-    if not is_admin_user(current_user):
+    milestone = MilestoneService.get(db, milestone_id)
+    if not milestone:
+        raise HTTPException(status_code=404, detail="Milestone not found")
+
+    # Verify permissions: Admin or Project Owner
+    is_admin = is_admin_user(current_user)
+    is_owner = ProjectService.is_project_owner(db, milestone.project_id, current_user.id)
+
+    if not (is_admin or is_owner):
          raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Not enough permissions to delete milestones"
