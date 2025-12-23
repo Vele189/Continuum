@@ -78,16 +78,22 @@
                             }
                         ],
                         "url": {
-                            "raw": "{{base_url}}/api/v1/projects/1/milestones",
+                            "raw": "{{base_url}}/api/v1/milestones/?project_id=1",
                             "host": [
                                 "{{base_url}}"
                             ],
                             "path": [
                                 "api",
                                 "v1",
-                                "projects",
-                                "1",
-                                "milestones"
+                                "milestones",
+                                ""
+                            ],
+                            "query": [
+                                {
+                                    "key": "project_id",
+                                    "value": "1",
+                                    "description": "Project ID to filter milestones"
+                                }
                             ]
                         }
                     },
