@@ -118,6 +118,7 @@ def delete_milestone(
 @router.get("/", response_model=List[Milestone])
 def list_milestones(
     project_id: int,
+    status: Optional[str] = Query(None, description="Filter by status (not_started, in_progress, completed, overdue)"),
     db: Session = Depends(deps.get_db),
     current_user: User = Depends(deps.get_current_user),
 ):
@@ -132,12 +133,17 @@ def list_milestones(
         db, project_id, current_user.id, is_admin=is_admin
     )
 
-    milestones = MilestoneService.get_by_project(db, project_id)
+    milestones = MilestoneService.get_by_project(db, project_id) # Get all to ensure status updates
     
     results = []
     for m in milestones:
         # Lazy update status
-        MilestoneService.update_status(db, m)
+        updated_milestone = MilestoneService.update_status(db, m)
+        
+        # Apply filter here, after update
+        if status and updated_milestone.status != status:
+            continue
+            
         prog = MilestoneService.calculate_progress(db, m.id)
         res = Milestone.model_validate(m)
         res.progress = prog
