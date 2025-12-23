@@ -15,7 +15,6 @@ def add_updated_at_column():
         return
 
     with engine.connect() as conn:
-        # SQLite doesn't support ALTER TABLE ADD COLUMN with DEFAULT in the same way
         # We'll add the column and then set a default value
         conn.execute(text("""
             ALTER TABLE clients
