@@ -91,7 +91,14 @@ def update_milestone(
             detail="Not enough permissions to update milestones"
         )
 
-    return MilestoneService.update(db, milestone_id, milestone_in)
+    updated_milestone = MilestoneService.update(db, milestone_id, milestone_in)
+    
+    # Calculate progress for response (same as GET endpoint)
+    progress = MilestoneService.calculate_progress(db, updated_milestone.id)
+    
+    response = Milestone.model_validate(updated_milestone)
+    response.progress = progress
+    return response
 
 @router.delete("/{milestone_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_milestone(
