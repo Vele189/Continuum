@@ -1,9 +1,7 @@
-from sqlalchemy.sql.functions import now
 from typing import List, Optional
 from datetime import datetime, timedelta
 from sqlalchemy.orm import Session
 from fastapi import HTTPException, status
-from app.api.deps import get_current_project_member
 from sqlalchemy import func
 
 
@@ -241,13 +239,13 @@ class ProjectService:
     def get_project_statistics(db: Session, project_id: int) -> ProjectStatistics:
         """
         Get project statistics.
+        
+        Returns aggregated project statistics including:
+        - Total logged hours
+        - Task counts (total, completed, in-progress, overdue)
+        - Member activity summary (hours per member, task count per member)
         """
-
-        # we need to first check wether the current user is a member of the project and also find a project assigned to the project we are trying to look for depending on their id
-        #member = get_current_project_member(project_id)
-
-
-        #then we also need to check if the project exists at all
+        # Check if the project exists
         project = db.query(Project).filter(Project.id == project_id).first()
         if not project:
             raise HTTPException(status_code=404, detail="This Project does not exist")
@@ -277,7 +275,8 @@ class ProjectService:
             elif task.status == "todo":
                 total_todo_tasks += 1
             
-            if task.status != "completed" and now_time > task.due_date:
+            # Check for overdue tasks (must have due_date and not be completed)
+            if task.status != "completed" and task.due_date is not None and now_time > task.due_date:
                 total_overdue_tasks += 1
 
         #then we have to get the total logged hours of the project
@@ -309,12 +308,14 @@ class ProjectService:
         project_id: int) -> ProjectHealth:
         """
         Get project health indicators.
+        
+        Returns health indicators including:
+        - Overdue tasks count
+        - Inactive members (no hours logged in last 7 days)
+        - Tasks with no assignee
+        - Activity drop-off (last month vs previous month)
         """
-
-        # we need to first check wether the current user is a member of the project and also find a project assigned to the project we are trying to look for depending on their id
-        #member = get_current_project_member(project_id)
-
-        #then we also need to check if the project exists at all
+        # Check if the project exists
         project = db.query(Project).filter(Project.id == project_id).first()
 
         if not project:
@@ -325,7 +326,13 @@ class ProjectService:
        
         #to get a project health we will use these 4 indicators:
         #1. we check for overdues tasks
-        overdue_tasks = db.query(Task).filter(Task.project_id == project_id, Task.status != "completed" and datetime.now() > Task.due_date).all()
+        now_time = datetime.now()
+        overdue_tasks = db.query(Task).filter(
+            Task.project_id == project_id,
+            Task.status != "completed",
+            Task.due_date != None,
+            Task.due_date < now_time
+        ).all()
         overdue_count = len(overdue_tasks)
         overdue_indicator = ProjectHealthIndicator(
             status=HealthFlag.alert if overdue_count > 0 else HealthFlag.ok,
@@ -375,8 +382,9 @@ class ProjectService:
 
         # 5. Activity Drop-off (last month vs previous month)
         # We compare count of completed tasks or updated tasks. Let's use tasks completed.
-        last_month_start = now() - timedelta(days=30)
-        prev_month_start = now() - timedelta(days=60)
+        now_time = datetime.now()
+        last_month_start = now_time - timedelta(days=30)
+        prev_month_start = now_time - timedelta(days=60)
         
         last_month_activity = db.query(Task).filter(
             Task.project_id == project_id,
