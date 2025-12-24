@@ -1,7 +1,10 @@
 # Main application entry point
 import os
 from fastapi import FastAPI
-from app.api.v1.routes import users, auth, admin, tasks, logged_hours, projects, clients, task_comments
+from app.api.v1.routes import (
+    users, auth, admin, tasks, logged_hours, projects, clients, task_comments,
+    git_contributions, task_attachments, invoices, milestones
+)
 from app.core.config import settings
 from app.utils.logger import get_logger
 
@@ -34,8 +37,18 @@ app.include_router(
 app.include_router(projects.router, prefix=f"{settings.API_V1_STR}/projects", tags=["Projects"])
 app.include_router(clients.router, prefix=f"{settings.API_V1_STR}/clients", tags=["Clients"])
 app.include_router(task_comments.router, prefix=f"{settings.API_V1_STR}", tags=["Task Comments"])
-from app.api.v1.routes import milestones
 app.include_router(milestones.router, prefix=f"{settings.API_V1_STR}/milestones", tags=["Milestones"])
+app.include_router(
+    git_contributions.router,
+    prefix=f"{settings.API_V1_STR}/git-contributions",
+    tags=["Git Contributions"]
+)
+app.include_router(
+    task_attachments.router,
+    prefix=f"{settings.API_V1_STR}",
+    tags=["Task Attachments"]
+)
+app.include_router(invoices.router, prefix=f"{settings.API_V1_STR}/invoices", tags=["Invoices"])
 
 @app.get("/health")
 def health_check():

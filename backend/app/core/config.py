@@ -18,5 +18,10 @@ class Settings(BaseSettings):
 
    
 
+    # File upload settings
+    MAX_UPLOAD_SIZE: int = 10 * 1024 * 1024  # 10MB in bytes
+    UPLOAD_DIR: str = "./uploads"
+    ALLOWED_MIME_TYPES: list[str] = []  # Empty list means all types allowed (optional whitelist)
+
 
 settings = Settings()
