@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, List, Dict, Any
 from datetime import datetime
 from decimal import Decimal
 from pydantic import BaseModel, EmailStr, field_validator, ConfigDict
@@ -101,3 +101,35 @@ class PasswordChangeRequest(BaseModel):
         if len(v) < 8:
             raise ValueError('Password must be at least 8 characters long')
         return v
+
+class ProjectSummary(BaseModel):
+    id: int
+    name: str
+    role: str  # from ProjectMember
+    hours_logged: float
+    
+    model_config = ConfigDict(from_attributes=True)
+
+class UserProfile(BaseModel):
+    id: int
+    name: str  # Computed from first_name + last_name
+    email: str
+    skills: List[str]
+    contributions_summary: Dict[str, Any]
+    # Structure:
+    # {
+    #   "total_logged_hours": float,
+    #   "total_commits": int,
+    #   "projects_count": int
+    # }
+    activity_patterns: Dict[str, Any]
+    # Structure:
+    # {
+    #   "hours_by_week": Dict[str, float],
+    #   "hours_by_month": Dict[str, float],
+    #   "most_active_days": List[str]
+    # }
+    projects_worked_on: List[ProjectSummary]
+
+    model_config = ConfigDict(from_attributes=True)
+

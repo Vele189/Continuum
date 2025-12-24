@@ -79,6 +79,7 @@ class User(Base):
     refresh_token = Column(String(255), nullable=True)
     password_reset_token = Column(String(255), nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+    skills = Column(JSON, nullable=True)  # User skills stored as JSON array
 
     # Relationships
     projects_owned = relationship("Client", back_populates="creator")
