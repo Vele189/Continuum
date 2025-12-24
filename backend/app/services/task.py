@@ -3,10 +3,7 @@ from typing import List, Optional
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
 
-from app.models.task import Task
-from app.models.project import Project
-from app.models.user import User
-from app.database import ProjectMember
+from app.dbmodels import Task, Project, User, ProjectMember
 from app.schemas.task import TaskCreate, TaskUpdate
 
 

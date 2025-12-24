@@ -2,7 +2,7 @@ from typing import List, Optional
 from sqlalchemy.orm import Session
 from fastapi import HTTPException, status
 
-from app.database import Project, ProjectMember, Client, User
+from app.dbmodels import Project, ProjectMember, Client, User
 from app.schemas.project import ProjectCreate, ProjectUpdate, ProjectMemberCreate
 
 

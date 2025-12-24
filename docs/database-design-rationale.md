@@ -1,6 +1,6 @@
 ## Continuum Database Design Rationale
 
-This schema prioritizes data integrity, query performance, and operational flexibility using SQLAlchemy models for the SQLite backend.
+This schema prioritizes data integrity, query performance, and operational flexibility using SQLAlchemy models for the PostgreSQL backend.
 
 ### 1. Data Integrity and Referential Actions
 
@@ -25,4 +25,4 @@ Referential integrity is strictly enforced across all foreign keys (`ForeignKey`
 
 * **Non-Nullable (`nullable=False`):** Enforced for critical fields that define the entity or relationship (`username`, `password_hash`, `project_id`, `hours`).
 * **Nullable (`nullable=True`):** Used for non-essential detail fields (`description`, `note`) and for optional relationships, such as `logged_hours.task_id` (time can be logged directly against a project).
-* **System Logs (`SystemLog.meta`):** Uses a `JSON` data type (or TEXT in SQLite) to allow for unstructured, extensible logging data (e.g., stack traces, request details) without requiring schema migrations.
+* **System Logs (`SystemLog.meta`):** Uses a `JSON` data type to allow for unstructured, extensible logging data (e.g., stack traces, request details) without requiring schema migrations.

@@ -9,6 +9,24 @@ on:
 jobs:
   coverage:
     runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: app
+          POSTGRES_PASSWORD: app
+          POSTGRES_DB: app
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U app"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    env:
+      DATABASE_URL: postgresql+psycopg2://app:app@localhost:5432/app
     
     defaults:
       run:
@@ -27,6 +45,10 @@ jobs:
         python -m pip install --upgrade pip
         pip install pytest pytest-cov
         pip install -r requirements.txt
+
+    - name: Run Alembic migrations
+      run: |
+        alembic upgrade head
     
     - name: Run tests with coverage
       run: |

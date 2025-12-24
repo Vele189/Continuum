@@ -2,7 +2,7 @@ from typing import Optional, List
 from datetime import datetime, timezone
 from sqlalchemy.orm import Session
 
-from app.database import Client
+from app.dbmodels import Client
 from app.schemas.client import ClientCreate, ClientUpdate
 
 
@@ -36,7 +36,7 @@ def update(db: Session, client: Client, obj_in: ClientUpdate) -> Client:
     for field, value in update_data.items():
         setattr(client, field, value)
 
-    # Manually update updated_at since SQLite doesn't support onupdate triggers
+    # Update updated_at timestamp
     client.updated_at = datetime.now(timezone.utc)
 
     db.add(client)
