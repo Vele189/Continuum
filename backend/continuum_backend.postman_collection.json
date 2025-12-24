@@ -402,6 +402,45 @@
 						"description": "Change current user's password. Requires current password verification. User remains logged in after password change."
 					},
 					"response": []
+				},
+				{
+					"name": "Get User Profile",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/users/:user_id/profile",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"users",
+								":user_id",
+								"profile"
+							],
+							"variable": [
+								{
+									"key": "user_id",
+									"value": "1",
+									"description": "User ID to fetch profile for"
+								}
+							]
+						},
+						"description": "Get comprehensive user profile including skills, contributions, and activity patterns."
+					},
+					"response": []
 				}
 			],
 			"description": "User management endpoints"

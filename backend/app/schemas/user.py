@@ -1,4 +1,4 @@
-from typing import Optional, List
+from typing import Optional, List, Dict, Any
 from datetime import datetime
 from decimal import Decimal
 from pydantic import BaseModel, EmailStr, field_validator, ConfigDict
@@ -115,16 +115,46 @@ class UserProjects(BaseModel):
     projects: List[UserProject]
 
 
-
-
 class ProjectHours(BaseModel):
     project_id: int
     project_name: str
     total_hours: float
 
 
-
-
 class UserHoursResponse(BaseModel):
     total_hours: float
     projects: List[ProjectHours]
+
+
+# User Profile Schemas
+class ProjectSummary(BaseModel):
+    id: int
+    name: str
+    role: str  # from ProjectMember
+    hours_logged: float
+    
+    model_config = ConfigDict(from_attributes=True)
+
+
+class UserProfile(BaseModel):
+    id: int
+    name: str  # Computed from first_name + last_name
+    email: str
+    skills: List[str]
+    contributions_summary: Dict[str, Any]
+    # Structure:
+    # {
+    #   "total_logged_hours": float,
+    #   "total_commits": int,
+    #   "projects_count": int
+    # }
+    activity_patterns: Dict[str, Any]
+    # Structure:
+    # {
+    #   "hours_by_week": Dict[str, float],
+    #   "hours_by_month": Dict[str, float],
+    #   "most_active_days": List[str]
+    # }
+    projects_worked_on: List[ProjectSummary]
+
+    model_config = ConfigDict(from_attributes=True)

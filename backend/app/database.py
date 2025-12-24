@@ -16,6 +16,7 @@ except ImportError:
 
 logger = get_logger(__name__)
 
+
 def init_db():
     logger.info("Starting database initialization process.")
     try:

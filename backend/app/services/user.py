@@ -1,16 +1,18 @@
-
+from typing import Optional, List, Dict, Any
 from datetime import datetime
-from typing import Optional
-
+from collections import defaultdict
+import uuid
 from sqlalchemy import func
 from sqlalchemy.orm import Session
-import uuid
 
 from app.core.security import hash_password, verify_password
-from app.dbmodels import User, ProjectMember, Project, LoggedHour
+from app.dbmodels import User, ProjectMember, Project, LoggedHour, GitContribution, UserRole
 from app.schemas.user import (
-    UserCreate, UserHoursResponse, UserProject, UserProjects, UserUpdate
+    UserCreate, UserHoursResponse, UserProject, UserProjects, UserUpdate,
+    UserProfile, ProjectSummary, ProjectHours
 )
+from fastapi import HTTPException
+
 
 def get_by_email(db: Session, email: str) -> Optional[User]:
     return db.query(User).filter(User.email == email).first()
@@ -134,7 +136,6 @@ def get_user_projects(db: Session, user: User) -> UserProjects:
 
     user_projects = db.query(ProjectMember).filter(ProjectMember.user_id == user.id).all()
 
-
     projects_list = [
         UserProject(
             project_id=membership.project_id,
@@ -200,4 +201,104 @@ def get_user_hours(
     return UserHoursResponse(
         total_hours=total_hours,
         projects=projects_list
+    )
+
+
+def get_user_profile(
+    db: Session,
+    user_id: int,
+    current_user: User
+) -> UserProfile:
+    """
+    Get comprehensive user profile including skills, contributions, and activity patterns.
+    """
+    # 1. Permission check - either a user can fetch their own profile or the admin can
+    admin_roles = {UserRole.ADMIN, UserRole.PROJECTMANAGER}
+    if current_user.id != user_id and current_user.role not in admin_roles:
+        raise HTTPException(status_code=403, detail="Not authorized to view this profile")
+    
+    # 2. Fetch user
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # 3. Aggregate logged hours
+    total_hours = db.query(func.sum(LoggedHour.hours))\
+        .filter(LoggedHour.user_id == user_id)\
+        .scalar() or 0.0
+    
+    # 4. Aggregate git contributions
+    total_commits = db.query(func.count(GitContribution.id))\
+        .filter(GitContribution.user_id == user_id)\
+        .scalar() or 0
+    
+    # 5. Count projects
+    projects_count = db.query(func.count(func.distinct(ProjectMember.project_id)))\
+        .filter(ProjectMember.user_id == user_id)\
+        .scalar() or 0
+    
+    # 6. Compute activity patterns
+    logged_hours_records = db.query(LoggedHour)\
+        .filter(LoggedHour.user_id == user_id)\
+        .all()
+    
+    hours_by_week = defaultdict(float)
+    hours_by_month = defaultdict(float)
+    day_counts = defaultdict(int)
+    
+    for log in logged_hours_records:
+        # Week format: "2024-W01"
+        week_key = log.date.strftime("%Y-W%U")
+        hours_by_week[week_key] += log.hours
+        
+        # Month format: "2024-01"
+        month_key = log.date.strftime("%Y-%m")
+        hours_by_month[month_key] += log.hours
+        
+        # Day name
+        day_name = log.date.strftime("%A")
+        day_counts[day_name] += 1
+    
+    # Most active days (top 3)
+    most_active_days = sorted(day_counts.items(), key=lambda x: x[1], reverse=True)[:3]
+    most_active_days = [day for day, _ in most_active_days]
+    
+    # 7. Get projects worked on with specific details
+    project_memberships = db.query(ProjectMember)\
+        .filter(ProjectMember.user_id == user_id)\
+        .all()
+    
+    projects_worked_on = []
+    for pm in project_memberships:
+        project = db.query(Project).filter(Project.id == pm.project_id).first()
+        if project:
+            # Calculate total hours for this specific user on this specific project
+            project_hours = db.query(func.sum(LoggedHour.hours))\
+                .filter(LoggedHour.user_id == user_id, LoggedHour.project_id == project.id)\
+                .scalar() or 0.0
+            
+            projects_worked_on.append(ProjectSummary(
+                id=project.id,
+                name=project.name,
+                role=pm.role,
+                hours_logged=float(project_hours)
+            ))
+    
+    # 8. Build response
+    return UserProfile(
+        id=user.id,
+        name=user.display_name or f"{user.first_name} {user.last_name}",
+        email=user.email,
+        skills=user.skills if isinstance(user.skills, list) else [],
+        contributions_summary={
+            "total_logged_hours": float(total_hours),
+            "total_commits": total_commits,
+            "projects_count": projects_count
+        },
+        activity_patterns={
+            "hours_by_week": dict(hours_by_week),
+            "hours_by_month": dict(hours_by_month),
+            "most_active_days": most_active_days
+        },
+        projects_worked_on=projects_worked_on
     )
