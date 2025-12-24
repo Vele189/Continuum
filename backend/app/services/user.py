@@ -247,16 +247,19 @@ def get_user_profile(
     day_counts = defaultdict(int)
     
     for log in logged_hours_records:
+        # Use logged_at instead of date
+        log_date = log.logged_at
+        
         # Week format: "2024-W01"
-        week_key = log.date.strftime("%Y-W%U")
+        week_key = log_date.strftime("%Y-W%U")
         hours_by_week[week_key] += log.hours
         
         # Month format: "2024-01"
-        month_key = log.date.strftime("%Y-%m")
+        month_key = log_date.strftime("%Y-%m")
         hours_by_month[month_key] += log.hours
         
         # Day name
-        day_name = log.date.strftime("%A")
+        day_name = log_date.strftime("%A")
         day_counts[day_name] += 1
     
     # Most active days (top 3)
