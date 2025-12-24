@@ -2,21 +2,21 @@ from typing import Optional, List
 from datetime import datetime
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
-from app.database import ProjectMember
+from app.dbmodels import ProjectMember
 
 from app.api import deps
 from app.dbmodels import User
 from app.schemas.logged_hour import (
     LoggedHourCreate,
     LoggedHourUpdate,
-    LoggedHour
+    LoggedHourResponse
 )
 from app.services import logged_hour as logged_hour_service
 
 router = APIRouter()
 
 
-@router.post("/", response_model=LoggedHour, status_code=status.HTTP_201_CREATED)
+@router.post("/", response_model=LoggedHourResponse, status_code=status.HTTP_201_CREATED)
 def create_logged_hour(
     logged_hour_in: LoggedHourCreate,
     current_user: User = Depends(deps.get_current_user),
@@ -33,7 +33,7 @@ def create_logged_hour(
     return logged_hour_service.create(db, obj_in=logged_hour_in, user_id=current_user.id)
 
 
-@router.get("/", response_model=List[LoggedHour])
+@router.get("/", response_model=List[LoggedHourResponse])
 def list_logged_hours(
     user_id: Optional[int] = Query(None, description="Filter by user ID"),
     task_id: Optional[int] = Query(None, description="Filter by task ID"),
@@ -67,7 +67,7 @@ def list_logged_hours(
     )
 
 
-@router.get("/{logged_hour_id}", response_model=LoggedHour)
+@router.get("/{logged_hour_id}", response_model=LoggedHourResponse)
 def get_logged_hour(
     logged_hour_id: int,
     current_user: User = Depends(deps.get_current_user),
@@ -92,7 +92,7 @@ def get_logged_hour(
     return logged_hour
 
 
-@router.put("/{logged_hour_id}", response_model=LoggedHour)
+@router.put("/{logged_hour_id}", response_model=LoggedHourResponse)
 def update_logged_hour(
     logged_hour_id: int,
     logged_hour_in: LoggedHourUpdate,

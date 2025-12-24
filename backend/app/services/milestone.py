@@ -3,8 +3,7 @@ from datetime import datetime
 from sqlalchemy.orm import Session
 from fastapi import HTTPException
 
-from app.models.milestone import Milestone
-from app.models.task import Task
+from app.dbmodels import Milestone, Task
 from app.schemas.milestone import MilestoneCreate, MilestoneUpdate, MilestoneStatus, MilestoneProgress
 
 class MilestoneService:

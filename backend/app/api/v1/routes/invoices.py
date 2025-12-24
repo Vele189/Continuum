@@ -5,7 +5,7 @@ from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session, joinedload
 
 from app.api import deps
-from app.database import User, Invoice, InvoiceItem, Project
+from app.dbmodels import User, Invoice, InvoiceItem, Project, InvoiceStatus
 from app.schemas.invoice import (
     InvoiceGenerate,
     InvoiceUpdate,

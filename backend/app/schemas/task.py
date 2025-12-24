@@ -13,7 +13,7 @@ class TaskBase(BaseModel):
     project_id: int
     milestone_id: Optional[int] = None
     assigned_to: Optional[int] = None
-    due_date: datetime
+    due_date: Optional[datetime] = None
 
 
 class TaskCreate(TaskBase):
@@ -33,7 +33,7 @@ class TaskInDBBase(TaskBase):
     model_config = ConfigDict(from_attributes=True)
     id: int
     created_at: datetime
-    updated_at: datetime
+    updated_at: Optional[datetime] = None
 
 
 class Task(TaskInDBBase):

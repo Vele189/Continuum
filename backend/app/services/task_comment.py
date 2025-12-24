@@ -3,7 +3,7 @@ from typing import List, Optional
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
 
-from app.database import TaskComment, Task, User, UserRole
+from app.dbmodels import TaskComment, Task, User, UserRole
 from app.schemas.task_comment import TaskCommentCreate, TaskCommentUpdate
 from app.services.task import validate_project_membership
 

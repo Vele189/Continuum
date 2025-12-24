@@ -6,7 +6,7 @@ from fastapi.responses import Response
 from sqlalchemy.orm import Session, joinedload
 
 from app.api import deps
-from app.database import User, TaskAttachment
+from app.dbmodels import User, TaskAttachment
 from app.schemas.task_attachment import TaskAttachment as TaskAttachmentSchema, TaskAttachmentList
 from app.services import task_attachment as attachment_service
 

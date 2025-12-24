@@ -4,7 +4,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 from fastapi import HTTPException, status
 
-from app.database import GitContribution, Project, Task, ProjectMember, User
+from app.dbmodels import GitContribution, Project, Task, ProjectMember, User
 from app.schemas.git_contribution import GitContributionCreate, GitContributionUpdate
 
 

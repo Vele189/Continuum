@@ -176,9 +176,9 @@ def get_user_hours(
 
         # Apply date filters if provided
         if start_date:
-            hours_query = hours_query.filter(LoggedHour.date >= start_date)
+            hours_query = hours_query.filter(LoggedHour.logged_at >= start_date)
         if end_date:
-            hours_query = hours_query.filter(LoggedHour.date <= end_date)
+            hours_query = hours_query.filter(LoggedHour.logged_at <= end_date)
 
         project_hours = hours_query.scalar() or 0.0
         

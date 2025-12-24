@@ -36,7 +36,7 @@ class ProjectInDBBase(ProjectBase):
 
     id: int
     created_at: datetime
-    updated_at: datetime
+    updated_at: Optional[datetime] = None
 
 
 class Project(ProjectInDBBase):
@@ -92,7 +92,7 @@ class TaskSummary(BaseModel):
     status: str
     assigned_to: Optional[int] = None
     created_at: datetime
-    updated_at: datetime
+    updated_at: Optional[datetime] = None
 
 
 

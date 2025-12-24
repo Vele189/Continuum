@@ -1,7 +1,7 @@
 from typing import Optional
 from datetime import datetime
 from decimal import Decimal
-from pydantic import BaseModel, field_validator, ConfigDict, model_validator
+from pydantic import BaseModel, Field, field_validator, ConfigDict, model_validator
 
 
 class LoggedHourBase(BaseModel):
@@ -11,6 +11,21 @@ class LoggedHourBase(BaseModel):
     hours: Decimal
     description: str
     date: datetime
+
+
+class LoggedHourResponse(BaseModel):
+    """Response schema for logged hours - maps model fields to API fields"""
+    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
+
+    id: int
+    user_id: int
+    task_id: Optional[int] = None
+    project_id: int
+    hours: float
+    description: Optional[str] = Field(None, validation_alias='note')
+    date: Optional[datetime] = Field(None, validation_alias='logged_at')
+    created_at: Optional[datetime] = Field(None, validation_alias='logged_at')
+    updated_at: Optional[datetime] = None
 
 
 class LoggedHourCreate(LoggedHourBase):
@@ -68,7 +83,7 @@ class LoggedHour(LoggedHourBase):
     id: int
     user_id: int
     created_at: datetime
-    updated_at: datetime
+    updated_at: Optional[datetime] = None
 
 
 class LoggedHourWithTaskAndProject(LoggedHour):

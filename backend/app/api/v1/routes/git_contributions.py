@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_db, get_current_user, is_admin_user
-from app.database import User
+from app.dbmodels import User
 from app.schemas.git_contribution import (
     GitContribution,
     GitContributionCreate,

@@ -9,7 +9,7 @@ from decimal import Decimal
 from typing import Optional
 from io import BytesIO
 
-from app.database import Invoice, Project, Client
+from app.dbmodels import Invoice, Project, Client
 from app.utils.file_upload import get_storage_backend
 
 logger = logging.getLogger(__name__)

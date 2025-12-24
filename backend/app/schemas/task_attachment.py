@@ -37,7 +37,7 @@ class TaskAttachmentInDBBase(TaskAttachmentBase):
     filename: str
     file_path: str
     created_at: datetime
-    updated_at: datetime
+    updated_at: Optional[datetime] = None
 
 
 class TaskAttachment(TaskAttachmentInDBBase):

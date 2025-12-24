@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 
 from app.api import deps
 from app.api.deps import is_admin_user
-from app.database import User, Client
+from app.dbmodels import User, Client
 from app.schemas.milestone import Milestone, MilestoneCreate, MilestoneUpdate
 from app.services.milestone import MilestoneService
 from app.services.project import ProjectService

@@ -5,7 +5,7 @@ from typing import List, Optional
 from fastapi import HTTPException, status, UploadFile
 from sqlalchemy.orm import Session
 
-from app.database import TaskAttachment, Task, User
+from app.dbmodels import TaskAttachment, Task, User
 from app.utils.file_upload import save_uploaded_file, get_file_content, delete_file
 from app.services import task as task_service
 from app.api.deps import is_admin_user

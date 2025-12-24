@@ -8,7 +8,7 @@ from typing import List, Optional
 from sqlalchemy.orm import Session, joinedload
 from fastapi import HTTPException
 
-from app.database import (
+from app.dbmodels import (
     Task,
     TaskAttachment,
     LoggedHour,
@@ -161,8 +161,8 @@ def _get_logged_hour_activities(
     activities = []
     for logged_hour in logged_hours:
         user = _build_activity_user(logged_hour.user)
-        # Use the date field for when the work was done, or created_at as fallback
-        timestamp = logged_hour.date if logged_hour.date else logged_hour.created_at
+        # Use the logged_at field for when the work was done
+        timestamp = logged_hour.logged_at if logged_hour.logged_at else None
 
         activities.append(TimelineActivity(
             id=f"hours_logged_{logged_hour.id}",
@@ -172,8 +172,8 @@ def _get_logged_hour_activities(
             data={
                 "logged_hour_id": logged_hour.id,
                 "hours": float(logged_hour.hours),
-                "description": logged_hour.description,
-                "date": logged_hour.date.isoformat() if logged_hour.date else None,
+                "description": logged_hour.note,
+                "date": logged_hour.logged_at.isoformat() if logged_hour.logged_at else None,
             }
         ))
 

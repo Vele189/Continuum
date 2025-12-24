@@ -1,4 +1,3 @@
-from app.database import ProjectMember, Project
 from typing import Generator, Optional
 
 from fastapi import Depends, HTTPException, status
@@ -10,7 +9,7 @@ from sqlalchemy.orm import Session
 from app.core import security
 from app.core.config import settings
 from app.db.session import SessionLocal
-from app.dbmodels import User, UserRole
+from app.dbmodels import User, UserRole, ProjectMember, Project
 from app.schemas.user import TokenPayload
 
 

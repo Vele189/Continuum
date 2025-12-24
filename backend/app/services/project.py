@@ -366,7 +366,7 @@ class ProjectService:
             recent_log = db.query(LoggedHour).filter(
                 LoggedHour.project_id == project_id,
                 LoggedHour.user_id == member.user_id,
-                LoggedHour.date >= threshold_date
+                LoggedHour.logged_at >= threshold_date
             ).first()
             
             if not recent_log:

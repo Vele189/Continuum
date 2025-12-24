@@ -35,7 +35,7 @@ class TaskComment(TaskCommentBase):
     user_id: Optional[int] = None
     author: Optional[TaskCommentAuthor] = None
     created_at: datetime
-    updated_at: datetime
+    updated_at: Optional[datetime] = None
 
     class Config:
         from_attributes = True

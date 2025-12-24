@@ -82,13 +82,14 @@ def create(
         )
 
     # Create the logged hour entry
+    # Map schema fields to model fields: description -> note, date -> logged_at
     db_obj = LoggedHour(
         user_id=user_id,
         task_id=obj_in.task_id,
         project_id=obj_in.project_id,
         hours=float(obj_in.hours),
-        description=obj_in.description,
-        date=obj_in.date
+        note=obj_in.description,
+        logged_at=obj_in.date
     )
     db.add(db_obj)
     db.commit()
@@ -164,10 +165,10 @@ def list_logged_hours(
         query = query.filter(LoggedHour.project_id == project_id)
 
     if start_date is not None:
-        query = query.filter(LoggedHour.date >= start_date)
+        query = query.filter(LoggedHour.logged_at >= start_date)
 
     if end_date is not None:
-        query = query.filter(LoggedHour.date <= end_date)
+        query = query.filter(LoggedHour.logged_at <= end_date)
 
     return query.offset(skip).limit(limit).all()
 

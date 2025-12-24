@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import and_
 from fastapi import HTTPException, status
 
-from app.database import (
+from app.dbmodels import (
     Invoice,
     InvoiceItem,
     InvoiceStatus,
@@ -119,8 +119,8 @@ def generate_invoice(  # pylint: disable=too-many-locals
     logged_hours = db.query(LoggedHour).filter(
         and_(
             LoggedHour.project_id == invoice_in.project_id,
-            LoggedHour.date >= invoice_in.billing_period_start,
-            LoggedHour.date <= invoice_in.billing_period_end
+            LoggedHour.logged_at >= invoice_in.billing_period_start,
+            LoggedHour.logged_at <= invoice_in.billing_period_end
         )
     ).all()
 
@@ -167,11 +167,11 @@ def generate_invoice(  # pylint: disable=too-many-locals
             user_id=lh.user_id,
             task_id=lh.task_id,
             logged_hour_id=lh.id,
-            description=lh.description or lh.note or f"Work on {lh.date.strftime('%Y-%m-%d')}",
+            description=lh.note or f"Work on {lh.logged_at.strftime('%Y-%m-%d') if lh.logged_at else 'date unknown'}",
             hours=hours,
             hourly_rate=hourly_rate,
             line_total=line_total,
-            work_date=lh.date
+            work_date=lh.logged_at
         )
         invoice_items.append(invoice_item)
         subtotal += line_total

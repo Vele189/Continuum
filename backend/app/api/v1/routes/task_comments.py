@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 
 from app.api import deps
 from app.api.deps import is_admin_user
-from app.database import User, UserRole, Task
+from app.dbmodels import User, UserRole, Task, TaskComment
 from app.schemas.task_comment import (
     TaskComment,
     TaskCommentCreate,

@@ -43,7 +43,7 @@ class MilestoneInDBBase(MilestoneBase):
     project_id: int
     status: MilestoneStatus
     created_at: datetime
-    updated_at: datetime
+    updated_at: Optional[datetime] = None
 
 class Milestone(MilestoneInDBBase):
     progress: Optional[MilestoneProgress] = None

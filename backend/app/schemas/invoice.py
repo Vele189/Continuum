@@ -69,7 +69,7 @@ class Invoice(InvoiceBase):
     total: Decimal
     pdf_path: Optional[str] = None
     created_at: datetime
-    updated_at: datetime
+    updated_at: Optional[datetime] = None
     created_by: Optional[int] = None
     items: List[InvoiceItem] = []
 
