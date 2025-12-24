@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.api import deps
-from app.schemas.user import UserCreate, UserUpdate, User, PasswordChangeRequest
+from app.schemas.user import UserCreate, UserUpdate, User, PasswordChangeRequest, UserProfile
 from app.services import user as user_service
 from app.database import User as UserModel
 
@@ -99,3 +99,19 @@ def change_password(
         )
 
     return {"message": "Password updated successfully"}
+
+
+@router.get("/{id}/profile", response_model=UserProfile)
+def get_user_profile(
+    id: int,
+    db: Session = Depends(deps.get_db),
+    current_user: UserModel = Depends(deps.get_current_user),
+):
+    """
+    Get comprehensive user profile including skills, contributions, and activity patterns.
+
+    - **Permissions**: Users can view their own profile, admins and project managers can view any profile.
+    - **Returns**: Aggregated user data including logged hours, commits, and project involvement.
+    """
+    return user_service.get_user_profile(db, user_id=id, current_user=current_user)
+
