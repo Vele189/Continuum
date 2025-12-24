@@ -11,10 +11,12 @@ class Task(Base):
     title = Column(String, nullable=False)
     description = Column(String)
     status = Column(String, default="todo")
+    milestone_id = Column(Integer, ForeignKey("milestones.id", ondelete="SET NULL", onupdate="CASCADE"), nullable=True)
     assigned_to = Column(Integer, ForeignKey("users.id"))
     created_at = Column(DateTime, server_default=func.now())
     updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
     due_date = Column(DateTime)
 
     project = relationship("Project", back_populates="tasks")
+    milestone = relationship("Milestone", back_populates="tasks")
     assignee = relationship("User", backref="tasks")

@@ -75,14 +75,29 @@ class ProjectService:
             ProjectMember.user_id == user_id
         ).first()
 
-        if not member:
-            raise HTTPException(status_code=403, detail="Not a member of this project")
+        if member:
+            # Populate member stats for the project's members list
+            # This ensures get_project returns members with task_count populated
+            ProjectService._populate_member_stats(db, project_id, project.members)
+            return project
 
-        # Populate member stats for the project's members list
-        # This ensures get_project returns members with task_count populated
-        ProjectService._populate_member_stats(db, project_id, project.members)
+        # Check for project owner (the user who created the client for this project)
+        client = db.query(Client).filter(Client.id == project.client_id).first()
+        if client and client.created_by == user_id:
+            # Populate member stats for the project's members list
+            ProjectService._populate_member_stats(db, project_id, project.members)
+            return project
 
-        return project
+        raise HTTPException(status_code=403, detail="Not a member or owner of this project")
+
+    @staticmethod
+    def is_project_owner(db: Session, project_id: int, user_id: int) -> bool:
+        """Check if a user is the owner (creator of the client) of a project."""
+        project = db.query(Project).filter(Project.id == project_id).first()
+        if not project:
+            return False
+        client = db.query(Client).filter(Client.id == project.client_id).first()
+        return bool(client and client.created_by == user_id)
 
     @staticmethod
     def list_projects(
