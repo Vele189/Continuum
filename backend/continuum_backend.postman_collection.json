@@ -2132,6 +2132,316 @@
 				}
 			],
 			"description": "Git contributions endpoints (to be implemented)"
+		},
+		{
+			"name": "Milestones",
+			"item": [
+				{
+					"name": "Create Milestone",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"project_id\": 1,\n    \"name\": \"Alpha Release\",\n    \"due_date\": \"2025-12-31T23:59:59Z\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/milestones/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"milestones",
+								""
+							]
+						},
+						"description": "Create a new milestone. Requires Admin or Project Owner privileges. Returns milestone with progress metrics."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Milestone",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/milestones/:milestone_id",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"milestones",
+								":milestone_id"
+							],
+							"variable": [
+								{
+									"key": "milestone_id",
+									"value": "1"
+								}
+							]
+						},
+						"description": "Get milestone by ID with progress metrics. Requires project membership (or admin)."
+					},
+					"response": []
+				},
+				{
+					"name": "List Milestones",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/milestones/?project_id=1&status=in_progress",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"milestones",
+								""
+							],
+							"query": [
+								{
+									"key": "project_id",
+									"value": "1",
+									"description": "Project ID (required)"
+								},
+								{
+									"key": "status",
+									"value": "in_progress",
+									"description": "Filter by status (not_started, in_progress, completed, overdue)",
+									"disabled": true
+								}
+							]
+						},
+						"description": "List milestones for a project. Filterable by status. Requires project membership (or admin)."
+					},
+					"response": []
+				},
+				{
+					"name": "Update Milestone",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Alpha Release Extended\",\n    \"due_date\": \"2026-01-31T23:59:59Z\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/milestones/:milestone_id",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"milestones",
+								":milestone_id"
+							],
+							"variable": [
+								{
+									"key": "milestone_id",
+									"value": "1"
+								}
+							]
+						},
+						"description": "Update milestone. Requires Admin or Project Owner privileges. Returns milestone with progress metrics. Status is auto-calculated."
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Milestone",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/milestones/:milestone_id",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"milestones",
+								":milestone_id"
+							],
+							"variable": [
+								{
+									"key": "milestone_id",
+									"value": "1"
+								}
+							]
+						},
+						"description": "Delete milestone. Requires Admin or Project Owner privileges. Tasks linked to this milestone will have milestone_id set to NULL (no task deletion)."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Project Milestones",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/projects/:project_id/milestones",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"projects",
+								":project_id",
+								"milestones"
+							],
+							"variable": [
+								{
+									"key": "project_id",
+									"value": "1"
+								}
+							]
+						},
+						"description": "List all milestones for a project with progress metrics. Requires project membership (or admin)."
+					},
+					"response": []
+				},
+				{
+					"name": "Link Task to Milestone",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"milestone_id\": 1\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/tasks/:task_id/milestone",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"tasks",
+								":task_id",
+								"milestone"
+							],
+							"variable": [
+								{
+									"key": "task_id",
+									"value": "1"
+								}
+							]
+						},
+						"description": "Link or unlink a task from a milestone. Send milestone_id in body (or null to unlink). Requires project membership. Milestone must belong to same project as task."
+					},
+					"response": []
+				}
+			],
+			"description": "Milestone management endpoints - Group tasks into deliverables and track progress automatically"
 		}
 	],
 	"variable": [

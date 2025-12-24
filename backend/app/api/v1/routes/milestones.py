@@ -38,7 +38,14 @@ def create_milestone(
         db, milestone_in.project_id, current_user.id, is_admin=is_admin
     )
     
-    return MilestoneService.create(db, milestone_in)
+    created_milestone = MilestoneService.create(db, milestone_in)
+    
+    # Calculate progress for response (same as GET endpoint)
+    progress = MilestoneService.calculate_progress(db, created_milestone.id)
+    
+    response = Milestone.model_validate(created_milestone)
+    response.progress = progress
+    return response
 
 @router.get("/{milestone_id}", response_model=Milestone)
 def get_milestone(
