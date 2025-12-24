@@ -1,6 +1,7 @@
-from app.db.session import engine, SessionLocal
-from app.db.base import Base
 import logging
+
+from app.db.base import Base
+from app.db.session import engine, SessionLocal
 
 try:
     from utils.logger import get_logger

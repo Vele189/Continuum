@@ -33,7 +33,7 @@ def create_project(
 ):
     """
     Create a new project.
-    
+
     Requires admin privileges (ADMIN or PROJECTMANAGER role).
     """
     return ProjectService.create_project(db, project_in, current_user.id)
@@ -48,7 +48,7 @@ def list_projects(
 ):
     """
     List projects.
-    
+
     - Admins see all projects
     - Regular users see only projects they are members of
     """
@@ -71,7 +71,7 @@ def get_project(
 ):
     """
     Get project by ID.
-    
+
     - Admins can view any project
     - Members can only view projects they belong to
     """
@@ -88,7 +88,7 @@ def update_project(
 ):
     """
     Update project.
-    
+
     - Admins can update any project
     - Members can update projects they belong to
     """
@@ -107,7 +107,7 @@ def delete_project(
 ):
     """
     Delete a project.
-    
+
     Requires admin privileges (ADMIN or PROJECTMANAGER role).
     """
     ProjectService.delete_project(db, project_id)
@@ -126,7 +126,7 @@ def add_member(
 ):
     """
     Add a member to a project.
-    
+
     Requires admin privileges (ADMIN or PROJECTMANAGER role).
     """
     return ProjectService.add_member(db, project_id, member_in)
@@ -141,7 +141,7 @@ def remove_member(
 ):
     """
     Remove a member from a project.
-    
+
     Requires admin privileges (ADMIN or PROJECTMANAGER role).
     """
     ProjectService.remove_member(db, project_id, user_id)
@@ -155,7 +155,7 @@ def get_members(
 ):
     """
     Get project members.
-    
+
     - Admins can view members of any project
     - Members can view members of projects they belong to
     """
@@ -175,7 +175,7 @@ def get_project_stats(
 ):
     """
     Get project statistics.
-    
+
     - Members can view stats of projects they belong to
     """
     return ProjectService.get_project_statistics(db=db, project_id=project_id)
@@ -190,7 +190,7 @@ def get_project_health(
 ):
     """
     Get project health.
-    
+
     - Members can view health of projects they belong to
     """
     return ProjectService.get_project_health(db=db, project_id=project_id)
@@ -210,22 +210,22 @@ def list_project_milestones(
     is_admin = is_admin_user(current_user)
     # Verify access to project first
     ProjectService.get_project_with_check(db, project_id, current_user.id, is_admin=is_admin)
-    
+
     milestones = MilestoneService.get_by_project(db, project_id)
-    
+
     # Enrichment with progress
     results = []
     for m in milestones:
         MilestoneService.update_status(db, m)
         progress = MilestoneService.calculate_progress(db, m.id)
-        
+
         # Pydantic model conversion
         # We need to construct the response manually to inject progress, or rely on pydantic validtion if property set
         # Since 'm' is SQLAlchemy model, we can attach the dict but pydantic v2 is stricter.
         # But 'Milestone' schema has 'progress' field.
-        
+
         res = Milestone.model_validate(m)
         res.progress = progress
         results.append(res)
-        
+
     return results

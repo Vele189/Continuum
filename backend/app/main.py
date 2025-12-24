@@ -36,7 +36,11 @@ app.include_router(
 )
 app.include_router(projects.router, prefix=f"{settings.API_V1_STR}/projects", tags=["Projects"])
 app.include_router(clients.router, prefix=f"{settings.API_V1_STR}/clients", tags=["Clients"])
-app.include_router(task_comments.router, prefix=f"{settings.API_V1_STR}", tags=["Task Comments"])
+app.include_router(
+    task_comments.router,
+    prefix=f"{settings.API_V1_STR}",
+    tags=["Task Comments"]
+)
 app.include_router(milestones.router, prefix=f"{settings.API_V1_STR}/milestones", tags=["Milestones"])
 app.include_router(
     git_contributions.router,

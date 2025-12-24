@@ -10,8 +10,7 @@ from app.dbmodels import User, UserRole, Task, TaskComment
 from app.schemas.task_comment import (
     TaskComment,
     TaskCommentCreate,
-    TaskCommentUpdate,
-    TaskCommentAuthor
+    TaskCommentUpdate
 )
 from app.services import task_comment as comment_service
 from app.services.task import validate_project_membership
@@ -30,14 +29,14 @@ def _enrich_comment_with_author(comment) -> dict:
         "updated_at": comment.updated_at,
         "author": None
     }
-    
+
     if comment.user:
         comment_dict["author"] = {
             "id": comment.user.id,
             "display_name": comment.user.display_name,
             "username": comment.user.username
         }
-    
+
     return comment_dict
 
 
@@ -50,7 +49,7 @@ def create_comment(
 ):
     """
     Create a new comment on a task.
-    
+
     Requires:
     - User must be authenticated
     - ADMIN: No membership required
@@ -61,7 +60,7 @@ def create_comment(
     task = db.query(Task).filter(Task.id == task_id).first()
     if not task:
         raise HTTPException(status_code=404, detail="Task not found")
-    
+
     # ADMIN bypasses membership check, others need membership
     if current_user.role != UserRole.ADMIN:
         if not validate_project_membership(db, task.project_id, current_user.id):
@@ -69,14 +68,14 @@ def create_comment(
                 status_code=403,
                 detail="Not a member of this project"
             )
-    
+
     comment = comment_service.create_comment(
         db=db,
         task_id=task_id,
         user_id=current_user.id,
         content=comment_in.content
     )
-    
+
     return _enrich_comment_with_author(comment)
 
 
@@ -88,7 +87,7 @@ def list_comments(
 ):
     """
     Get all comments for a task in chronological order.
-    
+
     Requires:
     - User must be authenticated
     - ADMIN: No membership required
@@ -99,7 +98,7 @@ def list_comments(
     task = db.query(Task).filter(Task.id == task_id).first()
     if not task:
         raise HTTPException(status_code=404, detail="Task not found")
-    
+
     # ADMIN bypasses membership check, others need membership
     if current_user.role != UserRole.ADMIN:
         if not validate_project_membership(db, task.project_id, current_user.id):
@@ -107,7 +106,7 @@ def list_comments(
                 status_code=403,
                 detail="Not a member of this project"
             )
-    
+
     comments = comment_service.get_comments(db=db, task_id=task_id)
     return [_enrich_comment_with_author(comment) for comment in comments]
 
@@ -121,7 +120,7 @@ def update_comment(
 ):
     """
     Update a comment.
-    
+
     Only the comment author can update their comment.
     Admins cannot update others' comments (only delete).
     """
@@ -129,12 +128,12 @@ def update_comment(
     comment = comment_service.get_comment(db, comment_id)
     if not comment:
         raise HTTPException(status_code=404, detail="Comment not found")
-    
+
     # Get task to validate membership
     task = db.query(Task).filter(Task.id == comment.task_id).first()
     if not task:
         raise HTTPException(status_code=404, detail="Task not found")
-    
+
     # ADMIN bypasses membership check for viewing, but still needs ownership to update
     if current_user.role != UserRole.ADMIN:
         if not validate_project_membership(db, task.project_id, current_user.id):
@@ -142,7 +141,7 @@ def update_comment(
                 status_code=403,
                 detail="Not a member of this project"
             )
-    
+
     updated_comment = comment_service.update_comment(
         db=db,
         comment_id=comment_id,
@@ -150,7 +149,7 @@ def update_comment(
         content=comment_in.content,
         is_admin=is_admin_user(current_user)
     )
-    
+
     return _enrich_comment_with_author(updated_comment)
 
 
@@ -162,7 +161,7 @@ def delete_comment(
 ):
     """
     Delete a comment.
-    
+
     - Comment author can delete their own comment
     - ADMIN can delete any comment (no membership required)
     - PROJECTMANAGER can only delete their own comments (requires membership)
@@ -171,12 +170,12 @@ def delete_comment(
     comment = comment_service.get_comment(db, comment_id)
     if not comment:
         raise HTTPException(status_code=404, detail="Comment not found")
-    
+
     # Get task to validate membership
     task = db.query(Task).filter(Task.id == comment.task_id).first()
     if not task:
         raise HTTPException(status_code=404, detail="Task not found")
-    
+
     # ADMIN bypasses membership check, others need membership
     if current_user.role != UserRole.ADMIN:
         if not validate_project_membership(db, task.project_id, current_user.id):
@@ -184,7 +183,7 @@ def delete_comment(
                 status_code=403,
                 detail="Not a member of this project"
             )
-    
+
     comment_service.delete_comment(
         db=db,
         comment_id=comment_id,

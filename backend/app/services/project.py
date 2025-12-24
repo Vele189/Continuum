@@ -6,9 +6,9 @@ from sqlalchemy import func
 
 from app.dbmodels import Project, ProjectMember, Client, User, Task, LoggedHour
 from app.schemas.project import (
-    ProjectCreate, 
-    ProjectUpdate, 
-    ProjectMemberCreate, 
+    ProjectCreate,
+    ProjectUpdate,
+    ProjectMemberCreate,
     ProjectStatistics,
     ProjectHealth,
     ProjectHealthIndicator,
@@ -145,7 +145,7 @@ class ProjectService:
     def delete_project(db: Session, project_id: int) -> Project:
         """
         Delete a project.
-        
+
         Note: Admin check should be done at the route level.
         """
         project = ProjectService.get_project(db, project_id)
@@ -160,7 +160,7 @@ class ProjectService:
     def add_member(db: Session, project_id: int, member_in: ProjectMemberCreate) -> ProjectMember:
         """
         Add a member to a project.
-        
+
         Note: Admin check should be done at the route level.
         """
         # Check if project exists
@@ -195,7 +195,7 @@ class ProjectService:
     def remove_member(db: Session, project_id: int, user_id: int) -> ProjectMember:
         """
         Remove a member from a project.
-        
+
         Note: Admin check should be done at the route level.
         """
         member = db.query(ProjectMember).filter(
@@ -220,13 +220,13 @@ class ProjectService:
                 LoggedHour.project_id == project_id,
                 LoggedHour.user_id == member.user_id
             ).scalar() or 0.0
-            
+
             # Base task query for this member in this project
             member_tasks = db.query(Task).filter(
                 Task.project_id == project_id,
                 Task.assigned_to == member.user_id
             )
-            
+
             # Assign stats to member.task_count (will be picked up by Pydantic)
             member.task_count = TaskCount(
                 hours_logged=hours_logged,
@@ -253,7 +253,7 @@ class ProjectService:
     def get_project_statistics(db: Session, project_id: int) -> ProjectStatistics:
         """
         Get project statistics.
-        
+
         Returns aggregated project statistics including:
         - Total logged hours
         - Task counts (total, completed, in-progress, overdue)
@@ -268,12 +268,12 @@ class ProjectService:
         members = db.query(ProjectMember).filter(ProjectMember.project_id == project_id).all()
         ProjectService._populate_member_stats(db, project_id, members)
         now_time = datetime.now()
-      
+
         #we have to get the project tasks
         tasks = db.query(Task).filter(Task.project_id == project_id).all()
 
 
-        
+
         #then we have to check the task counts of an individual task in the task array and increment the counts according to their status
         total_tasks = len(tasks)
         total_completed_tasks = 0
@@ -288,7 +288,7 @@ class ProjectService:
                 total_in_progress_tasks += 1
             elif task.status == "todo":
                 total_todo_tasks += 1
-            
+
             # Check for overdue tasks (must have due_date and not be completed)
             if task.status != "completed" and task.due_date is not None and now_time > task.due_date:
                 total_overdue_tasks += 1
@@ -318,11 +318,11 @@ class ProjectService:
 #==================================================get the health of a project==========================
     @staticmethod
     def get_project_health(
-        db: Session, 
+        db: Session,
         project_id: int) -> ProjectHealth:
         """
         Get project health indicators.
-        
+
         Returns health indicators including:
         - Overdue tasks count
         - Inactive members (no hours logged in last 7 days)
@@ -336,8 +336,8 @@ class ProjectService:
             raise HTTPException(status_code=404, detail="This Project does not exist")
 
 
-        
-       
+
+
         #to get a project health we will use these 4 indicators:
         #1. we check for overdues tasks
         now_time = datetime.now()
@@ -352,7 +352,7 @@ class ProjectService:
             status=HealthFlag.alert if overdue_count > 0 else HealthFlag.ok,
             message=f"{overdue_count} overdue tasks"
         )
-    
+
         # 2. the seond is that we will have to check for inactive members that have no logged hours in the last N days
         #we will use the last 7 days as the threshold
         threshold_date = datetime.now() - timedelta(days=7)
@@ -360,7 +360,7 @@ class ProjectService:
         # Get all project members
         members = db.query(ProjectMember).filter(ProjectMember.project_id == project_id).all()
         inactive_members_list = []
-        
+
         for member in members:
             # Check for logged hours in last N days
             recent_log = db.query(LoggedHour).filter(
@@ -368,12 +368,12 @@ class ProjectService:
                 LoggedHour.user_id == member.user_id,
                 LoggedHour.logged_at >= threshold_date
             ).first()
-            
+
             if not recent_log:
                 user = db.query(User).filter(User.id == member.user_id).first()
                 if user:
                     inactive_members_list.append({"id": user.id, "name": f"{user.first_name} {user.last_name}"})
-        
+
         inactive_indicator = ProjectHealthIndicator(
             status=HealthFlag.warning if inactive_members_list else HealthFlag.ok,
             message=f"{len(inactive_members_list)} inactive members in the last {last_n_days} days",
@@ -387,7 +387,7 @@ class ProjectService:
         ).all()
         unassigned_count = len(unassigned_tasks)
         unassigned_details = [{"id": t.id, "title": t.title} for t in unassigned_tasks]
-        
+
         unassigned_indicator = ProjectHealthIndicator(
             status=HealthFlag.info if unassigned_count > 0 else HealthFlag.ok,
             message=f"{unassigned_count} tasks with no assignees",
@@ -399,27 +399,27 @@ class ProjectService:
         now_time = datetime.now()
         last_month_start = now_time - timedelta(days=30)
         prev_month_start = now_time - timedelta(days=60)
-        
+
         last_month_activity = db.query(Task).filter(
             Task.project_id == project_id,
             Task.status == "completed",
             Task.updated_at >= last_month_start
         ).count()
-        
+
         prev_month_activity = db.query(Task).filter(
             Task.project_id == project_id,
             Task.status == "completed",
             Task.updated_at >= prev_month_start,
             Task.updated_at < last_month_start
         ).count()
-        
+
         dropoff_status = HealthFlag.ok
         if prev_month_activity > 0:
             if last_month_activity < prev_month_activity * 0.5:
                 dropoff_status = HealthFlag.alert
             elif last_month_activity < prev_month_activity:
                 dropoff_status = HealthFlag.warning
-        
+
         activity_indicator = ProjectHealthIndicator(
             status=dropoff_status,
             message=f"Activity drop-off: {last_month_activity} vs {prev_month_activity} tasks completed",
@@ -437,6 +437,6 @@ class ProjectService:
             activity_dropoff=activity_indicator
         )
 
-        
+
 
 

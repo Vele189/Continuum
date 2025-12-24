@@ -20,10 +20,8 @@ class MilestoneProgress(BaseModel):
 class MilestoneBase(BaseModel):
     name: str
     due_date: Optional[datetime] = None
-    description: Optional[str] = None # Note: Description wasn't in DB model, checking if I missed it. 
-    # Logic check: User didn't specify description in DB scope but often used. 
-    # Scope says: "Has a due date, Tracks status automatically". 
-    # "Milestone Entity" scope doesn't explicitly mention description. I'll omit it for now to match DB.
+    # Note: Description wasn't in DB model
+    description: Optional[str] = None
 
 class MilestoneCreate(MilestoneBase):
     project_id: int
@@ -31,14 +29,11 @@ class MilestoneCreate(MilestoneBase):
 class MilestoneUpdate(BaseModel):
     name: Optional[str] = None
     due_date: Optional[datetime] = None
-    # Status is automatic, but usually we might want to override? 
-    # Scope says: "Status must update automatically". 
-    # So I will NOT allow manual status update in this schema unless needed.
-    # However, sometimes manual override is needed. I'll stick to auto for now.
+    # Status is automatic, updates automatically
 
 class MilestoneInDBBase(MilestoneBase):
     model_config = ConfigDict(from_attributes=True)
-    
+
     id: int
     project_id: int
     status: MilestoneStatus

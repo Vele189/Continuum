@@ -1,11 +1,13 @@
-from typing import Optional, List
+from decimal import Decimal
 from datetime import datetime
 from enum import Enum
+from typing import List, Optional
+
 from pydantic import BaseModel, ConfigDict
+
 from app.schemas.client import Client
-from app.schemas.user import User
 from app.schemas.task import Task
-from decimal import Decimal
+from app.schemas.user import User
 
 class ProjectStatus(str, Enum):
     active = "active"
@@ -50,7 +52,7 @@ class ProjectWithClient(Project):
 class ProjectMemberBase(BaseModel):
     user_id: int
     role: str = "member"
-    
+
 
 
 class ProjectMemberCreate(ProjectMemberBase):
@@ -63,7 +65,7 @@ class TaskCount(BaseModel):
     completed_tasks_count: int = 0
     in_progress_tasks_count: int = 0
     todo_tasks_count: int = 0
-    overdue_tasks_count: int = 0 
+    overdue_tasks_count: int = 0
 
 class ProjectMember(ProjectMemberBase):
     """Schema for a project member, including user details and optional task statistics."""
@@ -102,9 +104,9 @@ class ProjectDetail(ProjectWithMembers):
     total_logged_hours: float = 0.0
 
 
-#This is the project statistics schema
+# This is the project statistics schema
 class ProjectStatistics(ProjectDetail):
-    """Schema for comprehensive project statistics, aggregating data across all tasks and members."""
+    """Schema for comprehensive project statistics."""
     total_logged_hours: float = 0.0
     total_tasks: int = 0
     total_completed_tasks: int = 0
@@ -119,13 +121,13 @@ class HealthFlag(str, Enum):
     alert = "alert"
 
 class ProjectHealthIndicator(BaseModel):
-    """Schema for an individual health indicator, providing a status flag and descriptive message."""
+    """Schema for an individual health indicator."""
     status: HealthFlag
     message: str
     details: Optional[dict] = None
-    
+
 class ProjectHealth(BaseModel):
-    """Schema for overall project health, composed of multiple specific indicators."""
+    """Schema for overall project health."""
     project_id: int
     overdue_tasks: ProjectHealthIndicator
     inactive_members: ProjectHealthIndicator

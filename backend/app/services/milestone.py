@@ -41,10 +41,10 @@ class MilestoneService:
         db.add(db_obj)
         db.commit()
         db.refresh(db_obj)
-        
+
         # Recalculate status in case Due Date changed
         MilestoneService.update_status(db, db_obj)
-        
+
         return db_obj
 
     @staticmethod
@@ -72,7 +72,7 @@ class MilestoneService:
         completed = sum(1 for t in tasks if t.status == "done")
         in_progress = sum(1 for t in tasks if t.status == "in_progress")
         todo = sum(1 for t in tasks if t.status == "todo")
-        
+
         return MilestoneProgress(
             total_tasks=total,
             completed_tasks=completed,
@@ -92,14 +92,14 @@ class MilestoneService:
 
         # We need fresh stats
         progress = MilestoneService.calculate_progress(db, milestone.id)
-        
+
         new_status = MilestoneStatus.NOT_STARTED
 
         if progress.total_tasks > 0 and progress.completion_percentage == 100:
             new_status = MilestoneStatus.COMPLETED
         elif progress.completed_tasks > 0 or progress.in_progress_tasks > 0:
             new_status = MilestoneStatus.IN_PROGRESS
-        
+
         # Check Overdue (Only if not completed)
         if new_status != MilestoneStatus.COMPLETED and milestone.due_date:
             # naive comparison vs timezone aware - ensure consistency
@@ -112,5 +112,5 @@ class MilestoneService:
             db.add(milestone)
             db.commit()
             db.refresh(milestone)
-        
+
         return milestone

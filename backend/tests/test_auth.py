@@ -1,7 +1,7 @@
 from fastapi.testclient import TestClient
 from app.core.config import settings
 from app.db.session import SessionLocal
-from app.database import User
+from app.dbmodels import User
 
 
 def test_register_user(client: TestClient):

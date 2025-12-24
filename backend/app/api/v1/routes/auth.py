@@ -23,7 +23,7 @@ def login(
 ) -> Any:
     """
     Login with email and password (JSON body).
-    
+
     Returns access token and refresh token.
     """
     user = user_service.authenticate(
@@ -55,7 +55,7 @@ def login_access_token(
 ) -> Any:
     """
     OAuth2 compatible token login (form data).
-    
+
     This endpoint is used by Swagger UI and OAuth2-compliant clients.
     Uses 'username' field for email (per OAuth2 spec).
     """
@@ -140,7 +140,7 @@ def refresh_access_token(
 def recover_password(email: str, db: Session = Depends(deps.get_db)) -> dict:
     """
     Request password recovery.
-    
+
     Sends a password reset token to the email if it exists.
     For security, always returns success even if email doesn't exist.
     """
@@ -174,7 +174,7 @@ def logout(
 ) -> dict:
     """
     Logout user by invalidating refresh token.
-    
+
     Idempotent: can be called multiple times safely.
     """
     user_service.update_refresh_token(db, current_user, None)

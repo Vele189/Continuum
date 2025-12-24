@@ -2,21 +2,23 @@
 from typing import List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, status, Query
+from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from app.api import deps
 from app.api.deps import (
-    is_admin_user, 
+    get_current_project_admin,
     get_current_project_member,
-    get_current_project_admin
+    is_admin_user
 )
-from app.dbmodels import User, ProjectMember
-from app.schemas.task import Task, TaskCreate, TaskUpdate, AssignTaskRequest, UpdateStatusRequest
-from pydantic import BaseModel
-from app.services import task as task_service
-from app.services.milestone import MilestoneService
+from app.dbmodels import User
+from app.schemas.task import (
+    AssignTaskRequest, Task, TaskCreate, TaskUpdate, UpdateStatusRequest
+)
 from app.schemas.task_timeline import TaskTimelineResponse
+from app.services import task as task_service
 from app.services import task_timeline
+from app.services.milestone import MilestoneService
 
 class MilestoneLinkRequest(BaseModel):
     milestone_id: Optional[int]
@@ -139,13 +141,13 @@ def update_task(
         )
 
     updated_task = task_service.update(db, db_obj=task, obj_in=task_in)
-    
+
     # Trigger milestone status update if task status or milestone_id changed
     if updated_task.milestone_id:
         milestone = MilestoneService.get(db, updated_task.milestone_id)
         if milestone:
             MilestoneService.update_status(db, milestone)
-            
+
     return updated_task
 
 
@@ -261,19 +263,22 @@ def link_milestone(
         milestone = MilestoneService.get(db, link_request.milestone_id)
         if not milestone:
             raise HTTPException(status_code=404, detail="Milestone not found")
-        
+
         # Cross-project validation
         if milestone.project_id != task.project_id:
-            raise HTTPException(status_code=400, detail="Cannot link task to milestone in different project")
+            raise HTTPException(
+                status_code=400,
+                detail="Cannot link task to milestone in different project"
+            )
 
     update_data = TaskUpdate(milestone_id=link_request.milestone_id)
     updated_task = task_service.update(db, db_obj=task, obj_in=update_data)
-    
+
     if updated_task.milestone_id:
-         ms = MilestoneService.get(db, updated_task.milestone_id)
-         if ms:
-             MilestoneService.update_status(db, ms)
-    
+        ms = MilestoneService.get(db, updated_task.milestone_id)
+        if ms:
+            MilestoneService.update_status(db, ms)
+
     return updated_task
 
 
@@ -287,7 +292,7 @@ def get_task_timeline(
 ):
     """
     Get the complete activity timeline for a task.
-    
+
     Returns all task-related activities in chronological order (oldest first):
     - Task creation
     - Status changes
@@ -296,14 +301,14 @@ def get_task_timeline(
     - Attachments
     - Logged hours
     - Linked git commits
-    
+
     Requires the user to be a member of the project (or admin).
-    
+
     This endpoint serves as:
     - The source of truth for task history
     - The backbone for client reports
     - A primary input for AI summaries and insights
-    
+
     Note: Status and assignment changes currently only show the most recent change
     due to lack of historical tracking. For full history, a task_activities table
     would need to be implemented.

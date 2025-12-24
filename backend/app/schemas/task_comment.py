@@ -20,7 +20,6 @@ class TaskCommentBase(BaseModel):
 
 class TaskCommentCreate(TaskCommentBase):
     """Schema for creating a new comment."""
-    pass
 
 
 class TaskCommentUpdate(BaseModel):

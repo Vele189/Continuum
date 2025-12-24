@@ -1,12 +1,16 @@
+from datetime import datetime
+from typing import Optional
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.api import deps
-from app.schemas.user import UserCreate, UserUpdate, User, PasswordChangeRequest, UserProjects, UserHoursResponse
-from app.services import user as user_service
 from app.dbmodels import User as UserModel
-from typing import Optional
-from datetime import datetime
+from app.schemas.user import (
+    User, UserCreate, UserHoursResponse, UserProjects,
+    UserUpdate, PasswordChangeRequest
+)
+from app.services import user as user_service
 
 router = APIRouter()
 
@@ -114,7 +118,7 @@ def change_password(
 
     return {"message": "Password updated successfully"}
 
-@router.get("/me/projects", response_model=UserProjects)   
+@router.get("/me/projects", response_model=UserProjects)
 def get_user_projects(
     current_user: UserModel = Depends(deps.get_current_user),
     db: Session = Depends(deps.get_db),
@@ -136,7 +140,7 @@ def get_user_hours(
 ):
     """
     Get current user's logged hours grouped by project.
-    
+
     Optional query parameters:
     - start_date: Filter hours from this date (ISO format: YYYY-MM-DD)
     - end_date: Filter hours until this date (ISO format: YYYY-MM-DD)

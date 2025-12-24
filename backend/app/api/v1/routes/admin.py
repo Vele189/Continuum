@@ -12,7 +12,7 @@ def admin_dashboard(
 ):
     """
     Get admin dashboard.
-    
+
     Requires admin privileges (ADMIN or PROJECTMANAGER role).
     """
     return {

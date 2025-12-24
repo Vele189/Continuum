@@ -2,7 +2,7 @@ from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 from app.core.config import settings
 from app.db.session import SessionLocal
-from app.database import User, UserRole, Project, Client, ProjectMember
+from app.dbmodels import User, UserRole, Project, Client, ProjectMember
 
 def create_user_and_token(client: TestClient, email: str, role: UserRole):
     # Create user via API to get default setup

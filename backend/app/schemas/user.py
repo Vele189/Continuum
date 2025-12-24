@@ -122,7 +122,7 @@ class ProjectHours(BaseModel):
     project_name: str
     total_hours: float
 
-   
+
 
 
 class UserHoursResponse(BaseModel):

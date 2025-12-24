@@ -213,7 +213,7 @@ def _generate_html_invoice(
                 <h3>Project:</h3>
                 <p><strong>{project.name}</strong></p>
                 <p>
-                    Billing Period: {_format_date(invoice.billing_period_start)} - 
+                    Billing Period: {_format_date(invoice.billing_period_start)} -
                     {_format_date(invoice.billing_period_end)}
                 </p>
                 <p>Status: {invoice.status.value.upper()}</p>

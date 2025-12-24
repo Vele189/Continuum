@@ -1,14 +1,16 @@
 
-from typing import Optional, List, Dict 
-import uuid
 from datetime import datetime
+from typing import Optional
+
+from sqlalchemy import func
 from sqlalchemy.orm import Session
+import uuid
+
 from app.core.security import hash_password, verify_password
 from app.dbmodels import User, ProjectMember, Project, LoggedHour
-from app.schemas.user import UserCreate, UserUpdate, UserProjects, UserProject, UserHoursResponse, ProjectHours
-from app.schemas.project import ProjectStatus
-from collections import defaultdict
-from sqlalchemy import func
+from app.schemas.user import (
+    UserCreate, UserHoursResponse, UserProject, UserProjects, UserUpdate
+)
 
 def get_by_email(db: Session, email: str) -> Optional[User]:
     return db.query(User).filter(User.email == email).first()
@@ -129,10 +131,10 @@ def change_password(
 
 def get_user_projects(db: Session, user: User) -> UserProjects:
     """Get all projects the user is a member of with their id, name, roles and project status"""
-    
+
     user_projects = db.query(ProjectMember).filter(ProjectMember.user_id == user.id).all()
-    
-    
+
+
     projects_list = [
         UserProject(
             project_id=membership.project_id,
@@ -142,7 +144,7 @@ def get_user_projects(db: Session, user: User) -> UserProjects:
         )
         for membership in user_projects
     ]
-    
+
     return UserProjects(projects=projects_list)
 
 
@@ -181,7 +183,7 @@ def get_user_hours(
             hours_query = hours_query.filter(LoggedHour.logged_at <= end_date)
 
         project_hours = hours_query.scalar() or 0.0
-        
+
         # Include all projects the user is a member of, even those with 0 hours
         projects_list.append(
             ProjectHours(

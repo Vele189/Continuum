@@ -2,7 +2,7 @@ from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 from app.core.config import settings
 from app.db.session import SessionLocal
-from app.database import User
+from app.dbmodels import User
 
 def test_password_reset_flow(client: TestClient):
     # 1. Register User
