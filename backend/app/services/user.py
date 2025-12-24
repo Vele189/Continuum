@@ -136,7 +136,7 @@ def get_user_profile(
     """
     Get comprehensive user profile including skills, contributions, and activity patterns.
     """
-    # 1. Permission check
+    # 1. Permission check - either a user can fetch their own profile or the admin can
     admin_roles = {UserRole.ADMIN, UserRole.PROJECTMANAGER}
     if current_user.id != user_id and current_user.role not in admin_roles:
         raise HTTPException(status_code=403, detail="Not authorized to view this profile")
