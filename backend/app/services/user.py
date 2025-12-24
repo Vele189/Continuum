@@ -4,7 +4,7 @@ import uuid
 from datetime import datetime
 from sqlalchemy.orm import Session
 from app.core.security import hash_password, verify_password
-from app.database import User, ProjectMember, Project, LoggedHour
+from app.dbmodels import User, ProjectMember, Project, LoggedHour
 from app.schemas.user import UserCreate, UserUpdate, UserProjects, UserProject, UserHoursResponse, ProjectHours
 from app.schemas.project import ProjectStatus
 from collections import defaultdict

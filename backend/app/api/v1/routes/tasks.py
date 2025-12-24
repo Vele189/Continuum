@@ -10,8 +10,9 @@ from app.api.deps import (
     get_current_project_member,
     get_current_project_admin
 )
-from app.database import User, ProjectMember
-from app.schemas.task import Task, TaskCreate, TaskUpdate, AssignTaskRequest, UpdateStatusRequest, BaseModel
+from app.dbmodels import User, ProjectMember
+from app.schemas.task import Task, TaskCreate, TaskUpdate, AssignTaskRequest, UpdateStatusRequest
+from pydantic import BaseModel
 from app.services import task as task_service
 from app.services.milestone import MilestoneService
 

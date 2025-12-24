@@ -577,8 +577,8 @@ docker compose up --build
 │  │   (continuum-   │  ────►  │    (continuum-backend)  │   │
 │  │    frontend)    │  HTTP   │                         │   │
 │  │                 │         │  ┌───────────────────┐  │   │
-│  │  Port: 5173     │         │  │   SQLite DB       │  │   │
-│  │  Vite + React   │         │  │   continuum.db    │  │   │
+│  │  Port: 5173     │         │  │  PostgreSQL DB    │  │   │
+│  │  Vite + React   │         │  │   (postgres:16)   │  │   │
 │  └────────┬────────┘         │  └───────────────────┘  │   │
 │           │                  │                         │   │
 │           │                  │  Port: 8000 (internal)  │   │

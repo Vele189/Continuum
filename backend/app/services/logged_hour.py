@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import and_
 from fastapi import HTTPException, status
 
-from app.database import LoggedHour, Task, Project, ProjectMember, User, UserRole
+from app.dbmodels import LoggedHour, Task, Project, ProjectMember, User, UserRole
 from app.schemas.logged_hour import LoggedHourCreate, LoggedHourUpdate
 
 

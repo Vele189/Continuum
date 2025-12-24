@@ -11,7 +11,7 @@ from app.core import security
 from app.core.config import settings
 from app.schemas.user import Token, UserLogin, TokenPayload, PasswordResetConfirm
 from app.services import user as user_service
-from app.database import User
+from app.dbmodels import User
 
 router = APIRouter()
 

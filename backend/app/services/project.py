@@ -4,8 +4,7 @@ from sqlalchemy.orm import Session
 from fastapi import HTTPException, status
 from sqlalchemy import func
 
-
-from app.database import Project, ProjectMember, Client, User, Task, LoggedHour
+from app.dbmodels import Project, ProjectMember, Client, User, Task, LoggedHour
 from app.schemas.project import (
     ProjectCreate, 
     ProjectUpdate, 
