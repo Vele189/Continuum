@@ -1,19 +1,13 @@
 # pylint: disable=unused-argument
 from typing import List
 
-from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
-
 from app.api import deps
-from app.api.deps import is_admin_user
-from app.dbmodels import User, UserRole, Task, TaskComment
-from app.schemas.task_comment import (
-    TaskComment,
-    TaskCommentCreate,
-    TaskCommentUpdate
-)
+from app.dbmodels import Task, User, UserRole
+from app.schemas.task_comment import TaskComment, TaskCommentCreate, TaskCommentUpdate
 from app.services import task_comment as comment_service
 from app.services.task import validate_project_membership
+from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy.orm import Session
 
 router = APIRouter()
 
@@ -27,20 +21,22 @@ def _enrich_comment_with_author(comment) -> dict:
         "content": comment.content,
         "created_at": comment.created_at,
         "updated_at": comment.updated_at,
-        "author": None
+        "author": None,
     }
 
     if comment.user:
         comment_dict["author"] = {
             "id": comment.user.id,
             "display_name": comment.user.display_name,
-            "username": comment.user.username
+            "username": comment.user.username,
         }
 
     return comment_dict
 
 
-@router.post("/tasks/{task_id}/comments", response_model=TaskComment, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/tasks/{task_id}/comments", response_model=TaskComment, status_code=status.HTTP_201_CREATED
+)
 def create_comment(
     task_id: int,
     comment_in: TaskCommentCreate,
@@ -64,16 +60,10 @@ def create_comment(
     # ADMIN bypasses membership check, others need membership
     if current_user.role != UserRole.ADMIN:
         if not validate_project_membership(db, task.project_id, current_user.id):
-            raise HTTPException(
-                status_code=403,
-                detail="Not a member of this project"
-            )
+            raise HTTPException(status_code=403, detail="Not a member of this project")
 
     comment = comment_service.create_comment(
-        db=db,
-        task_id=task_id,
-        user_id=current_user.id,
-        content=comment_in.content
+        db=db, task_id=task_id, user_id=current_user.id, content=comment_in.content
     )
 
     return _enrich_comment_with_author(comment)
@@ -102,10 +92,7 @@ def list_comments(
     # ADMIN bypasses membership check, others need membership
     if current_user.role != UserRole.ADMIN:
         if not validate_project_membership(db, task.project_id, current_user.id):
-            raise HTTPException(
-                status_code=403,
-                detail="Not a member of this project"
-            )
+            raise HTTPException(status_code=403, detail="Not a member of this project")
 
     comments = comment_service.get_comments(db=db, task_id=task_id)
     return [_enrich_comment_with_author(comment) for comment in comments]
@@ -137,17 +124,13 @@ def update_comment(
     # ADMIN bypasses membership check for viewing, but still needs ownership to update
     if current_user.role != UserRole.ADMIN:
         if not validate_project_membership(db, task.project_id, current_user.id):
-            raise HTTPException(
-                status_code=403,
-                detail="Not a member of this project"
-            )
+            raise HTTPException(status_code=403, detail="Not a member of this project")
 
     updated_comment = comment_service.update_comment(
         db=db,
         comment_id=comment_id,
         user_id=current_user.id,
         content=comment_in.content,
-        is_admin=is_admin_user(current_user)
     )
 
     return _enrich_comment_with_author(updated_comment)
@@ -179,14 +162,8 @@ def delete_comment(
     # ADMIN bypasses membership check, others need membership
     if current_user.role != UserRole.ADMIN:
         if not validate_project_membership(db, task.project_id, current_user.id):
-            raise HTTPException(
-                status_code=403,
-                detail="Not a member of this project"
-            )
+            raise HTTPException(status_code=403, detail="Not a member of this project")
 
     comment_service.delete_comment(
-        db=db,
-        comment_id=comment_id,
-        user_id=current_user.id,
-        user_role=current_user.role
+        db=db, comment_id=comment_id, user_id=current_user.id, user_role=current_user.role
     )

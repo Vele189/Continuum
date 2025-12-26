@@ -1,49 +1,141 @@
-# Contributing to Continuum Frontend
+# Contributing to Continuum
 
-## Pre-Commit Hooks
+## Pre-Commit Hooks (Local CI Runners)
 
-This project uses **Husky** and **lint-staged** to automatically run code quality checks before each commit. This ensures consistent code quality across the team.
+This project uses **pre-commit** to automatically run code quality checks before each commit. This ensures that all code meets quality standards before it reaches the repository, catching issues locally before they hit GitHub Actions.
 
-### Setup
+### Quick Setup
 
-After cloning the repository, run the following from the **project root** (not the frontend folder):
+Run the setup script from the project root:
 
 ```bash
-cd Continuum
+./setup-hooks.sh
+```
+
+This will:
+- Install backend Python dependencies (including pylint, mypy, black, isort)
+- Install frontend npm dependencies
+- Configure Git pre-commit and pre-push hooks
+
+### Manual Setup
+
+If you prefer to set things up manually:
+
+```bash
+# 1. Set up backend
+cd backend
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+
+# 2. Set up frontend
+cd ../continuum-frontend
 npm install
+
+# 3. Install pre-commit hooks
+cd ..
+source backend/venv/bin/activate
+pre-commit install
+pre-commit install --hook-type pre-push
 ```
 
-This installs Husky and configures the Git hooks automatically.
+---
 
-> **Note:** You also need to install frontend dependencies:
-> ```bash
-> cd continuum-frontend
-> npm install
-> ```
+## What Happens on Commit
 
-### What Happens on Commit
+When you run `git commit`, the following checks run automatically:
 
-When you run `git commit`, the pre-commit hook automatically:
+### General Checks
+| Check | Description |
+|-------|-------------|
+| Trailing whitespace | Removes trailing whitespace |
+| End of file fixer | Ensures files end with a newline |
+| YAML/JSON validation | Validates YAML and JSON syntax |
+| Large file check | Blocks files > 1MB |
+| Merge conflict check | Detects merge conflict markers |
+| Private key detection | Prevents committing secrets |
 
-1. **Runs ESLint** on all staged `.ts` and `.tsx` files in `continuum-frontend/src/`
-2. **Auto-fixes** any fixable issues (formatting, simple lint errors)
-3. **Blocks the commit** if there are unfixable errors
+### Backend Checks (Python)
+| Check | Description |
+|-------|-------------|
+| **Black** | Auto-formats Python code |
+| **isort** | Sorts and organizes imports |
+| **Pylint** | Static code analysis for bugs and style issues |
+| **Mypy** | Static type checking |
+| **pytest** | Runs the test suite |
 
-Example output when commit is blocked:
+### Frontend Checks (TypeScript/React)
+| Check | Description |
+|-------|-------------|
+| **TypeScript** | Type checking via `tsc --noEmit` |
+| **ESLint** | Linting for TypeScript/React |
 
-```
-✖ eslint --fix:
-  /src/components/Button.tsx
-    5:10  error  'unused' is defined but never used  @typescript-eslint/no-unused-vars
-```
+### On Push Only
+| Check | Description |
+|-------|-------------|
+| **Frontend Build** | Verifies the frontend builds successfully |
 
-### Fixing Lint Errors
+---
 
-If your commit is blocked, fix the reported errors and try again:
+## Running Hooks Manually
 
 ```bash
-# See all lint errors in the frontend
+# Run all hooks on all files
+pre-commit run --all-files
+
+# Run a specific hook
+pre-commit run backend-pylint --all-files
+pre-commit run frontend-typecheck --all-files
+
+# Run hooks on staged files only
+pre-commit run
+```
+
+### Available Hook IDs
+
+| Hook ID | Description |
+|---------|-------------|
+| `backend-pylint` | Python linting |
+| `backend-mypy` | Python type checking |
+| `backend-tests` | Python tests (pytest) |
+| `frontend-typecheck` | TypeScript type checking |
+| `frontend-lint` | ESLint |
+| `frontend-build` | Build verification |
+| `black` | Python formatting |
+| `isort` | Python import sorting |
+
+---
+
+## Fixing Common Issues
+
+### Backend (Python)
+
+```bash
+cd backend
+source venv/bin/activate
+
+# See all pylint issues
+pylint app --rcfile=.pylintrc
+
+# Auto-format code with Black
+black app --line-length=100
+
+# Sort imports
+isort app --profile=black --line-length=100
+
+# Run type checker
+mypy app --ignore-missing-imports
+
+# Run tests
+pytest tests -v
+```
+
+### Frontend (TypeScript/React)
+
+```bash
 cd continuum-frontend
+
+# See all lint errors
 npm run lint
 
 # Auto-fix what can be fixed
@@ -51,9 +143,24 @@ npm run lint:fix
 
 # Check TypeScript errors
 npm run typecheck
+
+# Test build
+npm run build
 ```
 
-### Common ESLint Errors
+---
+
+## Common Errors and Solutions
+
+### Python
+
+| Error | Solution |
+|-------|----------|
+| Pylint: `line-too-long` | Break line or use Black to format |
+| Mypy: `Missing type hints` | Add type annotations |
+| Import error | Check virtual environment is activated |
+
+### TypeScript/React
 
 | Error | Solution |
 |-------|----------|
@@ -61,7 +168,9 @@ npm run typecheck
 | `no-explicit-any` | Replace `any` with a proper type |
 | `react-hooks/exhaustive-deps` | Add missing dependencies to the array |
 
-### Bypassing Hooks (Emergency Only)
+---
+
+## Bypassing Hooks (Emergency Only)
 
 In rare cases where you need to commit without running hooks:
 
@@ -69,38 +178,65 @@ In rare cases where you need to commit without running hooks:
 git commit --no-verify -m "your message"
 ```
 
-⚠️ **Use sparingly** — this defeats the purpose of code quality checks.
+⚠️ **Use sparingly** — this defeats the purpose of code quality checks. CI will still run on GitHub and block merging if checks fail.
 
-### Troubleshooting
+---
 
-#### "lint-staged not found" or npm errors
+## Troubleshooting
 
-Re-run installation from the project root:
+### "pre-commit: command not found"
+
+Ensure you've activated the backend virtual environment:
 
 ```bash
-cd Continuum
+source backend/venv/bin/activate
+```
+
+### Hooks not running
+
+Re-install the hooks:
+
+```bash
+source backend/venv/bin/activate
+pre-commit install
+pre-commit install --hook-type pre-push
+```
+
+### Backend tests failing
+
+Make sure you have the test database set up:
+
+```bash
+cd backend
+source venv/bin/activate
+pytest tests -v --tb=long
+```
+
+### Frontend npm errors
+
+Re-install dependencies:
+
+```bash
+cd continuum-frontend
 rm -rf node_modules
 npm install
 ```
-
-#### Hooks not running at all
-
-Ensure Husky is installed:
-
-```bash
-cd Continuum
-npx husky install
-```
-
-#### WSL/Windows path issues
-
-The hooks are configured to work with both Windows and WSL. If you encounter issues, try committing from PowerShell or Git Bash instead of WSL.
 
 ---
 
 ## Available Scripts
 
-From `continuum-frontend/`:
+### Backend (`backend/`)
+
+| Script | Description |
+|--------|-------------|
+| `pytest tests` | Run test suite |
+| `pylint app` | Run linter |
+| `mypy app` | Run type checker |
+| `black app` | Format code |
+| `alembic upgrade head` | Run database migrations |
+
+### Frontend (`continuum-frontend/`)
 
 | Script | Description |
 |--------|-------------|
@@ -110,4 +246,3 @@ From `continuum-frontend/`:
 | `npm run lint:fix` | Run ESLint with auto-fix |
 | `npm run typecheck` | Run TypeScript type checking |
 | `npm run preview` | Preview production build |
-

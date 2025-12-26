@@ -10,26 +10,26 @@ test.describe('Login Page', () => {
   test('Should render all expected input fields', async ({ page }) => {
     // here i am checking the page heading
     await expect(page.locator('h1')).toContainText('Login');
-    
+
     // here i am checking the logo and the platform's name
     await expect(page.locator('img[alt="Continuum Logo"]')).toBeVisible();
     await expect(page.locator('span:has-text("Continuum")')).toBeVisible();
-    
+
     // here i am checking the form inputs
     await expect(page.locator(selectors.email_input)).toBeVisible();
     await expect(page.locator(selectors.email_input)).toHaveAttribute('placeholder', 'e.g. LethaboExample@gmail.com');
     await expect(page.locator(selectors.password_input)).toBeVisible();
-    
+
     // here i am checking the password visibility toggle
     await expect(page.locator(selectors.show_password_button)).toBeVisible();
-    
+
     // here i am checking the submit button
     await expect(page.locator('button:has-text("Login")')).toBeVisible();
-    
+
     // here i am checking the links for signing up and forgot password
     await expect(page.locator(selectors.forgot_password_link)).toBeVisible();
     await expect(page.locator(selectors.signup_link)).toBeVisible();
-    
+
     // here i am checking the terms and policy links
     await expect(page.locator('a:has-text("Terms of Service")')).toBeVisible();
     await expect(page.locator('a:has-text("Privacy Policy")')).toBeVisible();
@@ -38,10 +38,10 @@ test.describe('Login Page', () => {
   //====================================Should validate empty field========================================================
   test('should validate empty email field', async ({ page }) => {
     const emailInput = page.locator(selectors.email_input);
-    
+
     await page.locator(selectors.password_input).fill(mock_users.valid_user.password);
     await page.locator(selectors.submit_button).click();
-    
+
     const validationMessage = await emailInput.evaluate((el: HTMLInputElement) => el.validationMessage);
     expect(validationMessage).toBeTruthy();
     expect(validationMessage.length).toBeGreaterThan(0);
@@ -49,10 +49,10 @@ test.describe('Login Page', () => {
 
   test('should validate empty password field', async ({ page }) => {
     const passwordInput = page.locator(selectors.password_input);
-    
+
     await page.locator(selectors.email_input).fill(mock_users.valid_user.email);
     await page.locator(selectors.submit_button).click();
-    
+
     const validationMessage = await passwordInput.evaluate((el: HTMLInputElement) => el.validationMessage);
     expect(validationMessage).toBeTruthy();
     expect(validationMessage.length).toBeGreaterThan(0);
@@ -61,11 +61,11 @@ test.describe('Login Page', () => {
   //====================================Should show client-side validation errors========================================================
   test('should validate invalid email format', async ({ page }) => {
     const emailInput = page.locator(selectors.email_input);
-    
+
     await emailInput.fill('invalid-email');
     await page.locator(selectors.password_input).fill(mock_users.valid_user.password);
-    
-  
+
+
     const validationMessage = await emailInput.evaluate((el: HTMLInputElement) => el.validationMessage);
     expect(validationMessage).toBeTruthy();
   });
@@ -73,17 +73,17 @@ test.describe('Login Page', () => {
   test('should toggle password visibility', async ({ page }) => {
     const passwordInput = page.locator('input#password');
     const toggleButton = page.locator(selectors.show_password_button).first();
-    
+
     await passwordInput.fill(mock_users.valid_user.password);
-    
+
     // Initial state should be 'password' type (hidden)
     await expect(passwordInput).toHaveAttribute('type', 'password');
-    
+
     // First click should show the password (change to 'text')
     await toggleButton.click();
     await expect(passwordInput).toHaveAttribute('type', 'text');
 
-    
+
     await toggleButton.click();
     await expect(passwordInput).toHaveAttribute('type', 'password');
   });
@@ -104,10 +104,10 @@ test.describe('Login Page', () => {
     // Fill and submit form
     await page.locator(selectors.email_input).fill(mock_users.valid_user.email);
     await page.locator(selectors.password_input).fill(mock_users.valid_user.password);
-    
+
     // Click submit and wait for navigation
     await page.locator(selectors.submit_button).click();
-    
+
     // Wait for either navigation or error
     try {
       await page.waitForURL(routes.dashboard, { timeout: 5000 });
@@ -137,19 +137,19 @@ test.describe('Login Page', () => {
 
     await page.locator(selectors.email_input).fill(mock_users.invalid_user.email);
     await page.locator(selectors.password_input).fill(mock_users.invalid_user.password);
-    
+
     // Click submit
     await page.locator(selectors.submit_button).click();
-    
+
     // Wait for loading state to finish (button text changes back to "Login")
     await page.waitForSelector('button:has-text("Login")', { timeout: 5000 });
-    
+
     // Verify still on login page (this is the main success criteria)
     expect(page.url()).toContain(routes.login);
-    
+
     // Check if error message appears (it should, but if not we still passed the main test)
     const errorCount = await page.locator(selectors.error_message).count();
-    
+
     if (errorCount > 0) {
       // If error message exists, verify it's visible and has content
       const errorLocator = page.locator(selectors.error_message);
@@ -174,13 +174,13 @@ test.describe('Login Page', () => {
 
     await page.locator(selectors.email_input).fill(mock_users.valid_user.email);
     await page.locator(selectors.password_input).fill(mock_users.valid_user.password);
-    
+
     const submitButton = page.locator('button[type="submit"]');
     await submitButton.click();
-    
+
     // Button should show loading text and be disabled
     await expect(page.locator('button:has-text("Logging in...")')).toBeVisible();
-    
+
     // Check if button is disabled
     const isDisabled = await page.locator('button:has-text("Logging in...")').isDisabled();
     expect(isDisabled).toBeTruthy();

@@ -18,7 +18,7 @@ Tasks can be linked to a single milestone. Linking a task affects the milestone'
 
 ### Database Schema
 - **Table**: `milestones`
-- **Relationship**: 
+- **Relationship**:
     - One-to-Many: Project -> Milestones
     - One-to-Many: Milestone -> Tasks (Task has `milestone_id`)
 

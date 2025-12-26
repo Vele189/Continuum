@@ -1,9 +1,10 @@
 # User model
 import enum
 
-from sqlalchemy import Column, Integer, String, Numeric, Boolean, Enum
-from sqlalchemy.sql import func
 from app.db.base import Base
+from sqlalchemy import Boolean, Column, Enum, Integer, Numeric, String
+from sqlalchemy.sql import func
+
 
 class UserRole(enum.Enum):
     BACKEND = "backend"
@@ -12,6 +13,7 @@ class UserRole(enum.Enum):
     CLIENT = "client"
     PROJECTMANAGER = "project_manager"
     ADMIN = "admin"
+
 
 class User(Base):
     __tablename__ = "users"
@@ -22,9 +24,9 @@ class User(Base):
     email = Column(String(255), unique=True, index=True)
     hashed_password = Column(String(255))
     role = Column(Enum(UserRole), default=UserRole.FRONTEND)
-    hourly_rate = Column(Numeric(10,2))
+    hourly_rate = Column(Numeric(10, 2))
 
-    #email ver
+    # email ver
     is_verified = Column(Boolean, default=False)
     verification_token = Column(String(255))
     refresh_token = Column(String(255), nullable=True)

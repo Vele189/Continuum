@@ -1,17 +1,16 @@
 # pylint: disable=unused-argument
 from typing import List, Optional
 
-from fastapi import APIRouter, Depends, Query, status
-from sqlalchemy.orm import Session
-
-from app.api.deps import get_db, get_current_user, is_admin_user
+from app.api.deps import get_current_user, get_db, is_admin_user
 from app.dbmodels import User
 from app.schemas.git_contribution import (
     GitContribution,
     GitContributionCreate,
-    GitContributionUpdate
+    GitContributionUpdate,
 )
 from app.services.git_contribution import GitContributionService
+from fastapi import APIRouter, Depends, Query, status
+from sqlalchemy.orm import Session
 
 router = APIRouter()
 
@@ -61,7 +60,7 @@ def list_contributions(
         is_admin=is_admin,
         user_id=user_id,
         project_id=project_id,
-        provider=provider
+        provider=provider,
     )
 
 
@@ -79,9 +78,7 @@ def get_contribution(
     """
     is_admin = is_admin_user(current_user)
 
-    return GitContributionService.get_contribution(
-        db, contribution_id, current_user.id, is_admin
-    )
+    return GitContributionService.get_contribution(db, contribution_id, current_user.id, is_admin)
 
 
 @router.put("/{contribution_id}", response_model=GitContribution)

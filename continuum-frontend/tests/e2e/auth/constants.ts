@@ -7,7 +7,7 @@ export const routes ={
     resetPassword: '/reset-password',
     dashboard: '/dashboard',
 } as const;
-  
+
 
 export const mock_users = {
     valid_user: {
@@ -46,19 +46,19 @@ export const selectors ={
   submit_button: 'button[type="submit"]',
   error_message: '[class*="bg-red-50"]',
   success_message: '[class*="bg-green-50"]',
-  
+
   show_password_button: 'button[type="button"]',
   forgot_password_link: 'a[href="/forgot-password"]',
   signup_link: 'a[href="/register"]',
-  
+
   firstname_input: 'input#firstname',
   lastname_input: 'input#lastname',
 //   confirm_password_input: 'input#confirm-password',
   login_link: 'a[href="/login"]',
-  
-  
+
+
   back_to_login_button: 'button:has-text("Back to Login")',
-  
+
   new_password_input: 'input#new-password',
   go_to_login_button: 'button:has-text("Go to Login")',
 } as const;

@@ -616,5 +616,4 @@ After setup is complete:
 2. Create an account or log in
 3. Start exploring the platform!
 
-Happy coding! 
-
+Happy coding!

@@ -39,4 +39,3 @@ export const projectsApi = {
     await axiosClient.delete(`/projects/${id}`);
   },
 };
-

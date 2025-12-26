@@ -62,7 +62,7 @@ jobs:
     - name: Test with pytest
       run: |
         pytest
-  
+
   postgres:
     runs-on: ubuntu-latest
 

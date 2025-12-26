@@ -1,7 +1,7 @@
-from fastapi.testclient import TestClient
 from app.core.config import settings
 from app.db.session import SessionLocal
 from app.dbmodels import User
+from fastapi.testclient import TestClient
 
 
 def test_register_user(client: TestClient):
@@ -11,7 +11,7 @@ def test_register_user(client: TestClient):
             "email": "test@example.com",
             "password": "password123",
             "first_name": "Test",
-            "last_name": "User"
+            "last_name": "User",
         },
     )
 
@@ -34,7 +34,7 @@ def test_login_user(client: TestClient):
             "email": "test2@example.com",
             "password": "password123",
             "first_name": "Test",
-            "last_name": "User"
+            "last_name": "User",
         },
     )
 
@@ -56,7 +56,7 @@ def test_login_wrong_password(client: TestClient):
             "email": "test3@example.com",
             "password": "password123",
             "first_name": "Test",
-            "last_name": "User"
+            "last_name": "User",
         },
     )
     response = client.post(
@@ -71,7 +71,7 @@ def test_duplicate_user(client: TestClient):
         "email": "test4@example.com",
         "password": "password123",
         "first_name": "Test",
-        "last_name": "User"
+        "last_name": "User",
     }
     response = client.post(f"{settings.API_V1_STR}/users/", json=payload)
     assert response.status_code == 201  # Created
@@ -88,7 +88,7 @@ def test_refresh_token(client: TestClient):
             "email": "refresh_test@example.com",
             "password": "password123",
             "first_name": "Test",
-            "last_name": "User"
+            "last_name": "User",
         },
     )
     login_response = client.post(
@@ -100,8 +100,7 @@ def test_refresh_token(client: TestClient):
 
     # 2. Use refresh token to get new access token
     refresh_response = client.post(
-        f"{settings.API_V1_STR}/auth/refresh-token",
-        params={"refresh_token": refresh_token}
+        f"{settings.API_V1_STR}/auth/refresh-token", params={"refresh_token": refresh_token}
     )
     assert refresh_response.status_code == 200
     new_tokens = refresh_response.json()
@@ -114,12 +113,7 @@ def test_verify_email(client: TestClient):
     email = "verify_test@example.com"
     client.post(
         f"{settings.API_V1_STR}/users/",
-        json={
-            "email": email,
-            "password": "password123",
-            "first_name": "Test",
-            "last_name": "User"
-        },
+        json={"email": email, "password": "password123", "first_name": "Test", "last_name": "User"},
     )
 
     # Get token from DB directly (simulating clicking link)

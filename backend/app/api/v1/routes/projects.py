@@ -1,25 +1,29 @@
 # pylint: disable=unused-argument,redefined-outer-name
 from typing import List, Optional
 
-from fastapi import APIRouter, Depends, Query, status
-from sqlalchemy.orm import Session
-
-from app.api.deps import get_db, get_current_user, get_current_active_admin, is_admin_user
+from app.api.deps import (
+    get_current_active_admin,
+    get_current_project_member,
+    get_current_user,
+    get_db,
+    is_admin_user,
+)
 from app.dbmodels import User
+from app.schemas.milestone import Milestone
 from app.schemas.project import (
     Project,
     ProjectCreate,
-    ProjectUpdate,
+    ProjectDetail,
+    ProjectHealth,
     ProjectMember,
     ProjectMemberCreate,
-    ProjectDetail,
     ProjectStatistics,
-    ProjectHealth
+    ProjectUpdate,
 )
-from app.services.project import ProjectService
-from app.api.deps import get_current_project_member
 from app.services.milestone import MilestoneService
-from app.schemas.milestone import Milestone
+from app.services.project import ProjectService
+from fastapi import APIRouter, Depends, Query, status
+from sqlalchemy.orm import Session
 
 router = APIRouter()
 
@@ -29,7 +33,7 @@ def create_project(
     project_in: ProjectCreate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
-    is_admin: User = Depends(get_current_active_admin)
+    is_admin: User = Depends(get_current_active_admin),
 ):
     """
     Create a new project.
@@ -55,11 +59,7 @@ def list_projects(
     is_admin = is_admin_user(current_user)
 
     return ProjectService.list_projects(
-        db,
-        current_user.id,
-        is_admin=is_admin,
-        client_id=client_id,
-        status_filter=status
+        db, current_user.id, is_admin=is_admin, client_id=client_id, status_filter=status
     )
 
 
@@ -114,9 +114,7 @@ def delete_project(
 
 
 @router.post(
-    "/{project_id}/members",
-    response_model=ProjectMember,
-    status_code=status.HTTP_201_CREATED
+    "/{project_id}/members", response_model=ProjectMember, status_code=status.HTTP_201_CREATED
 )
 def add_member(
     project_id: int,
@@ -165,7 +163,7 @@ def get_members(
     return ProjectService.list_members(db, project_id)
 
 
-#we make a get requests endpoint for the project statistics
+# we make a get requests endpoint for the project statistics
 @router.get("/{project_id}/stats", response_model=ProjectStatistics)
 def get_project_stats(
     project_id: int,
@@ -180,7 +178,8 @@ def get_project_stats(
     """
     return ProjectService.get_project_statistics(db=db, project_id=project_id)
 
-#we make a get requests endpoint for the project health
+
+# we make a get requests endpoint for the project health
 @router.get("/{project_id}/health", response_model=ProjectHealth)
 def get_project_health(
     project_id: int,
@@ -194,6 +193,7 @@ def get_project_health(
     - Members can view health of projects they belong to
     """
     return ProjectService.get_project_health(db=db, project_id=project_id)
+
 
 @router.get("/{project_id}/milestones", response_model=List[Milestone])
 def list_project_milestones(

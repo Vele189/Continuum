@@ -1,15 +1,14 @@
 # pylint: disable=unused-argument
 from typing import List
 
-from fastapi import APIRouter, Depends, HTTPException, status
-from fastapi.responses import Response
-from sqlalchemy.orm import Session
-
 from app.api import deps
 from app.dbmodels import User
 from app.schemas.client import Client, ClientCreate, ClientUpdate
 from app.services import client as client_service
 from app.utils.logger import get_logger
+from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.responses import Response
+from sqlalchemy.orm import Session
 
 logger = get_logger(__name__)
 router = APIRouter()
@@ -27,17 +26,10 @@ def create_client(
     Requires admin privileges (ADMIN or PROJECTMANAGER role).
     """
     try:
-        client = client_service.create(
-            db=db,
-            obj_in=client_in,
-            created_by=current_user.id
-        )
+        client = client_service.create(db=db, obj_in=client_in, created_by=current_user.id)
         return client
     except ValueError as e:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=str(e)
-        ) from e
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e)) from e
 
 
 @router.get("/", response_model=List[Client])
@@ -70,10 +62,7 @@ def get_client(
     """
     client = client_service.get(db=db, client_id=client_id)
     if not client:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Client not found"
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Client not found")
     return client
 
 
@@ -92,23 +81,13 @@ def update_client(
     """
     client = client_service.get(db=db, client_id=client_id)
     if not client:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Client not found"
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Client not found")
 
     try:
-        updated_client = client_service.update(
-            db=db,
-            client=client,
-            obj_in=client_in
-        )
+        updated_client = client_service.update(db=db, client=client, obj_in=client_in)
         return updated_client
     except ValueError as e:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=str(e)
-        ) from e
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e)) from e
 
 
 @router.delete("/{client_id}", status_code=status.HTTP_204_NO_CONTENT, response_class=Response)
@@ -124,7 +103,4 @@ def delete_client(
     """
     client = client_service.delete(db=db, client_id=client_id)
     if not client:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Client not found"
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Client not found")

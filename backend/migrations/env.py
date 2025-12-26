@@ -1,11 +1,20 @@
-from logging.config import fileConfig
 import os
-from sqlalchemy import engine_from_config
-from sqlalchemy import pool
+from logging.config import fileConfig
+
 from alembic import context
 from app.db.base import Base
-from app.dbmodels import User, UserRole, Client, Project, Task, ProjectMember, LoggedHour, GitContribution, SystemLog  # Import all models to register them with Base
-
+from app.dbmodels import (  # Import all models to register them with Base
+    Client,
+    GitContribution,
+    LoggedHour,
+    Project,
+    ProjectMember,
+    SystemLog,
+    Task,
+    User,
+    UserRole,
+)
+from sqlalchemy import engine_from_config, pool
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -29,7 +38,7 @@ if config.config_file_name is not None:
 target_metadata = Base.metadata
 
 # other values from the config, defined by the needs of env.py,
-# can be acquired:what 
+# can be acquired:what
 # my_important_option = config.get_main_option("my_important_option")
 # ... etc.
 
@@ -72,9 +81,7 @@ def run_migrations_online() -> None:
     )
 
     with connectable.connect() as connection:
-        context.configure(
-            connection=connection, target_metadata=target_metadata
-        )
+        context.configure(connection=connection, target_metadata=target_metadata)
 
         with context.begin_transaction():
             context.run_migrations()

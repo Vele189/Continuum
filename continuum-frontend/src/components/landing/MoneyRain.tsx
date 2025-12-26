@@ -43,8 +43,8 @@ const MoneyRain = ({ isActive }: MoneyRainProps) => {
             }, 100);
         } else {
             // If inactive, let existing ones fall but stop spawning
-            // Optional: Clear immediately if we want instant stop? 
-            // User said "rain from top", implies nice transition. 
+            // Optional: Clear immediately if we want instant stop?
+            // User said "rain from top", implies nice transition.
             // Let's stop spawning.
         }
 

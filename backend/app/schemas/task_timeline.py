@@ -4,14 +4,17 @@ Schemas for task timeline/activity feed.
 This module defines the data structures for a unified, chronological
 activity timeline that aggregates all task-related actions.
 """
-from enum import Enum
-from typing import Optional, Any, Dict
+
 from datetime import datetime
+from enum import Enum
+from typing import Any, Dict, Optional
+
 from pydantic import BaseModel
 
 
 class ActivityType(str, Enum):
     """Enumeration of all possible activity types in the timeline."""
+
     TASK_CREATED = "task_created"
     STATUS_CHANGED = "status_changed"
     ASSIGNMENT_CHANGED = "assignment_changed"
@@ -23,6 +26,7 @@ class ActivityType(str, Enum):
 
 class ActivityUser(BaseModel):
     """User information for an activity."""
+
     id: int
     name: Optional[str] = None
     email: Optional[str] = None
@@ -35,6 +39,7 @@ class TimelineActivity(BaseModel):
 
     All activities follow this unified structure regardless of source.
     """
+
     # Unique identifier for this activity
     # Format: "{activity_type}_{source_id}" (e.g., "attachment_uploaded_123")
     id: str
@@ -66,6 +71,7 @@ class TaskTimelineResponse(BaseModel):
 
     Returns a paginated list of activities in chronological order.
     """
+
     activities: list[TimelineActivity]
     total: int
     skip: int

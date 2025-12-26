@@ -1,18 +1,12 @@
 from typing import List, Optional
 
+from app.dbmodels import Task, TaskComment, UserRole
+from app.services.task import validate_project_membership
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
 
-from app.dbmodels import TaskComment, Task, UserRole
-from app.services.task import validate_project_membership
 
-
-def create_comment(
-    db: Session,
-    task_id: int,
-    user_id: int,
-    content: str
-) -> TaskComment:
+def create_comment(db: Session, task_id: int, user_id: int, content: str) -> TaskComment:
     """
     Create a new comment on a task.
 
@@ -36,17 +30,10 @@ def create_comment(
     # Validate user is a project member (will be checked at route level too)
     # This is a safety check
     if not validate_project_membership(db, task.project_id, user_id):
-        raise HTTPException(
-            status_code=403,
-            detail="User is not a member of this project"
-        )
+        raise HTTPException(status_code=403, detail="User is not a member of this project")
 
     # Create comment
-    comment = TaskComment(
-        task_id=task_id,
-        user_id=user_id,
-        content=content
-    )
+    comment = TaskComment(task_id=task_id, user_id=user_id, content=content)
     db.add(comment)
     db.commit()
     db.refresh(comment)
@@ -64,9 +51,12 @@ def get_comments(db: Session, task_id: int) -> List[TaskComment]:
     Returns:
         List of TaskComment objects ordered by created_at
     """
-    return db.query(TaskComment).filter(
-        TaskComment.task_id == task_id
-    ).order_by(TaskComment.created_at.asc()).all()
+    return (
+        db.query(TaskComment)
+        .filter(TaskComment.task_id == task_id)
+        .order_by(TaskComment.created_at.asc())
+        .all()
+    )
 
 
 def get_comment(db: Session, comment_id: int) -> Optional[TaskComment]:
@@ -83,12 +73,7 @@ def get_comment(db: Session, comment_id: int) -> Optional[TaskComment]:
     return db.query(TaskComment).filter(TaskComment.id == comment_id).first()
 
 
-def update_comment(
-    db: Session,
-    comment_id: int,
-    user_id: int,
-    content: str
-) -> TaskComment:
+def update_comment(db: Session, comment_id: int, user_id: int, content: str) -> TaskComment:
     """
     Update a comment's content.
 
@@ -113,10 +98,7 @@ def update_comment(
 
     # Only comment author can update (admins don't bypass this - they can only delete)
     if comment.user_id != user_id:
-        raise HTTPException(
-            status_code=403,
-            detail="You can only update your own comments"
-        )
+        raise HTTPException(status_code=403, detail="You can only update your own comments")
 
     comment.content = content
     db.add(comment)
@@ -125,12 +107,7 @@ def update_comment(
     return comment
 
 
-def delete_comment(
-    db: Session,
-    comment_id: int,
-    user_id: int,
-    user_role: UserRole
-) -> TaskComment:
+def delete_comment(db: Session, comment_id: int, user_id: int, user_role: UserRole) -> TaskComment:
     """
     Delete a comment.
 
@@ -160,10 +137,7 @@ def delete_comment(
     is_system_admin = user_role == UserRole.ADMIN
 
     if not is_owner and not is_system_admin:
-        raise HTTPException(
-            status_code=403,
-            detail="You can only delete your own comments"
-        )
+        raise HTTPException(status_code=403, detail="You can only delete your own comments")
 
     db.delete(comment)
     db.commit()

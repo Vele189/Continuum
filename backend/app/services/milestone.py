@@ -1,10 +1,15 @@
-from typing import List, Optional, Any
 from datetime import datetime
-from sqlalchemy.orm import Session
-from fastapi import HTTPException
+from typing import List, Optional
 
 from app.dbmodels import Milestone, Task
-from app.schemas.milestone import MilestoneCreate, MilestoneUpdate, MilestoneStatus, MilestoneProgress
+from app.schemas.milestone import (
+    MilestoneCreate,
+    MilestoneProgress,
+    MilestoneStatus,
+    MilestoneUpdate,
+)
+from sqlalchemy.orm import Session
+
 
 class MilestoneService:
     @staticmethod
@@ -13,7 +18,7 @@ class MilestoneService:
             project_id=obj_in.project_id,
             name=obj_in.name,
             due_date=obj_in.due_date,
-            status=MilestoneStatus.NOT_STARTED.value
+            status=MilestoneStatus.NOT_STARTED.value,
         )
         db.add(db_obj)
         db.commit()
@@ -66,7 +71,7 @@ class MilestoneService:
                 completed_tasks=0,
                 in_progress_tasks=0,
                 todo_tasks=0,
-                completion_percentage=0.0
+                completion_percentage=0.0,
             )
 
         completed = sum(1 for t in tasks if t.status == "done")
@@ -78,7 +83,7 @@ class MilestoneService:
             completed_tasks=completed,
             in_progress_tasks=in_progress,
             todo_tasks=todo,
-            completion_percentage=round((completed / total) * 100, 2)
+            completion_percentage=round((completed / total) * 100, 2),
         )
 
     @staticmethod
@@ -103,9 +108,13 @@ class MilestoneService:
         # Check Overdue (Only if not completed)
         if new_status != MilestoneStatus.COMPLETED and milestone.due_date:
             # naive comparison vs timezone aware - ensure consistency
-            now = datetime.now(milestone.due_date.tzinfo) if milestone.due_date.tzinfo else datetime.now()
+            now = (
+                datetime.now(milestone.due_date.tzinfo)
+                if milestone.due_date.tzinfo
+                else datetime.now()
+            )
             if now > milestone.due_date:
-                 new_status = MilestoneStatus.OVERDUE
+                new_status = MilestoneStatus.OVERDUE
 
         if milestone.status != new_status.value:
             milestone.status = new_status.value

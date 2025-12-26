@@ -1,5 +1,5 @@
-import sqlite3
 import os
+import sqlite3
 
 db_path = "continuum.db"
 if not os.path.exists(db_path):
@@ -8,7 +8,7 @@ else:
     print(f"Opening {db_path}...")
     conn = sqlite3.connect(db_path)
     cur = conn.cursor()
-    
+
     # Check Milestones
     cur.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='milestones'")
     row = cur.fetchone()
@@ -24,5 +24,5 @@ else:
         print("milestone_id column found in tasks.")
     else:
         print(f"milestone_id column NOT found in tasks. Columns: {columns}")
-    
+
     conn.close()

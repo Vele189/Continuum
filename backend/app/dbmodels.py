@@ -3,38 +3,33 @@
 import enum
 import logging
 
+from app.db.base import Base
 from sqlalchemy import (
+    JSON,
     Boolean,
-    Enum,
-    Numeric,
-    create_engine,
     Column,
-    Integer,
-    String,
+    DateTime,
+    Enum,
     Float,
     ForeignKey,
-    DateTime,
+    Integer,
+    Numeric,
+    String,
     Text,
-    JSON,
-    UniqueConstraint
+    UniqueConstraint,
 )
-
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
-from app.db.base import Base
-
 
 # --- Logger Setup ---
 try:
     from utils.logger import get_logger
 except ImportError:
-    logging.basicConfig(
-        level=logging.INFO,
-        format="%(levelname)s | [%(name)s] %(message)s"
-    )
+    logging.basicConfig(level=logging.INFO, format="%(levelname)s | [%(name)s] %(message)s")
 
     def get_logger(name: str):
         return logging.getLogger(name)
+
 
 logger = get_logger(__name__)
 
@@ -47,7 +42,9 @@ class UserRole(enum.Enum):
     PROJECTMANAGER = "project_manager"
     ADMIN = "admin"
 
+
 # --- Models ---
+
 
 class User(Base):
     __tablename__ = "users"
@@ -59,7 +56,7 @@ class User(Base):
     email = Column(String, unique=True, nullable=False, index=True)
     hashed_password = Column(String, nullable=False)
     display_name = Column(String, nullable=False)
-    hourly_rate = Column(Numeric(10,2), default=0.0)
+    hourly_rate = Column(Numeric(10, 2), default=0.0)
     first_name = Column(String(255), nullable=False)
     last_name = Column(String(255), nullable=False)
     role = Column(Enum(UserRole), default=UserRole.FRONTEND)
@@ -79,6 +76,7 @@ class User(Base):
     task_attachments = relationship("TaskAttachment", back_populates="uploader")
     task_comments = relationship("TaskComment", back_populates="author")
 
+
 class Client(Base):
     __tablename__ = "clients"
 
@@ -92,7 +90,7 @@ class Client(Base):
         Integer,
         ForeignKey("users.id", ondelete="SET NULL", onupdate="CASCADE"),
         nullable=True,
-        index=True
+        index=True,
     )
 
     created_at = Column(DateTime(timezone=True), server_default=func.now())
@@ -100,6 +98,7 @@ class Client(Base):
     # Relationships
     creator = relationship("User", back_populates="projects_owned")
     projects = relationship("Project", back_populates="client")
+
 
 class Project(Base):
     __tablename__ = "projects"
@@ -109,7 +108,7 @@ class Project(Base):
         Integer,
         ForeignKey("clients.id", ondelete="CASCADE", onupdate="CASCADE"),
         nullable=False,
-        index=True
+        index=True,
     )
     name = Column(String, nullable=False)
     description = Column(Text, nullable=True)
@@ -118,42 +117,33 @@ class Project(Base):
 
     # Relationships
     client = relationship("Client", back_populates="projects")
-    members = relationship(
-        "ProjectMember",
-        back_populates="project",
-        cascade="all, delete-orphan"
-    )
-    tasks = relationship(
-        "Task",
-        back_populates="project",
-        cascade="all, delete-orphan"
-    )
+    members = relationship("ProjectMember", back_populates="project", cascade="all, delete-orphan")
+    tasks = relationship("Task", back_populates="project", cascade="all, delete-orphan")
     logged_hours = relationship("LoggedHour", back_populates="project")
     git_contributions = relationship("GitContribution", back_populates="project")
     invoices = relationship("Invoice", back_populates="project")
     milestones = relationship("Milestone", back_populates="project")
+
 
 class ProjectMember(Base):
     __tablename__ = "project_members"
 
     # ADDED: Composite Unique Constraint
     # Ensures a user isn't added to a project twice
-    __table_args__ = (
-        UniqueConstraint('project_id', 'user_id', name='uix_project_member'),
-    )
+    __table_args__ = (UniqueConstraint("project_id", "user_id", name="uix_project_member"),)
 
     id = Column(Integer, primary_key=True, index=True)
     project_id = Column(
         Integer,
         ForeignKey("projects.id", ondelete="CASCADE", onupdate="CASCADE"),
         nullable=False,
-        index=True
+        index=True,
     )
     user_id = Column(
         Integer,
         ForeignKey("users.id", ondelete="CASCADE", onupdate="CASCADE"),
         nullable=False,
-        index=True
+        index=True,
     )
     role = Column(String, default="member")
     added_at = Column(DateTime(timezone=True), server_default=func.now())
@@ -161,6 +151,7 @@ class ProjectMember(Base):
     # Relationships
     project = relationship("Project", back_populates="members")
     user = relationship("User", back_populates="project_memberships")
+
 
 class Task(Base):
     __tablename__ = "tasks"
@@ -170,7 +161,7 @@ class Task(Base):
         Integer,
         ForeignKey("projects.id", ondelete="CASCADE", onupdate="CASCADE"),
         nullable=False,
-        index=True
+        index=True,
     )
     title = Column(String, nullable=False)
     description = Column(Text, nullable=True)
@@ -179,7 +170,7 @@ class Task(Base):
         Integer,
         ForeignKey("milestones.id", ondelete="SET NULL", onupdate="CASCADE"),
         nullable=True,
-        index=True
+        index=True,
     )
 
     # Foreign Key with SET NULL on delete
@@ -187,16 +178,12 @@ class Task(Base):
         Integer,
         ForeignKey("users.id", ondelete="SET NULL", onupdate="CASCADE"),
         nullable=True,
-        index=True
+        index=True,
     )
     due_date = Column(DateTime(timezone=True), nullable=True)
 
     created_at = Column(DateTime(timezone=True), server_default=func.now())
-    updated_at = Column(
-        DateTime(timezone=True),
-        onupdate=func.now(),
-        server_default=func.now()
-    )
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now(), server_default=func.now())
 
     # Relationships
     project = relationship("Project", back_populates="tasks")
@@ -204,15 +191,10 @@ class Task(Base):
     logged_hours = relationship("LoggedHour", back_populates="task")
     milestone = relationship("Milestone", back_populates="tasks")
     attachments = relationship(
-        "TaskAttachment",
-        back_populates="task",
-        cascade="all, delete-orphan"
+        "TaskAttachment", back_populates="task", cascade="all, delete-orphan"
     )
-    comments = relationship(
-        "TaskComment",
-        back_populates="task",
-        cascade="all, delete-orphan"
-    )
+    comments = relationship("TaskComment", back_populates="task", cascade="all, delete-orphan")
+
 
 class LoggedHour(Base):
     __tablename__ = "logged_hours"
@@ -222,19 +204,19 @@ class LoggedHour(Base):
         Integer,
         ForeignKey("users.id", ondelete="CASCADE", onupdate="CASCADE"),
         nullable=False,
-        index=True
+        index=True,
     )
     task_id = Column(
         Integer,
         ForeignKey("tasks.id", ondelete="SET NULL", onupdate="CASCADE"),
         nullable=True,
-        index=True
+        index=True,
     )
     project_id = Column(
         Integer,
         ForeignKey("projects.id", ondelete="CASCADE", onupdate="CASCADE"),
         nullable=False,
-        index=True
+        index=True,
     )
     hours = Column(Float, nullable=False)
     note = Column(Text, nullable=True)
@@ -245,32 +227,31 @@ class LoggedHour(Base):
     task = relationship("Task", back_populates="logged_hours")
     project = relationship("Project", back_populates="logged_hours")
 
+
 class GitContribution(Base):
     __tablename__ = "git_contributions"
 
     # Composite Unique Constraint: same commit hash cannot be linked twice to the same project
-    __table_args__ = (
-        UniqueConstraint('project_id', 'commit_hash', name='uix_project_commit'),
-    )
+    __table_args__ = (UniqueConstraint("project_id", "commit_hash", name="uix_project_commit"),)
 
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(
         Integer,
         ForeignKey("users.id", ondelete="CASCADE", onupdate="CASCADE"),
         nullable=False,
-        index=True
+        index=True,
     )
     project_id = Column(
         Integer,
         ForeignKey("projects.id", ondelete="CASCADE", onupdate="CASCADE"),
         nullable=False,
-        index=True
+        index=True,
     )
     task_id = Column(
         Integer,
         ForeignKey("tasks.id", ondelete="SET NULL", onupdate="CASCADE"),
         nullable=True,
-        index=True
+        index=True,
     )
 
     commit_hash = Column(String, nullable=False, index=True)
@@ -288,6 +269,7 @@ class GitContribution(Base):
     project = relationship("Project", back_populates="git_contributions")
     task = relationship("Task", backref="git_contributions")
 
+
 class Milestone(Base):
     __tablename__ = "milestones"
 
@@ -296,17 +278,13 @@ class Milestone(Base):
         Integer,
         ForeignKey("projects.id", ondelete="CASCADE", onupdate="CASCADE"),
         nullable=False,
-        index=True
+        index=True,
     )
     name = Column(String, nullable=False)
     due_date = Column(DateTime(timezone=True), nullable=True)
     status = Column(String, default="not_started")
     created_at = Column(DateTime(timezone=True), server_default=func.now())
-    updated_at = Column(
-        DateTime(timezone=True),
-        onupdate=func.now(),
-        server_default=func.now()
-    )
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now(), server_default=func.now())
 
     # Relationships
     project = relationship("Project", back_populates="milestones")
@@ -325,6 +303,7 @@ class SystemLog(Base):
 
 class InvoiceStatus(enum.Enum):
     """Invoice lifecycle status"""
+
     DRAFT = "draft"
     SENT = "sent"
     PAID = "paid"
@@ -340,7 +319,7 @@ class Invoice(Base):
         Integer,
         ForeignKey("projects.id", ondelete="CASCADE", onupdate="CASCADE"),
         nullable=False,
-        index=True
+        index=True,
     )
     invoice_number = Column(String, unique=True, nullable=False, index=True)
     status = Column(Enum(InvoiceStatus), default=InvoiceStatus.DRAFT, nullable=False, index=True)
@@ -365,7 +344,7 @@ class Invoice(Base):
         Integer,
         ForeignKey("users.id", ondelete="SET NULL", onupdate="CASCADE"),
         nullable=True,
-        index=True
+        index=True,
     )
 
     # Relationships
@@ -382,7 +361,7 @@ class InvoiceItem(Base):
         Integer,
         ForeignKey("invoices.id", ondelete="CASCADE", onupdate="CASCADE"),
         nullable=False,
-        index=True
+        index=True,
     )
 
     # Snapshot of logged hour data (immutable)
@@ -390,19 +369,19 @@ class InvoiceItem(Base):
         Integer,
         ForeignKey("users.id", ondelete="SET NULL", onupdate="CASCADE"),
         nullable=False,
-        index=True
+        index=True,
     )
     task_id = Column(
         Integer,
         ForeignKey("tasks.id", ondelete="SET NULL", onupdate="CASCADE"),
         nullable=True,
-        index=True
+        index=True,
     )
     logged_hour_id = Column(
         Integer,
         ForeignKey("logged_hours.id", ondelete="SET NULL", onupdate="CASCADE"),
         nullable=True,
-        index=True
+        index=True,
     )
 
     # Immutable billing data
@@ -432,13 +411,13 @@ class TaskAttachment(Base):
         Integer,
         ForeignKey("tasks.id", ondelete="CASCADE", onupdate="CASCADE"),
         nullable=False,
-        index=True
+        index=True,
     )
     user_id = Column(
         Integer,
         ForeignKey("users.id", ondelete="CASCADE", onupdate="CASCADE"),
         nullable=False,
-        index=True
+        index=True,
     )
     filename = Column(String, nullable=False)  # Internal/storage-safe name
     original_filename = Column(String, nullable=False)  # User-uploaded name
@@ -446,11 +425,7 @@ class TaskAttachment(Base):
     file_size = Column(Integer, nullable=False)  # Size in bytes
     mime_type = Column(String, nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
-    updated_at = Column(
-        DateTime(timezone=True),
-        onupdate=func.now(),
-        server_default=func.now()
-    )
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now(), server_default=func.now())
 
     # Relationships
     task = relationship("Task", back_populates="attachments")
@@ -465,26 +440,22 @@ class TaskComment(Base):
         Integer,
         ForeignKey("tasks.id", ondelete="CASCADE", onupdate="CASCADE"),
         nullable=False,
-        index=True
+        index=True,
     )
     user_id = Column(
         Integer,
         ForeignKey("users.id", ondelete="SET NULL", onupdate="CASCADE"),
         nullable=True,
-        index=True
+        index=True,
     )
     content = Column(Text, nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
-    updated_at = Column(
-        DateTime(timezone=True),
-        onupdate=func.now(),
-        server_default=func.now()
-    )
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now(), server_default=func.now())
 
     # Relationships
     task = relationship("Task", back_populates="comments")
     author = relationship("User", back_populates="task_comments")
 
-# --- Initialization Logic ---
-#removed for testing
 
+# --- Initialization Logic ---
+# removed for testing
