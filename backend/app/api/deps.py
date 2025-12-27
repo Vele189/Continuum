@@ -1,6 +1,6 @@
 from typing import Generator, Optional
 
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, HTTPException, status, Header
 from fastapi.security import OAuth2PasswordBearer
 from jose import jwt, JWTError
 from pydantic import ValidationError
@@ -9,7 +9,7 @@ from sqlalchemy.orm import Session
 from app.core import security
 from app.core.config import settings
 from app.db.session import SessionLocal
-from app.dbmodels import User, UserRole, ProjectMember, Project
+from app.dbmodels import User, UserRole, ProjectMember, Project, Client
 from app.schemas.user import TokenPayload
 
 
@@ -135,3 +135,25 @@ def get_current_project_admin(
         status_code=403,
         detail="You must be an admin or a project manager of this project"
     )
+
+def get_current_client(
+    db: Session = Depends(get_db),
+    x_client_token: Optional[str] = Header(None, alias="X-Client-Token")
+) -> Client:
+    """
+    Dependency to get the current client based on the X-Client-Token header.
+    Used for the Client Portal.
+    """
+    if not x_client_token:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Missing client token",
+        )
+
+    client = db.query(Client).filter(Client.api_key == x_client_token).first()
+    if not client:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid client token",
+        )
+    return client
