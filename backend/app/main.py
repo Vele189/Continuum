@@ -57,10 +57,9 @@ app.include_router(
 )
 app.include_router(invoices.router, prefix=f"{settings.API_V1_STR}/invoices", tags=["Invoices"])
 app.include_router(
-    client_portal.router,
-    prefix=f"{settings.API_V1_STR}/client-portal",
-    tags=["Client Portal"]
+    client_portal.router, prefix=f"{settings.API_V1_STR}/client-portal", tags=["Client Portal"]
 )
+
 
 @app.get("/health")
 def health_check():

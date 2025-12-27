@@ -133,9 +133,10 @@ def get_current_project_admin(
         status_code=403, detail="You must be an admin or a project manager of this project"
     )
 
+
 def get_current_client(
     db: Session = Depends(get_db),
-    x_client_token: Optional[str] = Header(None, alias="X-Client-Token")
+    x_client_token: Optional[str] = Header(None, alias="X-Client-Token"),
 ) -> Client:
     """
     Dependency to get the current client based on the X-Client-Token header.
