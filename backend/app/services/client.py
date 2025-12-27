@@ -1,3 +1,4 @@
+import secrets
 from datetime import datetime, timezone
 from typing import List, Optional
 
@@ -7,8 +8,11 @@ from sqlalchemy.orm import Session
 
 
 def create(db: Session, obj_in: ClientCreate, created_by: Optional[int] = None) -> Client:
-    """Create a new client"""
-    db_obj = Client(name=obj_in.name, email=obj_in.email, created_by=created_by)
+    """Create a new client with auto-generated API key for client portal access"""
+    # Generate a secure API key for client portal access
+    api_key = secrets.token_urlsafe(32)
+
+    db_obj = Client(name=obj_in.name, email=obj_in.email, created_by=created_by, api_key=api_key)
     db.add(db_obj)
     db.commit()
     db.refresh(db_obj)

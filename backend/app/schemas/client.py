@@ -58,6 +58,7 @@ class Client(ClientInDBBase):
     id: int
     name: str
     email: Optional[str] = None
+    api_key: Optional[str] = None
     created_by: Optional[int] = None
     created_at: datetime
     updated_at: Optional[datetime] = None

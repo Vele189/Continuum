@@ -294,8 +294,13 @@ class ProjectService:
             ):
                 total_overdue_tasks += 1
 
-        # then we have to get the total logged hours of the project
-        total_logged_hours = project.total_logged_hours
+        # Calculate total logged hours for the project
+        total_logged_hours = (
+            db.query(func.sum(LoggedHour.hours))
+            .filter(LoggedHour.project_id == project_id)
+            .scalar()
+            or 0.0
+        )
         # then we return the project statistics
         return ProjectStatistics(
             id=project.id,
@@ -449,12 +454,9 @@ class ProjectService:
             activity_dropoff=activity_indicator,
         )
 
-
     @staticmethod
     def get_client_portal_project(
-        db: Session,
-        project_id: int,
-        client: Client
+        db: Session, project_id: int, client: Client
     ) -> ClientPortalProject:
         """
         Fetch a project by ID and return a sanitized version for the Client Portal.
@@ -462,15 +464,12 @@ class ProjectService:
         """
         project = db.query(Project).filter(Project.id == project_id).first()
         if not project:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Project not found"
-            )
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Project not found")
 
         if project.client_id != client.id:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail="You do not have access to this project"
+                detail="You do not have access to this project",
             )
 
         # Extract member names
@@ -489,5 +488,5 @@ class ProjectService:
             client_name=client.name,
             members=member_names,
             created_at=project.created_at,
-            updated_at=project.updated_at
+            updated_at=project.updated_at,
         )
