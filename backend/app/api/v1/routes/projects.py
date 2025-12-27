@@ -1,4 +1,4 @@
-# pylint: disable=unused-argument,redefined-outer-name
+from datetime import datetime
 from typing import List, Optional
 
 from app.api.deps import (
@@ -20,6 +20,8 @@ from app.schemas.project import (
     ProjectStatistics,
     ProjectUpdate,
 )
+from app.schemas.digest import WeeklyDigest
+from app.services.digest import DigestService
 from app.services.milestone import MilestoneService
 from app.services.project import ProjectService
 from fastapi import APIRouter, Depends, Query, status
@@ -229,3 +231,23 @@ def list_project_milestones(
         results.append(res)
 
     return results
+
+
+@router.get("/{project_id}/digest", response_model=WeeklyDigest)
+def get_project_digest(
+    project_id: int,
+    week_start: datetime = Query(..., description="Start of the week (YYYY-MM-DD)"),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """
+    Generate a weekly digest for a project.
+
+    - Admins can view digest of any project
+    - Members can view digest of projects they belong to
+    """
+    is_admin = is_admin_user(current_user)
+    # Verify access to project
+    ProjectService.get_project_with_check(db, project_id, current_user.id, is_admin=is_admin)
+
+    return DigestService.generate_weekly_digest(db, project_id, week_start)
