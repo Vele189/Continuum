@@ -18,4 +18,3 @@ ENV PORT=8000
 
 # Start the uvicorn server
 CMD uvicorn app.main:app --host 0.0.0.0 --port $PORT
-

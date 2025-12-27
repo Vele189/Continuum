@@ -1,7 +1,8 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, DateTime
+from app.db.base import Base
+from sqlalchemy import Column, DateTime, ForeignKey, Integer, String
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
-from app.db.base import Base
+
 
 class Task(Base):
     __tablename__ = "tasks"
@@ -12,9 +13,7 @@ class Task(Base):
     description = Column(String)
     status = Column(String, default="todo")
     milestone_id = Column(
-        Integer,
-        ForeignKey("milestones.id", ondelete="SET NULL", onupdate="CASCADE"),
-        nullable=True
+        Integer, ForeignKey("milestones.id", ondelete="SET NULL", onupdate="CASCADE"), nullable=True
     )
     assigned_to = Column(Integer, ForeignKey("users.id"))
     created_at = Column(DateTime, server_default=func.now())

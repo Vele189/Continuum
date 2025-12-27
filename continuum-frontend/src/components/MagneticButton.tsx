@@ -45,8 +45,8 @@ const MagneticButton = ({
 
             if (distance < range) {
                 // Determine how much to move based on distance relative to range
-                // Optional: add ease-in/out based on distance? 
-                // For now, keep it simple as proportional to offset like before, 
+                // Optional: add ease-in/out based on distance?
+                // For now, keep it simple as proportional to offset like before,
                 // but limited by the range check.
 
                 const x = (clientX - centerX) * strength;

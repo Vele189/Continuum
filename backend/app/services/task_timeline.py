@@ -4,23 +4,14 @@ Service for aggregating task timeline activities.
 This service collects activities from multiple sources and normalizes them
 into a unified chronological timeline.
 """
-from typing import List, Optional
-from sqlalchemy.orm import Session, joinedload
-from fastapi import HTTPException
 
-from app.dbmodels import (
-    Task,
-    TaskAttachment,
-    LoggedHour,
-    GitContribution,
-    User
-)
-from app.schemas.task_timeline import (
-    TimelineActivity,
-    ActivityType,
-    ActivityUser
-)
+from typing import List, Optional
+
+from app.dbmodels import GitContribution, LoggedHour, Task, TaskAttachment, User
+from app.schemas.task_timeline import ActivityType, ActivityUser, TimelineActivity
 from app.services.task import validate_project_membership
+from fastapi import HTTPException
+from sqlalchemy.orm import Session, joinedload
 
 
 def _build_activity_user(user: Optional[User]) -> Optional[ActivityUser]:
@@ -30,10 +21,7 @@ def _build_activity_user(user: Optional[User]) -> Optional[ActivityUser]:
 
     display_name = user.display_name or f"{user.first_name} {user.last_name}".strip()
     return ActivityUser(
-        id=user.id,
-        name=display_name,
-        email=user.email,
-        display_name=user.display_name
+        id=user.id, name=display_name, email=user.email, display_name=user.display_name
     )
 
 
@@ -55,7 +43,7 @@ def _get_task_created_activity(task: Task) -> TimelineActivity:
             "description": task.description,
             "status": task.status,
             "assigned_to": task.assigned_to,
-        }
+        },
     )
 
 
@@ -86,7 +74,7 @@ def _get_status_changed_activity(task: Task) -> Optional[TimelineActivity]:
             "task_id": task.id,
             "new_status": task.status,
             "old_status": None,  # Unknown without historical tracking
-        }
+        },
     )
 
 
@@ -117,46 +105,48 @@ def _get_assignment_changed_activity(task: Task) -> Optional[TimelineActivity]:
             "new_assignee_name": assignee.name if assignee else None,
             "old_assignee_id": None,  # Unknown without historical tracking
             "old_assignee_name": None,
-        }
+        },
     )
 
 
-def _get_attachment_activities(
-    db: Session,
-    task_id: int
-) -> List[TimelineActivity]:
+def _get_attachment_activities(db: Session, task_id: int) -> List[TimelineActivity]:
     """Get all attachment upload activities for a task."""
-    attachments = db.query(TaskAttachment).options(
-        joinedload(TaskAttachment.uploader)
-    ).filter(TaskAttachment.task_id == task_id).all()
+    attachments = (
+        db.query(TaskAttachment)
+        .options(joinedload(TaskAttachment.uploader))
+        .filter(TaskAttachment.task_id == task_id)
+        .all()
+    )
 
     activities = []
     for attachment in attachments:
         uploader = _build_activity_user(attachment.uploader)
-        activities.append(TimelineActivity(
-            id=f"attachment_uploaded_{attachment.id}",
-            activity_type=ActivityType.ATTACHMENT_UPLOADED,
-            user=uploader,
-            timestamp=attachment.created_at,
-            data={
-                "attachment_id": attachment.id,
-                "filename": attachment.original_filename,
-                "file_size": attachment.file_size,
-                "mime_type": attachment.mime_type,
-            }
-        ))
+        activities.append(
+            TimelineActivity(
+                id=f"attachment_uploaded_{attachment.id}",
+                activity_type=ActivityType.ATTACHMENT_UPLOADED,
+                user=uploader,
+                timestamp=attachment.created_at,
+                data={
+                    "attachment_id": attachment.id,
+                    "filename": attachment.original_filename,
+                    "file_size": attachment.file_size,
+                    "mime_type": attachment.mime_type,
+                },
+            )
+        )
 
     return activities
 
 
-def _get_logged_hour_activities(
-    db: Session,
-    task_id: int
-) -> List[TimelineActivity]:
+def _get_logged_hour_activities(db: Session, task_id: int) -> List[TimelineActivity]:
     """Get all logged hour activities for a task."""
-    logged_hours = db.query(LoggedHour).options(
-        joinedload(LoggedHour.user)
-    ).filter(LoggedHour.task_id == task_id).all()
+    logged_hours = (
+        db.query(LoggedHour)
+        .options(joinedload(LoggedHour.user))
+        .filter(LoggedHour.task_id == task_id)
+        .all()
+    )
 
     activities = []
     for logged_hour in logged_hours:
@@ -164,30 +154,32 @@ def _get_logged_hour_activities(
         # Use the logged_at field for when the work was done
         timestamp = logged_hour.logged_at if logged_hour.logged_at else None
 
-        activities.append(TimelineActivity(
-            id=f"hours_logged_{logged_hour.id}",
-            activity_type=ActivityType.HOURS_LOGGED,
-            user=user,
-            timestamp=timestamp,
-            data={
-                "logged_hour_id": logged_hour.id,
-                "hours": float(logged_hour.hours),
-                "description": logged_hour.note,
-                "date": logged_hour.logged_at.isoformat() if logged_hour.logged_at else None,
-            }
-        ))
+        activities.append(
+            TimelineActivity(
+                id=f"hours_logged_{logged_hour.id}",
+                activity_type=ActivityType.HOURS_LOGGED,
+                user=user,
+                timestamp=timestamp,
+                data={
+                    "logged_hour_id": logged_hour.id,
+                    "hours": float(logged_hour.hours),
+                    "description": logged_hour.note,
+                    "date": logged_hour.logged_at.isoformat() if logged_hour.logged_at else None,
+                },
+            )
+        )
 
     return activities
 
 
-def _get_commit_activities(
-    db: Session,
-    task_id: int
-) -> List[TimelineActivity]:
+def _get_commit_activities(db: Session, task_id: int) -> List[TimelineActivity]:
     """Get all git commit activities linked to a task."""
-    commits = db.query(GitContribution).options(
-        joinedload(GitContribution.user)
-    ).filter(GitContribution.task_id == task_id).all()
+    commits = (
+        db.query(GitContribution)
+        .options(joinedload(GitContribution.user))
+        .filter(GitContribution.task_id == task_id)
+        .all()
+    )
 
     activities = []
     for commit in commits:
@@ -195,31 +187,28 @@ def _get_commit_activities(
         # Use committed_at if available, otherwise created_at
         timestamp = commit.committed_at if commit.committed_at else commit.created_at
 
-        activities.append(TimelineActivity(
-            id=f"commit_linked_{commit.id}",
-            activity_type=ActivityType.COMMIT_LINKED,
-            user=user,
-            timestamp=timestamp,
-            data={
-                "commit_id": commit.id,
-                "commit_hash": commit.commit_hash,
-                "commit_message": commit.commit_message,
-                "branch": commit.branch,
-                "provider": commit.provider,
-                "commit_url": commit.commit_url,
-            }
-        ))
+        activities.append(
+            TimelineActivity(
+                id=f"commit_linked_{commit.id}",
+                activity_type=ActivityType.COMMIT_LINKED,
+                user=user,
+                timestamp=timestamp,
+                data={
+                    "commit_id": commit.id,
+                    "commit_hash": commit.commit_hash,
+                    "commit_message": commit.commit_message,
+                    "branch": commit.branch,
+                    "provider": commit.provider,
+                    "commit_url": commit.commit_url,
+                },
+            )
+        )
 
     return activities
 
 
 def get_task_timeline(
-    db: Session,
-    task_id: int,
-    user_id: int,
-    is_admin: bool = False,
-    skip: int = 0,
-    limit: int = 100
+    db: Session, task_id: int, user_id: int, is_admin: bool = False, skip: int = 0, limit: int = 100
 ) -> tuple[List[TimelineActivity], int]:
     """
     Get the complete timeline for a task.
@@ -254,10 +243,7 @@ def get_task_timeline(
     # Verify user has access to the task's project (admins bypass)
     if not is_admin:
         if not validate_project_membership(db, task.project_id, user_id):
-            raise HTTPException(
-                status_code=403,
-                detail="Not a member of this project"
-            )
+            raise HTTPException(status_code=403, detail="Not a member of this project")
 
     # Collect all activities
     activities: List[TimelineActivity] = []
@@ -290,6 +276,6 @@ def get_task_timeline(
     total = len(activities)
 
     # Apply pagination
-    paginated_activities = activities[skip:skip + limit]
+    paginated_activities = activities[skip : skip + limit]
 
     return paginated_activities, total

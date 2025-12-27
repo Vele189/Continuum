@@ -1,16 +1,20 @@
 from datetime import datetime
 from typing import Optional
 
-from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
-
 from app.api import deps
 from app.dbmodels import User as UserModel
 from app.schemas.user import (
-    User, UserCreate, UserHoursResponse, UserProjects,
-    UserUpdate, PasswordChangeRequest, UserProfile
+    PasswordChangeRequest,
+    User,
+    UserCreate,
+    UserHoursResponse,
+    UserProfile,
+    UserProjects,
+    UserUpdate,
 )
 from app.services import user as user_service
+from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy.orm import Session
 
 router = APIRouter()
 
@@ -92,10 +96,7 @@ def change_password(
     and a new password that meets security requirements.
     """
     updated_user = user_service.change_password(
-        db,
-        current_user,
-        password_change.current_password,
-        password_change.new_password
+        db, current_user, password_change.current_password, password_change.new_password
     )
 
     if not updated_user:

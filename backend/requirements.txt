@@ -15,5 +15,8 @@ alembic
 psycopg2-binary>=2.9
 sqlmodel
 pylint
+mypy
+black
+isort
 weasyprint
 reportlab

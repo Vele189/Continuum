@@ -1,7 +1,6 @@
-from fastapi import APIRouter, Depends
-
 from app.api import deps
 from app.dbmodels import User
+from fastapi import APIRouter, Depends
 
 router = APIRouter()
 
@@ -18,5 +17,5 @@ def admin_dashboard(
     return {
         "message": f"Welcome Admin {current_user.display_name}",
         "user_id": current_user.id,
-        "role": current_user.role.value
+        "role": current_user.role.value,
     }

@@ -12,7 +12,7 @@ Referential integrity is strictly enforced across all foreign keys (`ForeignKey`
 | **`ON DELETE SET NULL`** | `Task.assigned_to`, `Client.created_by`, `GitContribution.user_id` | Historical preservation: If a User is deleted, we keep the record (Task, Client, Commit) but clear the link, preserving history while removing the reference. |
 | **`ON UPDATE CASCADE`** | Applied to **All Foreign Keys** | Ensures that if a Primary Key were ever changed, the update propagates consistently across all referencing tables. |
 
-### 2. Constraints and Performance 
+### 2. Constraints and Performance
 
 * **Primary Keys & Indexing:** All tables use an explicit `id` as the `PRIMARY KEY` and are indexed (`index=True`).
 * **Unique Constraints:**

@@ -1,18 +1,14 @@
-from typing import Optional, List
 from datetime import datetime, timezone
-from sqlalchemy.orm import Session
+from typing import List, Optional
 
 from app.dbmodels import Client
 from app.schemas.client import ClientCreate, ClientUpdate
+from sqlalchemy.orm import Session
 
 
 def create(db: Session, obj_in: ClientCreate, created_by: Optional[int] = None) -> Client:
     """Create a new client"""
-    db_obj = Client(
-        name=obj_in.name,
-        email=obj_in.email,
-        created_by=created_by
-    )
+    db_obj = Client(name=obj_in.name, email=obj_in.email, created_by=created_by)
     db.add(db_obj)
     db.commit()
     db.refresh(db_obj)

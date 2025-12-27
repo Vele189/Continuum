@@ -11,7 +11,7 @@ CREATE TABLE IF NOT EXISTS milestones (
 
 CREATE INDEX IF NOT EXISTS ix_milestones_project_id_status ON milestones (project_id, status);
 
--- Check if column exists is hard in raw SQL script without logic, but we can try adding it and ignore error if possible, 
+-- Check if column exists is hard in raw SQL script without logic, but we can try adding it and ignore error if possible,
 -- or just rely on the user running this once.
 -- SQLite doesn't support "ADD COLUMN IF NOT EXISTS" directly in all versions.
 -- We will assume it needs to be added if this script is run.

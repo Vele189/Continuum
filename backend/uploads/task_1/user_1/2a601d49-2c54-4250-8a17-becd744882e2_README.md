@@ -40,7 +40,7 @@ Create a new user account.
     "password": "SecurePassword123!",
     "first_name": "Jane",
     "last_name": "Doe",
-    "role": "frontend" 
+    "role": "frontend"
   }
   ```
   - `role` options: `frontend`, `backend`, `designer`, `project_manager`, `client` (Client = Admin).
@@ -71,7 +71,7 @@ Exchange a refresh token for a new access token when the current one expires.
 - **Endpoint**: `POST /api/v1/auth/refresh-token`
 - **Access**: Public (Requires valid refresh token)
 - **Request Body/Query**:
-  can be passed as query param `?refresh_token=...` or in body. 
+  can be passed as query param `?refresh_token=...` or in body.
   *(Note: Check specific implementation preference, usually body is preferred for security)*
   ```json
   {
@@ -149,7 +149,7 @@ Example of a protected admin-only route.
 
 ## Additional Notes
 
-1.  **Token Expiry**: 
+1.  **Token Expiry**:
     - Access Token: 30 Minutes.
     - Refresh Token: 24 Hours.
     - Implement an interceptor to catch `401 Unauthorized` responses and attempt to use the `refresh_token` endpoint to get a new access token before logging the user out.

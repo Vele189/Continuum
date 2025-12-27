@@ -1,14 +1,15 @@
 """
 Service layer for task attachment business logic.
 """
-from typing import List, Optional
-from fastapi import HTTPException, status, UploadFile
-from sqlalchemy.orm import Session
 
-from app.dbmodels import TaskAttachment, Task, User
-from app.utils.file_upload import save_uploaded_file, get_file_content, delete_file
-from app.services import task as task_service
+from typing import List, Optional
+
 from app.api.deps import is_admin_user
+from app.dbmodels import Task, TaskAttachment, User
+from app.services import task as task_service
+from app.utils.file_upload import delete_file, get_file_content, save_uploaded_file
+from fastapi import HTTPException, UploadFile, status
+from sqlalchemy.orm import Session
 
 
 def validate_task_access(db: Session, task_id: int, user_id: int) -> Task:
@@ -23,18 +24,12 @@ def validate_task_access(db: Session, task_id: int, user_id: int) -> Task:
     """
     task = task_service.get(db, task_id)
     if not task:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Task not found"
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Task not found")
 
     # Admins have access to all tasks
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found"
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
 
     if is_admin_user(user):
         return task
@@ -42,8 +37,7 @@ def validate_task_access(db: Session, task_id: int, user_id: int) -> Task:
     # Regular users must be project members
     if not task_service.validate_project_membership(db, task.project_id, user_id):
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Not a member of this project"
+            status_code=status.HTTP_403_FORBIDDEN, detail="Not a member of this project"
         )
 
     return task
@@ -77,10 +71,7 @@ def can_delete_attachment(db: Session, attachment_id: int, user_id: int) -> bool
 
 
 async def create(
-    db: Session,
-    upload_file: UploadFile,
-    task_id: int,
-    user_id: int
+    db: Session, upload_file: UploadFile, task_id: int, user_id: int
 ) -> TaskAttachment:
     """
     Upload a file attachment to a task.
@@ -113,7 +104,7 @@ async def create(
         original_filename=upload_file.filename or "unnamed_file",
         file_path=file_path,
         file_size=file_size,
-        mime_type=mime_type
+        mime_type=mime_type,
     )
 
     db.add(attachment)
@@ -155,10 +146,7 @@ def get_file_bytes(db: Session, attachment_id: int, user_id: int) -> tuple[bytes
     """
     attachment = get_by_id(db, attachment_id)
     if not attachment:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Attachment not found"
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Attachment not found")
 
     # Validate task access
     validate_task_access(db, attachment.task_id, user_id)
@@ -186,16 +174,13 @@ def delete(db: Session, attachment_id: int, user_id: int) -> bool:
     """
     attachment = get_by_id(db, attachment_id)
     if not attachment:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Attachment not found"
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Attachment not found")
 
     # Check permissions
     if not can_delete_attachment(db, attachment_id, user_id):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="You do not have permission to delete this attachment"
+            detail="You do not have permission to delete this attachment",
         )
 
     # Delete file from storage

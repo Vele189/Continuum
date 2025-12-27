@@ -16,7 +16,15 @@ ignore=tests,venv,migrations
 # R0801: Similar lines in files (duplicate code)
 # W0511: TODO/FIXME comments
 # E1102: func.now is not callable (SQLAlchemy false positive)
-disable=C0114,C0115,C0116,C0103,R0903,R0913,R0917,R0912,W0718,R0801,W0511,E1102
+# C0411: wrong-import-order (isort handles this)
+# C0301: line-too-long (Black handles formatting, but some lines may still be long)
+# W0622: redefining-builtin (common in API routes where 'id' is a parameter)
+# W0621: redefined-outer-name (common pattern in nested functions)
+# W0603: global-statement (intentional in file_upload.py for caching)
+# C0415: import-outside-toplevel (intentional lazy loading in pdf_generator.py)
+# R0914: too-many-locals (acceptable for complex business logic)
+# C0121: singleton-comparison (SQLAlchemy uses .is_(None) which pylint doesn't recognize)
+disable=C0114,C0115,C0116,C0103,R0903,R0913,R0917,R0912,W0718,R0801,W0511,E1102,C0411,C0301,W0622,W0621,W0603,C0415,R0914,C0121
 
 [FORMAT]
 # Maximum number of characters on a single line
@@ -28,4 +36,3 @@ max-args=10
 
 # Maximum number of branches for function / method body
 max-branches=15
-

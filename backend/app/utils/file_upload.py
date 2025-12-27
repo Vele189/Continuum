@@ -4,13 +4,14 @@ File upload utility with storage abstraction.
 This module provides file handling functionality that is storage-agnostic,
 allowing for easy migration to S3 or other cloud storage in the future.
 """
+
 import os
 import uuid
 from pathlib import Path
 from typing import Optional
-from fastapi import UploadFile, HTTPException, status
 
 from app.core.config import settings
+from fastapi import HTTPException, UploadFile, status
 
 
 class StorageBackend:
@@ -144,18 +145,16 @@ def sanitize_filename(filename: str) -> str:
     # Remove any path components
     filename = os.path.basename(filename)
     # Remove any null bytes
-    filename = filename.replace('\x00', '')
+    filename = filename.replace("\x00", "")
     # Keep only alphanumeric, dots, hyphens, and underscores
     # This is conservative but safe
-    safe_chars = set(
-        'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.-_'
-    )
-    filename = ''.join(c if c in safe_chars else '_' for c in filename)
+    safe_chars = set("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.-_")
+    filename = "".join(c if c in safe_chars else "_" for c in filename)
     # Limit length
     if len(filename) > 255:
         name, ext = os.path.splitext(filename)
         filename = name[:250] + ext
-    return filename or 'unnamed_file'
+    return filename or "unnamed_file"
 
 
 def generate_unique_filename(original_filename: str) -> str:
@@ -197,7 +196,7 @@ def validate_file_size(file_size: int) -> None:
         max_size_mb = settings.MAX_UPLOAD_SIZE / (1024 * 1024)
         raise HTTPException(
             status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
-            detail=f"File size exceeds maximum allowed size of {max_size_mb}MB"
+            detail=f"File size exceeds maximum allowed size of {max_size_mb}MB",
         )
 
 
@@ -212,17 +211,15 @@ def validate_mime_type(mime_type: str) -> None:
         HTTPException if MIME type is not allowed
     """
     if settings.ALLOWED_MIME_TYPES and mime_type not in settings.ALLOWED_MIME_TYPES:
-        allowed_types = ', '.join(settings.ALLOWED_MIME_TYPES)
+        allowed_types = ", ".join(settings.ALLOWED_MIME_TYPES)
         raise HTTPException(
             status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
-            detail=f"File type '{mime_type}' is not allowed. Allowed types: {allowed_types}"
+            detail=f"File type '{mime_type}' is not allowed. Allowed types: {allowed_types}",
         )
 
 
 async def save_uploaded_file(
-    upload_file: UploadFile,
-    task_id: int,
-    user_id: int
+    upload_file: UploadFile, task_id: int, user_id: int
 ) -> tuple[str, str, int, str]:
     """
     Save an uploaded file and return metadata.

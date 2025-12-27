@@ -1,17 +1,12 @@
-from typing import Optional, List
 from datetime import datetime
-from fastapi import APIRouter, Depends, HTTPException, status, Query
-from sqlalchemy.orm import Session
-from app.dbmodels import ProjectMember
+from typing import List, Optional
 
 from app.api import deps
-from app.dbmodels import User
-from app.schemas.logged_hour import (
-    LoggedHourCreate,
-    LoggedHourUpdate,
-    LoggedHourResponse
-)
+from app.dbmodels import ProjectMember, User
+from app.schemas.logged_hour import LoggedHourCreate, LoggedHourResponse, LoggedHourUpdate
 from app.services import logged_hour as logged_hour_service
+from fastapi import APIRouter, Depends, HTTPException, Query, status
+from sqlalchemy.orm import Session
 
 router = APIRouter()
 
@@ -63,7 +58,7 @@ def list_logged_hours(
         start_date=start_date,
         end_date=end_date,
         skip=skip,
-        limit=limit
+        limit=limit,
     )
 
 
@@ -86,8 +81,7 @@ def get_logged_hour(
     )
     if not logged_hour:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Logged hour entry not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="Logged hour entry not found"
         )
     return logged_hour
 
@@ -107,10 +101,7 @@ def update_logged_hour(
     - Users can only modify their own entries
     """
     return logged_hour_service.update(
-        db=db,
-        logged_hour_id=logged_hour_id,
-        obj_in=logged_hour_in,
-        current_user=current_user
+        db=db, logged_hour_id=logged_hour_id, obj_in=logged_hour_in, current_user=current_user
     )
 
 
@@ -128,9 +119,7 @@ def delete_logged_hour(
     - Users can delete their own entries
     - Admins can delete any entry
     """
-    logged_hour_service.delete(
-        db=db, logged_hour_id=logged_hour_id, current_user=current_user
-    )
+    logged_hour_service.delete(db=db, logged_hour_id=logged_hour_id, current_user=current_user)
 
 
 # Aggregation endpoints - these will be registered separately in main.py
@@ -153,9 +142,7 @@ def get_task_hours(
     - Admins can view all task hours
     """
     return logged_hour_service.get_total_hours_for_task(
-        db=db,
-        task_id=task_id,
-        current_user=current_user
+        db=db, task_id=task_id, current_user=current_user
     )
 
 
@@ -174,7 +161,5 @@ def get_project_hours(
     - Admins can view all project hours
     """
     return logged_hour_service.get_total_hours_for_project(
-        db=db,
-        project_id=project_id,
-        current_user=member.user # Use user from member record
+        db=db, project_id=project_id, current_user=member.user  # Use user from member record
     )

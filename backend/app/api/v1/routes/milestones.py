@@ -1,6 +1,4 @@
 from typing import List, Optional
-from fastapi import APIRouter, Depends, HTTPException, status, Query
-from sqlalchemy.orm import Session
 
 from app.api import deps
 from app.api.deps import is_admin_user
@@ -8,8 +6,11 @@ from app.dbmodels import User
 from app.schemas.milestone import Milestone, MilestoneCreate, MilestoneUpdate
 from app.services.milestone import MilestoneService
 from app.services.project import ProjectService
+from fastapi import APIRouter, Depends, HTTPException, Query, status
+from sqlalchemy.orm import Session
 
 router = APIRouter()
+
 
 @router.post("/", response_model=Milestone, status_code=status.HTTP_201_CREATED)
 def create_milestone(
@@ -29,7 +30,7 @@ def create_milestone(
     if not (is_admin or is_owner):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Not enough permissions to create milestones"
+            detail="Not enough permissions to create milestones",
         )
 
     # Verify Project Exists (already checked in is_project_owner or handled by get_project_with_check)
@@ -46,6 +47,7 @@ def create_milestone(
     response = Milestone.model_validate(created_milestone)
     response.progress = progress
     return response
+
 
 @router.get("/{milestone_id}", response_model=Milestone)
 def get_milestone(
@@ -78,6 +80,7 @@ def get_milestone(
     response.progress = progress
     return response
 
+
 @router.put("/{milestone_id}", response_model=Milestone)
 def update_milestone(
     milestone_id: int,
@@ -101,7 +104,7 @@ def update_milestone(
     if not (is_admin or is_owner):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Not enough permissions to update milestones"
+            detail="Not enough permissions to update milestones",
         )
 
     updated_milestone = MilestoneService.update(db, milestone_id, milestone_in)
@@ -112,6 +115,7 @@ def update_milestone(
     response = Milestone.model_validate(updated_milestone)
     response.progress = progress
     return response
+
 
 @router.delete("/{milestone_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_milestone(
@@ -135,19 +139,19 @@ def delete_milestone(
     if not (is_admin or is_owner):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Not enough permissions to delete milestones"
+            detail="Not enough permissions to delete milestones",
         )
 
     success = MilestoneService.delete(db, milestone_id)
     if not success:
         raise HTTPException(status_code=404, detail="Milestone not found")
 
+
 @router.get("/", response_model=List[Milestone])
 def list_milestones(
     project_id: int,
     status: Optional[str] = Query(
-        None,
-        description="Filter by status (not_started, in_progress, completed, overdue)"
+        None, description="Filter by status (not_started, in_progress, completed, overdue)"
     ),
     db: Session = Depends(deps.get_db),
     current_user: User = Depends(deps.get_current_user),
@@ -159,11 +163,9 @@ def list_milestones(
     """
     # Verify Project Membership
     is_admin = is_admin_user(current_user)
-    ProjectService.get_project_with_check(
-        db, project_id, current_user.id, is_admin=is_admin
-    )
+    ProjectService.get_project_with_check(db, project_id, current_user.id, is_admin=is_admin)
 
-    milestones = MilestoneService.get_by_project(db, project_id) # Get all to ensure status updates
+    milestones = MilestoneService.get_by_project(db, project_id)  # Get all to ensure status updates
 
     results = []
     for m in milestones:

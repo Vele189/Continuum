@@ -1,8 +1,5 @@
-from typing import List, Optional
 from decimal import Decimal
-from sqlalchemy.orm import Session
-from sqlalchemy import and_
-from fastapi import HTTPException, status
+from typing import List, Optional
 
 from app.dbmodels import (
     Invoice,
@@ -12,9 +9,12 @@ from app.dbmodels import (
     Project,
     ProjectMember,
     User,
-    UserRole
+    UserRole,
 )
 from app.schemas.invoice import InvoiceGenerate, InvoiceUpdate
+from fastapi import HTTPException, status
+from sqlalchemy import and_
+from sqlalchemy.orm import Session
 
 
 def _is_admin(user: User) -> bool:
@@ -22,35 +22,27 @@ def _is_admin(user: User) -> bool:
     return user.role in {UserRole.ADMIN, UserRole.PROJECTMANAGER}
 
 
-def _check_project_access(
-    db: Session,
-    project_id: int,
-    user: User
-) -> Project:
+def _check_project_access(db: Session, project_id: int, user: User) -> Project:
     """Check if user has access to project (member or admin)."""
     project = db.query(Project).filter(Project.id == project_id).first()
     if not project:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Project not found"
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Project not found")
 
     is_admin = _is_admin(user)
     if is_admin:
         return project
 
     # Check if user is a project member
-    member = db.query(ProjectMember).filter(
-        and_(
-            ProjectMember.project_id == project_id,
-            ProjectMember.user_id == user.id
-        )
-    ).first()
+    member = (
+        db.query(ProjectMember)
+        .filter(and_(ProjectMember.project_id == project_id, ProjectMember.user_id == user.id))
+        .first()
+    )
 
     if not member:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="You must be a project member or admin to generate invoices"
+            detail="You must be a project member or admin to generate invoices",
         )
 
     return project
@@ -67,9 +59,12 @@ def _generate_invoice_number(db: Session, year: int) -> str:
 
     # Query for invoices with this year prefix, ordered by invoice number
     # We need to extract the numeric part and sort properly
-    last_invoice = db.query(Invoice).filter(
-        Invoice.invoice_number.like(f"{year_prefix}%")
-    ).order_by(Invoice.invoice_number.desc()).first()
+    last_invoice = (
+        db.query(Invoice)
+        .filter(Invoice.invoice_number.like(f"{year_prefix}%"))
+        .order_by(Invoice.invoice_number.desc())
+        .first()
+    )
 
     if last_invoice:
         # Extract the number part (last 3 digits after the last dash)
@@ -92,9 +87,7 @@ def _generate_invoice_number(db: Session, year: int) -> str:
 
 
 def generate_invoice(  # pylint: disable=too-many-locals
-    db: Session,
-    invoice_in: InvoiceGenerate,
-    current_user: User
+    db: Session, invoice_in: InvoiceGenerate, current_user: User
 ) -> Invoice:
     """
     Generate an invoice from logged hours for a project.
@@ -109,25 +102,29 @@ def generate_invoice(  # pylint: disable=too-many-locals
     if invoice_in.billing_period_start >= invoice_in.billing_period_end:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Billing period start must be before end"
+            detail="Billing period start must be before end",
         )
 
     # Check project access (validates project exists and user has access)
     _check_project_access(db, invoice_in.project_id, current_user)
 
     # Fetch logged hours within billing period
-    logged_hours = db.query(LoggedHour).filter(
-        and_(
-            LoggedHour.project_id == invoice_in.project_id,
-            LoggedHour.logged_at >= invoice_in.billing_period_start,
-            LoggedHour.logged_at <= invoice_in.billing_period_end
+    logged_hours = (
+        db.query(LoggedHour)
+        .filter(
+            and_(
+                LoggedHour.project_id == invoice_in.project_id,
+                LoggedHour.logged_at >= invoice_in.billing_period_start,
+                LoggedHour.logged_at <= invoice_in.billing_period_end,
+            )
         )
-    ).all()
+        .all()
+    )
 
     if not logged_hours:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="No logged hours found for the specified billing period"
+            detail="No logged hours found for the specified billing period",
         )
 
     # Get all users involved to fetch their hourly rates
@@ -136,17 +133,13 @@ def generate_invoice(  # pylint: disable=too-many-locals
 
     # Validate all users have hourly rates
     users_without_rates = [
-        uid for uid in user_ids
-        if not users[uid].hourly_rate or users[uid].hourly_rate == 0
+        uid for uid in user_ids if not users[uid].hourly_rate or users[uid].hourly_rate == 0
     ]
     if users_without_rates:
-        user_names = [
-            users[uid].display_name or users[uid].email
-            for uid in users_without_rates
-        ]
+        user_names = [users[uid].display_name or users[uid].email for uid in users_without_rates]
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Users without hourly rates: {', '.join(user_names)}"
+            detail=f"Users without hourly rates: {', '.join(user_names)}",
         )
 
     # Generate invoice number
@@ -167,11 +160,12 @@ def generate_invoice(  # pylint: disable=too-many-locals
             user_id=lh.user_id,
             task_id=lh.task_id,
             logged_hour_id=lh.id,
-            description=lh.note or f"Work on {lh.logged_at.strftime('%Y-%m-%d') if lh.logged_at else 'date unknown'}",
+            description=lh.note
+            or f"Work on {lh.logged_at.strftime('%Y-%m-%d') if lh.logged_at else 'date unknown'}",
             hours=hours,
             hourly_rate=hourly_rate,
             line_total=line_total,
-            work_date=lh.logged_at
+            work_date=lh.logged_at,
         )
         invoice_items.append(invoice_item)
         subtotal += line_total
@@ -192,7 +186,7 @@ def generate_invoice(  # pylint: disable=too-many-locals
         tax_rate=tax_rate,
         tax_amount=tax_amount,
         total=total,
-        created_by=current_user.id
+        created_by=current_user.id,
     )
 
     db.add(invoice)
@@ -212,19 +206,12 @@ def generate_invoice(  # pylint: disable=too-many-locals
     return invoice
 
 
-def get_invoice(
-    db: Session,
-    invoice_id: int,
-    current_user: User
-) -> Invoice:
+def get_invoice(db: Session, invoice_id: int, current_user: User) -> Invoice:
     """Get an invoice by ID with access control."""
     invoice = db.query(Invoice).filter(Invoice.id == invoice_id).first()
 
     if not invoice:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Invoice not found"
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Invoice not found")
 
     # Check access: must be project member or admin
     _check_project_access(db, invoice.project_id, current_user)
@@ -237,7 +224,7 @@ def list_invoices(
     current_user: User,
     project_id: Optional[int] = None,
     skip: int = 0,
-    limit: int = 100
+    limit: int = 100,
 ) -> List[Invoice]:
     """List invoices with access control."""
     is_admin = _is_admin(current_user)
@@ -247,9 +234,11 @@ def list_invoices(
     # Non-admins can only see invoices for projects they're members of
     if not is_admin:
         # Get project IDs user is a member of
-        member_projects = db.query(ProjectMember.project_id).filter(
-            ProjectMember.user_id == current_user.id
-        ).subquery()
+        member_projects = (
+            db.query(ProjectMember.project_id)
+            .filter(ProjectMember.user_id == current_user.id)
+            .subquery()
+        )
         query = query.filter(Invoice.project_id.in_(db.query(member_projects.c.project_id)))
 
     if project_id is not None:
@@ -261,10 +250,7 @@ def list_invoices(
 
 
 def update_invoice_status(
-    db: Session,
-    invoice_id: int,
-    invoice_update: InvoiceUpdate,
-    current_user: User
+    db: Session, invoice_id: int, invoice_update: InvoiceUpdate, current_user: User
 ) -> Invoice:
     """Update invoice status (admin only)."""
     invoice = get_invoice(db, invoice_id, current_user)
@@ -272,8 +258,7 @@ def update_invoice_status(
     # Only admins can update status
     if not _is_admin(current_user):
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Only admins can update invoice status"
+            status_code=status.HTTP_403_FORBIDDEN, detail="Only admins can update invoice status"
         )
 
     # Map enum string to InvoiceStatus enum
@@ -282,14 +267,14 @@ def update_invoice_status(
         "sent": InvoiceStatus.SENT,
         "paid": InvoiceStatus.PAID,
         "overdue": InvoiceStatus.OVERDUE,
-        "cancelled": InvoiceStatus.CANCELLED
+        "cancelled": InvoiceStatus.CANCELLED,
     }
 
     new_status = status_map.get(invoice_update.status.value)
     if not new_status:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Invalid status: {invoice_update.status}"
+            detail=f"Invalid status: {invoice_update.status}",
         )
 
     invoice.status = new_status

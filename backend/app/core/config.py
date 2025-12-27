@@ -1,6 +1,5 @@
-from pydantic_settings import BaseSettings
 from pydantic import ConfigDict
-
+from pydantic_settings import BaseSettings
 
 
 class Settings(BaseSettings):
@@ -13,10 +12,6 @@ class Settings(BaseSettings):
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     REFRESH_TOKEN_EXPIRE_HOURS: int = 24
-
-
-
-
 
     # File upload settings
     MAX_UPLOAD_SIZE: int = 10 * 1024 * 1024  # 10MB in bytes
