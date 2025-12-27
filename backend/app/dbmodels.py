@@ -95,7 +95,14 @@ class Client(Base):
         index=True
     )
 
+    api_key = Column(String(255), unique=True, index=True, nullable=True)
+
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(
+        DateTime(timezone=True),
+        onupdate=func.now(),
+        server_default=func.now()
+    )
 
     # Relationships
     creator = relationship("User", back_populates="projects_owned")
@@ -115,6 +122,11 @@ class Project(Base):
     description = Column(Text, nullable=True)
     status = Column(String, default="active", index=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(
+        DateTime(timezone=True),
+        onupdate=func.now(),
+        server_default=func.now()
+    )
 
     # Relationships
     client = relationship("Client", back_populates="projects")
