@@ -13,7 +13,8 @@ from app.schemas.project import (
     ProjectHealth,
     ProjectHealthIndicator,
     HealthFlag,
-    TaskCount
+    TaskCount,
+    ClientPortalProject
 )
 
 
@@ -440,3 +441,45 @@ class ProjectService:
 
 
 
+
+    @staticmethod
+    def get_client_portal_project(
+        db: Session,
+        project_id: int,
+        client: Client
+    ) -> ClientPortalProject:
+        """
+        Fetch a project by ID and return a sanitized version for the Client Portal.
+        Verifies that the project belongs to the given client.
+        """
+        project = db.query(Project).filter(Project.id == project_id).first()
+        if not project:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Project not found"
+            )
+
+        if project.client_id != client.id:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="You do not have access to this project"
+            )
+
+        # Extract member names
+        # Ensure we have the user names
+        member_names = []
+        for member in project.members:
+            if member.user:
+                name = f"{member.user.first_name} {member.user.last_name}"
+                member_names.append(name)
+
+        return ClientPortalProject(
+            id=project.id,
+            name=project.name,
+            description=project.description,
+            status=project.status,
+            client_name=client.name,
+            members=member_names,
+            created_at=project.created_at,
+            updated_at=project.updated_at
+        )

@@ -134,3 +134,14 @@ class ProjectHealth(BaseModel):
     unassigned_tasks: ProjectHealthIndicator
     activity_dropoff: ProjectHealthIndicator
 
+
+class ClientPortalProject(BaseModel):
+    """Schema for public-facing project view in the Client Portal."""
+    id: int
+    name: str
+    description: Optional[str] = None
+    status: str
+    client_name: str
+    members: List[str]  # Names only
+    created_at: datetime
+    updated_at: datetime
