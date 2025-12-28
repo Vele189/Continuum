@@ -1,7 +1,7 @@
 from datetime import datetime
 from decimal import Decimal
 from enum import Enum
-from typing import List, Optional
+from typing import List, Optional, Literal
 
 from app.schemas.client import Client
 from app.schemas.task import Task
@@ -142,3 +142,30 @@ class ProjectHealth(BaseModel):
     inactive_members: ProjectHealthIndicator
     unassigned_tasks: ProjectHealthIndicator
     activity_dropoff: ProjectHealthIndicator
+
+
+#Support schemas for ProjectProgress
+class ActivityItem(BaseModel):
+    type: Literal["logged_hours", "commit"]
+    description: str
+    date: datetime
+
+
+class ClientMilestone(BaseModel):
+    name: str
+    status: str
+    due_date: Optional[datetime]
+    completion_percentage: float
+
+
+class ProjectProgress(BaseModel):
+    """Schema for project progress overview."""
+
+    total_hours: float
+    completed_tasks: int
+    total_tasks: int
+    progress_percentage: float
+
+    recent_activity: List[ActivityItem]
+    milestones: Optional[List[ClientMilestone]]
+

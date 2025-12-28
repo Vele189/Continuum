@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 from typing import List, Optional
 
-from app.dbmodels import Client, LoggedHour, Project, ProjectMember, Task, User
+from app.dbmodels import Client, LoggedHour, Project, ProjectMember, Task, User, GitContribution
 from app.schemas.project import (
     HealthFlag,
     ProjectCreate,
@@ -11,6 +11,8 @@ from app.schemas.project import (
     ProjectStatistics,
     ProjectUpdate,
     TaskCount,
+    ProjectProgress,
+    ActivityItem
 )
 from fastapi import HTTPException, status
 from sqlalchemy import func
@@ -447,3 +449,82 @@ class ProjectService:
             unassigned_tasks=unassigned_indicator,
             activity_dropoff=activity_indicator,
         )
+    
+    @staticmethod
+    def get_project_progress(db: Session,project_id: int,client: Client) -> ProjectProgress:
+        """
+        
+        """
+        #Access Control
+
+        project = db.query(Project).filter(Project.id == project_id).first()
+        if not project:
+            raise HTTPException(status_code=404, detail="Project not found")
+        elif project.client_id != client.id:
+            raise HTTPException(status_code=403, detail="Not authorized to access this project")
+        
+        #Progress Calculation
+
+        #Hours
+
+        total_hours = (
+        db.query(func.coalesce(func.sum(LoggedHour.hours), 0.0))
+        .filter(LoggedHour.project_id == project.id)
+        .scalar()
+        )
+
+        #Tasks
+
+        total_tasks = (
+        db.query(Task)
+        .filter(Task.project_id == project.id)
+        .count()
+        )
+
+        completed_tasks = (
+        db.query(Task)
+        .filter(
+            Task.project_id == project.id,
+            Task.status == "done"
+        )
+        .count()
+        )
+
+        #Progress Percentage
+
+        progress_percentage = (completed_tasks / total_tasks * 100) if total_tasks > 0 else 0.0
+
+        #Recent Activity
+
+        logged_hours = (
+        db.query(LoggedHour)
+        .filter(LoggedHour.project_id == project.id)
+        .order_by(LoggedHour.created_at.desc())
+        .limit(20)
+        .all()
+        )
+
+        git_contributions = (
+        db.query(GitContribution)
+        .filter(GitContribution.project_id == project.id)
+        .order_by(GitContribution.timestamp.desc())
+        .limit(20)
+        .all()
+        )
+
+        logged_hours_items = [ ActivityItem(
+            type="logged_hour",
+            description=f"Logged {lh.hours} hours",
+            timestamp=lh.logged_at
+        ) for lh in logged_hours ]
+
+        git_activity_items = [ ActivityItem(
+            type="commit",
+            description="Committed code changes",
+            timestamp=gc.timestamp
+        ) for gc in git_contributions ]
+
+        #Milestones
+
+        
+
