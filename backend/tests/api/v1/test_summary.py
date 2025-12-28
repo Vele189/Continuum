@@ -134,3 +134,62 @@ def test_generate_project_summary_forbidden(client: TestClient, db: Session):
 
     assert response.status_code == 403
     app.dependency_overrides = {}
+
+
+def test_generate_project_summary_null_handling(client: TestClient, db: Session):
+    # Setup
+    admin_user = User(
+        email="admin_null@test.com", username="admin_null", role=UserRole.ADMIN,
+        hashed_password="pw", first_name="A", last_name="N", display_name="Admin Null"
+    )
+    db.add(admin_user)
+    db.commit()
+
+    project = Project(name="Null Test Project", client_id=1)
+    db.add(project)
+    db.commit()
+
+    # Add activity with null/empty content
+    db.add(Task(project_id=project.id, title="T1", description=None, status="todo"))
+    db.add(Task(project_id=project.id, title="T2", description="", status="todo"))
+    db.add(Task(project_id=project.id, title="T3", description="  ", status="todo"))
+    db.add(Task(project_id=project.id, title="T4", description="Valid", status="todo"))
+
+    db.add(GitContribution(
+        user_id=admin_user.id, project_id=project.id, commit_hash="h1",
+        commit_message=None, provider="github"
+    ))
+    db.add(GitContribution(
+        user_id=admin_user.id, project_id=project.id, commit_hash="h2",
+        commit_message="Valid Commit", provider="github"
+    ))
+
+    db.add(LoggedHour(
+        user_id=admin_user.id, project_id=project.id, hours=1.0, note=""
+    ))
+    db.add(LoggedHour(
+        user_id=admin_user.id, project_id=project.id, hours=1.0, note="Valid Note"
+    ))
+    db.commit()
+
+    from app.api.deps import get_current_user
+    client.app.dependency_overrides[get_current_user] = lambda: admin_user
+
+    response = client.post(f"{settings.API_V1_STR}/projects/{project.id}/generate-summary")
+    assert response.status_code == 200
+    data = response.json()
+
+    # Assertions
+    assert len(data["task_descriptions"]) == 1
+    assert data["task_descriptions"][0] == "Valid"
+    assert len(data["commit_messages"]) == 1
+    assert data["commit_messages"][0] == "Valid Commit"
+    assert len(data["logged_hour_notes"]) == 1
+    assert data["logged_hour_notes"][0] == "Valid Note"
+    
+    # Metadata should still count them
+    assert data["metadata"]["total_tasks"] == 4
+    assert data["metadata"]["total_commits"] == 2
+    assert data["metadata"]["total_logged_hours"] == 2
+
+    client.app.dependency_overrides = {}
