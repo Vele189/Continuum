@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import List, Optional
 
 from app.api.deps import (
@@ -252,6 +252,6 @@ def generate_project_summary(
     ProjectService.get_project_with_check(db, project_id, current_user.id, is_admin=is_admin)
 
     summary_data = SummaryService.generate_project_summary(db, project_id)
-    summary_data["generated_at"] = datetime.utcnow()
+    summary_data["generated_at"] = datetime.now(timezone.utc)
 
     return summary_data

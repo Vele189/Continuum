@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Dict, Any, List, Optional
 from sqlalchemy.orm import Session
 from sqlalchemy import func
@@ -49,8 +49,8 @@ class SummaryService:
         if hours_entries:
             dates.extend([h.logged_at for h in hours_entries if h.logged_at])
 
-        earliest = min(dates) if dates else datetime.utcnow()
-        latest = max(dates) if dates else datetime.utcnow()
+        earliest = min(dates) if dates else datetime.now(timezone.utc)
+        latest = max(dates) if dates else datetime.now(timezone.utc)
 
         # 6. Generate Aggregated Text
         sections = []
