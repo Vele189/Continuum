@@ -1,188 +1,48 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { FaArrowLeft } from "react-icons/fa";
+import { Link } from "react-router-dom";
 
 const ResetPassword = () => {
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [showNewPassword, setShowNewPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [success, setSuccess] = useState(false);
-  const [error, setError] = useState('');
-  const navigate = useNavigate();
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-
-    if (newPassword.length < 10) {
-      setError('Password must be at least 10 characters long');
-      return;
-    }
-
-    if (newPassword !== confirmPassword) {
-      setError('Passwords do not match');
-      return;
-    }
-
-    setLoading(true);
-
-    try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      setSuccess(true);
-    } catch {
-      setError('Failed to reset password. Please try again.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
   return (
-    <div className="relative flex justify-center items-center min-h-screen p-10 overflow-hidden">
-      {/* Animated gradient background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-blue-200 via-purple-100 to-pink-200">
-        {/* Large decorative circles */}
-        <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-br from-blue-200/40 to-purple-200/40 rounded-full blur-3xl transform translate-x-1/3 -translate-y-1/3"></div>
-        <div className="absolute bottom-0 left-0 w-96 h-96 bg-gradient-to-tr from-purple-200/40 to-pink-200/40 rounded-full blur-3xl transform -translate-x-1/3 translate-y-1/3"></div>
-        
-        {/* Medium circles */}
-        <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-gradient-to-br from-indigo-200/30 to-blue-200/30 rounded-full blur-2xl"></div>
-        <div className="absolute bottom-1/3 right-1/4 w-72 h-72 bg-gradient-to-tl from-pink-200/30 to-purple-200/30 rounded-full blur-2xl"></div>
-        
-        {/* Small accent circles */}
-        <div className="absolute top-1/2 right-1/3 w-32 h-32 bg-blue-300/20 rounded-full blur-xl"></div>
-        <div className="absolute top-1/3 right-1/2 w-24 h-24 bg-purple-300/20 rounded-full blur-lg"></div>
-      </div>
+    <div className="bg-linear-to-b from-[#B2E6F7] to-[#FFFFFF] min-h-screen flex items-center justify-center relative overflow-hidden ">
 
-      <div className="relative bg-white p-10 rounded-lg shadow-sm w-full max-w-lg text-center">
-        <div className="mb-8 flex justify-center items-center">
-          <img src="/logo.png" alt="Continuum Logo" className="h-16 -mr-5" />
-          <span className="text-3xl font-bold text-slate-900 tracking-tight">Continuum</span>
+      <div className="bg-white flex flex-col justify-center w-[450px] items-center px-6 pt-6 pb-9 rounded-2xl border-2 border-gray-100 shadow-lg">
+
+        <div className="bg-[#F9F9F9]  flex items-center gap-4 mb-8 w-full text-[22px] font-medium text-[#595959]">
+          <Link to="/login">
+            <FaArrowLeft className="text-[20px] font-light" />
+          </Link>
+          <h2 className="mb-0 ml-18 font-medium text-[20px]">Reset Password</h2>
         </div>
 
-        <h1 className="text-gray-900 text-2xl font-semibold mb-4">Change Password</h1>
-
-        {success ? (
-          <div className="text-left">
-            <div className="mb-6 p-4 bg-green-50 border border-green-200 text-green-700 rounded-md text-sm">
-              Password changed successfully! You can now log in with your new password.
-            </div>
-            <button 
-              onClick={() => navigate('/login')}
-              className="block w-full text-center bg-blue-600 text-white font-semibold py-3 rounded-md text-base hover:bg-blue-700 transition-colors border-0 cursor-pointer"
-            >
-              Go to Login
-            </button>
+        <form className="w-full max-w-sm">
+          <div className="mb-4">
+            <label htmlFor="new-password" className="block text-gray-700 mb-2 text-[20px]"><strong>New password</strong></label>
+            <input
+              type="password"
+              id="new-password"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg font-medium focus:outline-none focus:ring focus:ring-blue-500 text-[16px]"
+              placeholder="Enter new password"
+            />
           </div>
-        ) : (
-          <div className="text-left">
-            <p className="text-gray-600 text-center mb-6">
-              Enter a new password below to change ur password.
-            </p>
-
-            <div className="mb-5">
-              <label htmlFor="new-password" className="block text-sm text-gray-700 mb-2 font-medium">
-                New password*
-              </label>
-              <div className="relative flex items-center">
-                <span className="absolute left-3 text-gray-400 pointer-events-none">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-                    <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-                  </svg>
-                </span>
-                <input
-                  type={showNewPassword ? "text" : "password"}
-                  id="new-password"
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
-                  placeholder="••••••••"
-                  required
-                  className="w-full py-3 px-11 border border-gray-300 rounded-md text-base text-gray-900 focus:outline-none focus:border-blue-500 transition-colors placeholder:text-gray-500"
-                />
-                <button
-                  type="button"
-                  className="absolute right-3 bg-transparent border-0 cursor-pointer text-gray-400 hover:text-gray-700 p-0"
-                  onClick={() => setShowNewPassword(!showNewPassword)}
-                >
-                  {showNewPassword ? (
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                      <circle cx="12" cy="12" r="3"></circle>
-                      <line x1="1" y1="1" x2="23" y2="23"></line>
-                    </svg>
-                  ) : (
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                      <circle cx="12" cy="12" r="3"></circle>
-                    </svg>
-                  )}
-                </button>
-              </div>
-            </div>
-
-            <div className="mb-5">
-              <label htmlFor="confirm-password" className="block text-sm text-gray-700 mb-2 font-medium">
-                Re-enter new password*
-              </label>
-              <div className="relative flex items-center">
-                <span className="absolute left-3 text-gray-400 pointer-events-none">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-                    <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-                    <path d="M12 16v1"></path>
-                  </svg>
-                </span>
-                <input
-                  type={showConfirmPassword ? "text" : "password"}
-                  id="confirm-password"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  placeholder="••••••••"
-                  required
-                  className="w-full py-3 px-11 border border-gray-300 rounded-md text-base text-gray-900 focus:outline-none focus:border-blue-500 transition-colors placeholder:text-gray-500"
-                />
-                <button
-                  type="button"
-                  className="absolute right-3 bg-transparent border-0 cursor-pointer text-gray-400 hover:text-gray-700 p-0"
-                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                >
-                  {showConfirmPassword ? (
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                      <circle cx="12" cy="12" r="3"></circle>
-                      <line x1="1" y1="1" x2="23" y2="23"></line>
-                    </svg>
-                  ) : (
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                      <circle cx="12" cy="12" r="3"></circle>
-                    </svg>
-                  )}
-                </button>
-              </div>
-            </div>
-
-            {error && (
-              <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-md text-sm">
-                {error}
-              </div>
-            )}
-
-            <button
-              type="submit"
-              onClick={handleSubmit}
-              disabled={loading}
-              className="w-full bg-blue-600 text-white font-semibold py-3 border-0 rounded-md text-base cursor-pointer mt-4 hover:bg-blue-700 transition-colors disabled:bg-blue-400 disabled:cursor-not-allowed"
-            >
-              {loading ? 'Changing password...' : 'Change password'}
-            </button>
+          <div className="mb-6">
+            <label htmlFor="confirm-password" className="block text-gray-700 mb-2 text-[20px]"><strong>Confirm new password</strong></label>
+            <input
+              type="password"
+              id="confirm-password"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg font-medium focus:outline-none focus:ring focus:ring-blue-500 text-[16px]"
+              placeholder="Confirm new password"
+            />
           </div>
-        )}
+          <button
+            type="submit"
+            className="w-full bg-[#2299fa] text-white text-[16px] font-bold py-2 px-4 rounded-lg hover:bg-blue-500 transition duration-300"
+          >
+            Reset Password
+          </button>
+        </form>
       </div>
     </div>
   );
-};
+}
 
 export default ResetPassword;
