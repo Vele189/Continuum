@@ -1,18 +1,18 @@
-import { useState } from 'react';
-import { Navbar, Hero } from '../../components/landing';
-import CursorGravity from '../../components/CursorGravity';
-import CustomCursor from '../../components/CustomCursor';
+import { Navbar, Hero, FAQ, Footer } from '../../components/landing';
 
 const Landing = () => {
-  const [isVacuumActive, setIsVacuumActive] = useState(false);
-
   return (
-    <div className="min-h-screen bg-white font-sans text-gray-900 overflow-x-hidden relative">
-      <CursorGravity isVacuumActive={isVacuumActive} />
-      <CustomCursor isVacuumActive={isVacuumActive} />
+    <div
+      className="min-h-screen font-sans text-gray-900 overflow-x-hidden relative"
+      style={{
+        background: 'linear-gradient(360deg, rgba(178, 230, 247, 0.2) 0%, rgba(253, 251, 247, 0.2) 100%), #F9FAFB'
+      }}
+    >
       <div className="relative z-10">
         <Navbar />
-        <Hero onVacuumStateChange={setIsVacuumActive} />
+        <Hero />
+        <FAQ />
+        <Footer />
       </div>
     </div>
   );
