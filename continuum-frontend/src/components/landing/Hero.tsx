@@ -1,354 +1,1210 @@
-import { motion, useMotionValue, useSpring } from 'framer-motion';
-import { useEffect, useState, useRef } from 'react';
-import GravityText from '../GravityText';
-import FlexibleText from './FlexibleText';
-import HoverTimer from './HoverTimer';
-import MoneyRain from './MoneyRain';
-import ClientPortalEffect from './ClientPortalEffect';
-import TaskCompletedCard from './TaskCompletedCard';
 
-interface Particle {
-  id: number;
-  x: number;
-  y: number;
-  size: number;
-  opacity: number;
-  splashX: number;
-  splashY: number;
-  vacuumOffsetX: number;
-  vacuumOffsetY: number;
-}
+import { useState, useEffect, useRef } from 'react';
 
-// Generate particles outside the component to avoid impure function calls during render
-const generateParticles = (): Particle[] =>
-  Array.from({ length: 20 }, (_, i) => ({
-    id: i,
-    x: Math.random() * 100,
-    y: Math.random() * 100,
-    size: Math.random() * 6 + 2, // Increased size: 2 to 8px
-    opacity: Math.random() * 0.3 + 0.1,
-    splashX: (Math.random() - 0.5) * 300, // Random splash direction X
-    splashY: (Math.random() - 0.5) * 300, // Random splash direction Y
-    vacuumOffsetX: (Math.random() - 0.5) * 30, // Random offset when vacuumed
-    vacuumOffsetY: (Math.random() - 0.5) * 30, // Random offset when vacuumed
-  }));
-
-interface HeroProps {
-  onVacuumStateChange?: (isActive: boolean) => void;
-}
-
-const Hero = ({ onVacuumStateChange }: HeroProps) => {
-  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
-  const [isHovering, setIsHovering] = useState(true);
-
-  const [isTaskManagementHovered, setIsTaskManagementHovered] = useState(false);
-  const [isAutoInvoicingHovered, setIsAutoInvoicingHovered] = useState(false);
-  const [isClientPortalHovered, setIsClientPortalHovered] = useState(false);
-
-  // Update global vacuum state when local hover state changes
-  useEffect(() => {
-    onVacuumStateChange?.(isTaskManagementHovered);
-  }, [isTaskManagementHovered, onVacuumStateChange]);
-
-  const [isSplashing, setIsSplashing] = useState(false);
-  // Track previous hover state to detect release
-  const wasTaskManagementHoveredRef = useRef(false);
+const Hero = () => {
+  const [activeSection, setActiveSection] = useState(0);
+  const [isHeroHovered, setIsHeroHovered] = useState(false);
+  const [isInvoiceHovered, setIsInvoiceHovered] = useState(false);
+  const sectionRef0 = useRef<HTMLDivElement>(null);
+  const sectionRef1 = useRef<HTMLDivElement>(null);
+  const sectionRef2 = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (!isTaskManagementHovered && wasTaskManagementHoveredRef.current) {
-      // Use setTimeout to avoid synchronous setState in effect
-      const timer = setTimeout(() => {
-        setIsSplashing(true);
-        setTimeout(() => setIsSplashing(false), 500); // Splash duration
-      }, 0);
-      wasTaskManagementHoveredRef.current = isTaskManagementHovered;
-      return () => clearTimeout(timer);
-    }
-    wasTaskManagementHoveredRef.current = isTaskManagementHovered;
-  }, [isTaskManagementHovered]);
+    const refs = [sectionRef0, sectionRef1, sectionRef2];
+    const observers = refs.map((ref, index) => {
+      if (!ref.current) return null;
 
-  const [showTaskCompletion, setShowTaskCompletion] = useState(false);
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              setActiveSection(index);
+            }
+          });
+        },
+        {
+          threshold: [0, 0.1],
+          rootMargin: '-45% 0px -45% 0px'
+        }
+      );
 
-  useEffect(() => {
-    let timer: ReturnType<typeof setTimeout>;
-    if (isTaskManagementHovered) {
-      // Trigger completion popup after vacuum animation has run for a bit
-      timer = setTimeout(() => {
-        setShowTaskCompletion(true);
-      }, 1000);
-    } else {
-      // Use setTimeout to avoid synchronous setState in effect
-      timer = setTimeout(() => {
-        setShowTaskCompletion(false);
-      }, 0);
-    }
-    return () => clearTimeout(timer);
-  }, [isTaskManagementHovered]);
-
-  // Smooth spring values for slime blob
-  const cursorX = useMotionValue(0);
-  const cursorY = useMotionValue(0);
-
-  const springConfig = { damping: 15, stiffness: 100 };
-  const x = useSpring(cursorX, springConfig);
-  const y = useSpring(cursorY, springConfig);
-
-  useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      const xPos = e.clientX;
-      const yPos = e.clientY;
-
-      setMousePosition({ x: xPos, y: yPos });
-      cursorX.set(xPos - 64); // Center the blob (half of w-32 = 64px)
-      cursorY.set(yPos - 64);
-    };
-
-    const handleMouseEnter = () => setIsHovering(true);
-    const handleMouseLeave = () => setIsHovering(false);
-
-    window.addEventListener('mousemove', handleMouseMove);
-    document.addEventListener('mouseenter', handleMouseEnter);
-    document.addEventListener('mouseleave', handleMouseLeave);
-
-    // Initialize position
-    cursorX.set(window.innerWidth / 2 - 64);
-    cursorY.set(window.innerHeight / 2 - 64);
+      observer.observe(ref.current);
+      return observer;
+    });
 
     return () => {
-      window.removeEventListener('mousemove', handleMouseMove);
-      document.removeEventListener('mouseenter', handleMouseEnter);
-      document.removeEventListener('mouseleave', handleMouseLeave);
+      observers.forEach((observer) => {
+        if (observer) {
+          observer.disconnect();
+        }
+      });
     };
-  }, [cursorX, cursorY]);
-
-  // Use lazy state initialization to generate particles only once
-  const [particles] = useState(generateParticles);
-
+  }, [sectionRef0, sectionRef1, sectionRef2]);
   return (
-    <section className="min-h-screen flex items-center justify-center bg-white pt-20 pb-20 relative overflow-hidden">
-      {/* Slime blob that follows cursor */}
-      <motion.div
-        className="fixed pointer-events-none z-0"
+    <section className="relative flex flex-col items-center w-full" style={{ paddingTop: '190px' }}>
+      <div style={{ width: '776px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '24px' }}>
+
+        {/* Main Heading */}
+        <h1 className="flex flex-col items-center justify-center text-center">
+          <div className="flex items-center justify-center flex-wrap gap-3" style={{ lineHeight: '104%' }}>
+            <span style={{
+              display: 'inline-block',
+              fontFamily: 'Sarina',
+              fontWeight: 400,
+              fontSize: '62px',
+              lineHeight: '1.5',
+              background: 'linear-gradient(99.31deg, #24B5F8 4.62%, #5521FE 148.53%)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              backgroundClip: 'text',
+              color: 'transparent',
+              padding: '0 5px 15px 5px', // Top/Bottom padding for glyphs
+              marginBottom: '-15px' // Compensate for extra bottom padding to align with "connects"
+            }}>
+              Continuum
+            </span>
+            <span style={{
+              fontFamily: 'Satoshi',
+              fontWeight: 500,
+              fontSize: '62px',
+              color: '#000000',
+              paddingBottom: '10px'
+            }}>
+              connects
+            </span>
+          </div>
+          <span style={{
+            fontFamily: 'Satoshi',
+            fontWeight: 500,
+            fontSize: '62px',
+            color: '#000000',
+            lineHeight: '104%'
+          }}>
+            delivery with profitability.
+          </span>
+        </h1>
+
+        {/* Subheading */}
+        <p style={{
+          fontFamily: 'Satoshi',
+          fontWeight: 500,
+          fontSize: '16px',
+          lineHeight: '100%',
+          textAlign: 'center',
+          color: '#606D76',
+          maxWidth: '600px'
+        }}>
+          The operating system for modern software teams. Seamlessly bridge the gap
+          between agile sprint planning, precise time tracking, and client invoicing.
+        </p>
+
+        {/* Start for free Button */}
+        <button
+          className="flex items-center justify-center transition-all duration-200 hover:scale-105"
+          style={{
+            width: '115px',
+            height: '32px',
+            background: '#FFFFFF',
+            border: '1px solid #EDEDED',
+            borderRadius: '8px',
+            padding: '8px 16px',
+            gap: '8px'
+          }}
+          onMouseEnter={() => setIsHeroHovered(true)}
+          onMouseLeave={() => setIsHeroHovered(false)}
+        >
+          <span style={{
+            fontFamily: 'Satoshi',
+            fontWeight: 700,
+            fontSize: '14px',
+            lineHeight: '100%',
+            letterSpacing: '0%',
+            color: '#0B191F',
+            whiteSpace: 'nowrap'
+          }}>
+            Start for free
+          </span>
+        </button>
+      </div>
+
+      {/* Feature Images */}
+      {/* Container needs overflow-visible to allow large images to be seen fully */}
+      <div className="relative w-full mt-16 flex justify-center items-start perspective-[1000px] overflow-visible pointer-events-none mb-0">
+        {/* Middle Image - Main */}
+        <div
+          className="relative z-30 pointer-events-auto transition-transform duration-500 ease-[cubic-bezier(0.25,1,0.5,1)]"
+          style={{
+            transform: isHeroHovered ? 'scale(1.05)' : 'scale(1)'
+          }}
+        >
+          <img
+            src="/landing-page/middle-image.png"
+            alt="Dashboard Main"
+            style={{
+              width: '1566px',
+              height: '1010px',
+              objectFit: 'contain',
+              maxWidth: 'none' // Ensure it doesn't shrink
+            }}
+          />
+        </div>
+
+        {/* Left Image */}
+        <img
+          src="/landing-page/left-image.png"
+          alt="Dashboard Left"
+          className="absolute top-[30px] z-10 opacity-100 transition-all duration-700 ease-[cubic-bezier(0.25,1,0.5,1)]"
+          style={{
+            width: '846px',
+            height: '808px',
+            objectFit: 'contain',
+            maxWidth: 'none',
+            left: '50%',
+            transform: isHeroHovered
+              ? 'translateX(-50%) rotate(0deg) scale(0.9)'
+              : 'translateX(-110%) rotate(-6deg)',
+            transformOrigin: 'bottom right'
+          }}
+        />
+
+        {/* Right Image */}
+        <img
+          src="/landing-page/right-image.png"
+          alt="Dashboard Right"
+          className="absolute top-[30px] z-20 opacity-100 transition-all duration-700 ease-[cubic-bezier(0.25,1,0.5,1)]"
+          style={{
+            width: '846px',
+            height: '808px',
+            objectFit: 'contain',
+            maxWidth: 'none',
+            left: '50%',
+            transform: isHeroHovered
+              ? 'translateX(-50%) rotate(0deg) scale(0.9)'
+              : 'translateX(10%) rotate(6deg)',
+            transformOrigin: 'bottom left'
+          }}
+        />
+      </div>
+
+      {/* Designed for Deep Work Section */}
+      <div id="deep-work" className="relative flex flex-col items-center justify-center gap-4 -mt-[20px] pointer-events-auto" style={{
+        width: '776px',
+        opacity: 1,
+        zIndex: 40 // Ensure it's above other elements if needed
+      }}>
+        {/* Heading */}
+        <h2 style={{
+          fontFamily: 'Satoshi',
+          fontWeight: 500,
+          fontStyle: 'normal',
+          fontSize: '62px',
+          lineHeight: '104%',
+          letterSpacing: '0%',
+          textAlign: 'center',
+          color: '#0B191F'
+        }}>
+          Designed for deep work
+        </h2>
+
+        {/* Subheading */}
+        <p style={{
+          fontFamily: 'Satoshi',
+          fontWeight: 500,
+          fontStyle: 'normal',
+          fontSize: '16px',
+          lineHeight: '24px',
+          letterSpacing: '0%',
+          textAlign: 'center',
+          color: '#606D76'
+        }}>
+          Eliminate administrative drag. Continuum gets out of the way so your team can<br />
+          focus on shipping.
+        </p>
+      </div>
+
+      {/* Feature Cards Grid */}
+      <div
+        className="relative mx-auto mt-12 mb-20"
         style={{
-          x: x,
-          y: y,
+          width: '1187px',
+          gap: '12px',
+          opacity: 1,
+          display: 'flex',
+          flexDirection: 'column'
         }}
-        initial={{ scale: 0, opacity: 0 }}
-        animate={{
-          scale: isTaskManagementHovered ? 2.5 : isHovering ? 1 : 0.6,
-          opacity: isTaskManagementHovered ? 0.4 : isHovering ? 0.2 : 0.05,
-        }}
-        transition={{ duration: 0.4 }}
       >
-        {/* Main slime blob */}
-        <motion.div
-          className="w-32 h-32"
+        {/* Top Row */}
+        <div
           style={{
-            background: 'radial-gradient(circle, rgba(107, 114, 128, 0.4) 0%, rgba(156, 163, 175, 0.2) 40%, rgba(209, 213, 219, 0.1) 70%, transparent 100%)',
-            filter: 'blur(50px)',
-            borderRadius: '50%',
+            display: 'flex',
+            gap: '12px',
+            marginBottom: '12px'
           }}
-          animate={{
-            scale: [1, 1.3, 0.9, 1.1, 1],
-            borderRadius: ['50%', '45% 55% 50% 60%', '55% 45% 60% 50%', '50% 50% 45% 55%', '50%'],
-          }}
-          transition={{
-            duration: 4,
-            repeat: Infinity,
-            ease: "easeInOut",
-          }}
-        />
-
-        {/* Secondary blob for more organic feel */}
-        <motion.div
-          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-24 h-24"
-          style={{
-            background: 'radial-gradient(circle, rgba(75, 85, 99, 0.3) 0%, rgba(107, 114, 128, 0.15) 50%, transparent 80%)',
-            filter: 'blur(35px)',
-            borderRadius: '50%',
-          }}
-          animate={{
-            x: [0, 15, -10, 5, 0],
-            y: [0, -10, 15, -5, 0],
-            scale: [1, 0.8, 1.2, 0.9, 1],
-            borderRadius: ['50%', '60% 40%', '40% 60%', '50% 50%', '50%'],
-          }}
-          transition={{
-            duration: 5,
-            repeat: Infinity,
-            ease: "easeInOut",
-          }}
-        />
-
-        {/* Tertiary small blob */}
-        <motion.div
-          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-16"
-          style={{
-            background: 'radial-gradient(circle, rgba(107, 114, 128, 0.25) 0%, transparent 70%)',
-            filter: 'blur(25px)',
-            borderRadius: '50%',
-          }}
-          animate={{
-            x: [0, -12, 8, -5, 0],
-            y: [0, 8, -12, 5, 0],
-            scale: [1, 1.3, 0.7, 1.1, 1],
-          }}
-          transition={{
-            duration: 3.5,
-            repeat: Infinity,
-            ease: "easeInOut",
-          }}
-        />
-      </motion.div>
-
-      {/* Background particles that follow cursor */}
-      <div className="absolute inset-0 pointer-events-none">
-        {particles.map((particle) => {
-          // Standard parallax offset
-          const parallaxX = (mousePosition.x / window.innerWidth - 0.5) * 30;
-          const parallaxY = (mousePosition.y / window.innerHeight - 0.5) * 30;
-
-          // Vacuum offset: Calculate difference between mouse position and particle origin
-          // Particle origin in pixels approx:
-          const originX = (particle.x / 100) * window.innerWidth;
-          const originY = (particle.y / 100) * window.innerHeight;
-
-          const vacuumDeltaX = mousePosition.x - originX;
-          const vacuumDeltaY = mousePosition.y - originY;
-
-          return (
-            <motion.div
-              key={particle.id}
-              className="absolute rounded-full bg-gray-400"
+        >
+          {/* Top Left Card */}
+          <div
+            className="group"
+            style={{
+              width: '700px',
+              height: '564px',
+              borderRadius: '36px',
+              opacity: 1,
+              overflow: 'hidden'
+            }}
+          >
+            <img
+              src="/landing-page/top-left.png"
+              alt="Frictionless Time Logging"
+              className="transition-transform duration-500 ease-out group-hover:scale-105"
               style={{
-                left: `${particle.x}%`,
-                top: `${particle.y}%`,
-                width: `${particle.size}px`,
-                height: `${particle.size}px`,
-                opacity: particle.opacity,
-              }}
-              animate={{
-                x: isTaskManagementHovered ? vacuumDeltaX + particle.vacuumOffsetX
-                  : isSplashing ? vacuumDeltaX + particle.splashX
-                    : parallaxX * (particle.id % 3 === 0 ? 0.5 : particle.id % 3 === 1 ? 0.3 : 0.7),
-                y: isTaskManagementHovered ? vacuumDeltaY + particle.vacuumOffsetY
-                  : isSplashing ? vacuumDeltaY + particle.splashY
-                    : parallaxY * (particle.id % 3 === 0 ? 0.5 : particle.id % 3 === 1 ? 0.3 : 0.7),
-                scale: isTaskManagementHovered ? 0.6 : 1, // Stay visible but smaller
-              }}
-              transition={{
-                type: isSplashing ? "tween" : "spring",
-                ease: isSplashing ? "easeOut" : undefined,
-                duration: isSplashing ? 0.4 : undefined,
-                stiffness: isTaskManagementHovered ? 20 : 50, // Much lower stiffness for slower movement
-                damping: isTaskManagementHovered ? 15 : 20, // Lower damping
+                width: '100%',
+                height: '100%',
+                objectFit: 'cover',
+                display: 'block'
               }}
             />
-          );
-        })}
-      </div>
+          </div>
 
-      {/* Curved background elements */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        {/* Left side curve */}
-        <motion.svg
-          className="absolute left-0 top-1/2 -translate-y-1/2 w-96 h-96 opacity-5"
-          viewBox="0 0 400 400"
+          {/* Top Right Card */}
+          <div
+            className="group"
+            style={{
+              width: '473px',
+              height: '564px',
+              borderRadius: '36px',
+              opacity: 1,
+              overflow: 'hidden'
+            }}
+          >
+            <img
+              src="/landing-page/top-right.png"
+              alt="Integrated Invoicing"
+              className="transition-transform duration-500 ease-out group-hover:scale-105"
+              style={{
+                width: '100%',
+                height: '100%',
+                objectFit: 'cover',
+                display: 'block'
+              }}
+            />
+          </div>
+        </div>
+
+        {/* Bottom Card */}
+        <div
+          className="group"
           style={{
-            x: (mousePosition.x / window.innerWidth - 0.5) * 50,
-            y: (mousePosition.y / window.innerHeight - 0.5) * 50,
+            width: '1187px',
+            height: '306px',
+            borderRadius: '36px',
+            opacity: 1,
+            overflow: 'hidden'
           }}
         >
-          <path
-            d="M0,200 Q100,100 200,150 T400,200"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            className="text-gray-400"
+          <img
+            src="/landing-page/bottom.png"
+            alt="Real-time Project Health"
+            className="transition-transform duration-500 ease-out group-hover:scale-105"
+            style={{
+              width: '100%',
+              height: '100%',
+              objectFit: 'cover',
+              display: 'block'
+            }}
           />
-        </motion.svg>
-
-        {/* Right side curve */}
-        <motion.svg
-          className="absolute right-0 top-1/2 -translate-y-1/2 w-96 h-96 opacity-5"
-          viewBox="0 0 400 400"
-          style={{
-            x: (mousePosition.x / window.innerWidth - 0.5) * -50,
-            y: (mousePosition.y / window.innerHeight - 0.5) * 50,
-          }}
-        >
-          <path
-            d="M400,200 Q300,100 200,150 T0,200"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            className="text-gray-400"
-          />
-        </motion.svg>
+        </div>
       </div>
 
-      <MoneyRain isActive={isAutoInvoicingHovered} />
-      <ClientPortalEffect isActive={isClientPortalHovered} />
-      <TaskCompletedCard isVisible={showTaskCompletion} />
-      <div className="container mx-auto px-6 max-w-4xl relative z-10">
-        <motion.div
-          className="text-center"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, ease: [0.6, -0.05, 0.01, 0.99] }}
-        >
-          {/* Main Heading */}
-          <h1 className="text-5xl md:text-6xl lg:text-7xl font-light text-gray-900 tracking-tight mb-6 leading-tight">
-            <GravityText text="Project management" className="justify-center" />
-            <br />
-            <span className="font-normal text-gray-800">
-              for&nbsp;<FlexibleText>freelancers</FlexibleText>
-            </span>
-          </h1>
+      {/* Master your methodology Section */}
+      <div
+        id="methodology"
+        className="relative mx-auto mt-12 mb-12"
+        style={{
+          width: '1161px',
+          height: '128px',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          opacity: 1
+        }}
+      >
+        <h2 style={{
+          fontFamily: 'Satoshi',
+          fontWeight: 500,
+          fontStyle: 'normal',
+          fontSize: '62px',
+          lineHeight: '104%',
+          letterSpacing: '0%',
+          color: '#0B191F',
+          margin: 0
+        }}>
+          Master your<br />methodology.
+        </h2>
+      </div>
 
-          {/* Subheading */}
-          <p className="text-lg md:text-xl text-gray-600 mb-12 max-w-2xl mx-auto leading-relaxed font-light">
-            Track work, log hours, manage tasks, and generate invoices—all in one place.
+      {/* Feature Sections */}
+      <div
+        className="relative mx-auto mb-20"
+        style={{
+          width: '1161px',
+          display: 'flex',
+          gap: '36px',
+          opacity: 1
+        }}
+      >
+        {/* Sprint Cycles Section */}
+        <div
+          style={{
+            width: '349px',
+            height: '218px',
+            opacity: 1,
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '16px'
+          }}
+        >
+          {/* Icon */}
+          <img
+            src="/icons/notebook-pen.svg"
+            alt="Sprint Cycles"
+            style={{
+              width: '40px',
+              height: '40px',
+              transform: 'translateZ(0)',
+              willChange: 'transform'
+            }}
+          />
+
+          {/* Heading */}
+          <h3 style={{
+            fontFamily: 'Satoshi',
+            fontWeight: 500,
+            fontStyle: 'normal',
+            fontSize: '38.32px',
+            lineHeight: '104%',
+            letterSpacing: '0%',
+            color: '#0B191F',
+            margin: 0
+          }}>
+            Sprint Cycles
+          </h3>
+
+          {/* Description */}
+          <p style={{
+            fontFamily: 'Satoshi',
+            fontWeight: 500,
+            fontStyle: 'normal',
+            fontSize: '16px',
+            lineHeight: '26px',
+            letterSpacing: '0%',
+            color: '#606D76',
+            margin: 0
+          }}>
+            Plan, execute, and review. Move work from the backlog into active sprints and track progress toward the finish line.
           </p>
+        </div>
 
-          {/* Trust divider */}
-          <div className="flex items-center justify-center gap-4 mb-8">
-            <div className="h-px w-16 bg-gray-200" />
-            <span className="text-xs text-gray-400 uppercase tracking-wider font-medium">Trusted by teams worldwide</span>
-            <div className="h-px w-16 bg-gray-200" />
+        {/* Flexible Views Section */}
+        <div
+          style={{
+            width: '349px',
+            height: '218px',
+            opacity: 1,
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '16px'
+          }}
+        >
+          {/* Icons */}
+          <div
+            style={{
+              display: 'flex',
+              gap: '8px',
+              alignItems: 'center'
+            }}
+          >
+            {/* Board Icon - Highlighted */}
+            <div
+              style={{
+                width: '94px',
+                height: '40px',
+                borderRadius: '8px',
+                padding: '8px 16px',
+                background: 'linear-gradient(180deg, #CFECFF 0%, #CFECFF 100%)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px',
+                transform: 'translateZ(0)',
+                willChange: 'transform'
+              }}
+            >
+              <img src="/icons/square-kanban.svg" alt="Board" style={{ width: '16px', height: '16px' }} />
+              <span style={{
+                fontFamily: 'Satoshi',
+                fontWeight: 500,
+                fontSize: '14px',
+                lineHeight: '100%',
+                letterSpacing: '0%',
+                color: '#043E59'
+              }}>
+                Board
+              </span>
+            </div>
+
+            {/* List Icon */}
+            <div
+              style={{
+                width: '40px',
+                height: '40px',
+                borderRadius: '8px',
+                padding: '8px 12px',
+                background: '#EDF0F3',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px',
+                transform: 'translateZ(0)',
+                willChange: 'transform'
+              }}
+            >
+              <img src="/icons/list.svg" alt="List" style={{ width: '16px', height: '16px' }} />
+            </div>
+
+            {/* Grid Icon */}
+            <div
+              style={{
+                width: '40px',
+                height: '40px',
+                borderRadius: '8px',
+                padding: '8px 12px',
+                background: '#EDF0F3',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px',
+                transform: 'translateZ(0)',
+                willChange: 'transform'
+              }}
+            >
+              <img src="/icons/square-chart-gantt.svg" alt="Gantt" style={{ width: '16px', height: '16px' }} />
+            </div>
+
+            {/* Calendar Icon */}
+            <div
+              style={{
+                width: '40px',
+                height: '40px',
+                borderRadius: '8px',
+                padding: '8px 12px',
+                background: '#EDF0F3',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px',
+                transform: 'translateZ(0)',
+                willChange: 'transform'
+              }}
+            >
+              <img src="/icons/calendar.svg" alt="Calendar" style={{ width: '16px', height: '16px' }} />
+            </div>
           </div>
 
-          {/* Feature list */}
-          <div className="flex flex-wrap items-center justify-center gap-6 text-sm text-gray-500">
+          {/* Heading */}
+          <h3 style={{
+            fontFamily: 'Satoshi',
+            fontWeight: 500,
+            fontStyle: 'normal',
+            fontSize: '38.32px',
+            lineHeight: '104%',
+            letterSpacing: '0%',
+            color: '#0B191F',
+            margin: 0
+          }}>
+            Flexible Views
+          </h3>
 
-            <span
-              className="cursor-none transition-colors hover:text-gray-900"
-              onMouseEnter={() => setIsTaskManagementHovered(true)}
-              onMouseLeave={() => setIsTaskManagementHovered(false)}
+          {/* Description */}
+          <p style={{
+            fontFamily: 'Satoshi',
+            fontWeight: 500,
+            fontStyle: 'normal',
+            fontSize: '16px',
+            lineHeight: '26px',
+            letterSpacing: '0%',
+            color: '#606D76',
+            margin: 0
+          }}>
+            Visualize work your way. Toggle instantly between Kanban boards for flow, lists for density, and calendars for deadlines.
+          </p>
+        </div>
+
+        {/* Full ownership Section */}
+        <div
+          style={{
+            width: '349px',
+            height: '218px',
+            opacity: 1,
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '16px'
+          }}
+        >
+          {/* Icons */}
+          <div
+            style={{
+              display: 'flex',
+              gap: '8px',
+              alignItems: 'center'
+            }}
+          >
+            {/* Owner Icon - Highlighted */}
+            <div
+              style={{
+                width: '94px',
+                height: '40px',
+                borderRadius: '8px',
+                padding: '8px 16px',
+                background: 'linear-gradient(180deg, #CFECFF 0%, #CFECFF 100%)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px',
+                transform: 'translateZ(0)',
+                willChange: 'transform'
+              }}
             >
-              Task Management
-            </span>
-            <span className="text-gray-300">•</span>
-            <span
-              className="relative inline-block cursor-default transition-colors hover:text-gray-900"
-              onMouseEnter={() => setIsAutoInvoicingHovered(true)}
-              onMouseLeave={() => setIsAutoInvoicingHovered(false)}
+              <img src="/icons/square-user.svg" alt="Owner" style={{ width: '16px', height: '16px' }} />
+              <span style={{
+                fontFamily: 'Satoshi',
+                fontWeight: 500,
+                fontSize: '14px',
+                lineHeight: '100%',
+                letterSpacing: '0%',
+                color: '#043E59'
+              }}>
+                Owner
+              </span>
+            </div>
+
+            {/* Document Icon 1 */}
+            <div
+              style={{
+                width: '40px',
+                height: '40px',
+                borderRadius: '8px',
+                padding: '8px 12px',
+                background: '#EDF0F3',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px',
+                transform: 'translateZ(0)',
+                willChange: 'transform'
+              }}
             >
-              Auto Invoicing
-            </span>
-            <span className="text-gray-300">•</span>
-            <span
-              className="cursor-default transition-colors hover:text-gray-900"
-              onMouseEnter={() => setIsClientPortalHovered(true)}
-              onMouseLeave={() => setIsClientPortalHovered(false)}
+              <img src="/icons/square-user.svg" alt="User 1" style={{ width: '16px', height: '16px' }} />
+            </div>
+
+            {/* Document Icon 2 */}
+            <div
+              style={{
+                width: '40px',
+                height: '40px',
+                borderRadius: '8px',
+                padding: '8px 12px',
+                background: '#EDF0F3',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px',
+                transform: 'translateZ(0)',
+                willChange: 'transform'
+              }}
             >
-              Client Portal
-            </span>
+              <img src="/icons/square-user.svg" alt="User 2" style={{ width: '16px', height: '16px' }} />
+            </div>
           </div>
-        </motion.div>
+
+          {/* Heading */}
+          <h3 style={{
+            fontFamily: 'Satoshi',
+            fontWeight: 500,
+            fontStyle: 'normal',
+            fontSize: '38.32px',
+            lineHeight: '104%',
+            letterSpacing: '0%',
+            color: '#0B191F',
+            margin: 0
+          }}>
+            Full ownership
+          </h3>
+
+          {/* Description */}
+          <p style={{
+            fontFamily: 'Satoshi',
+            fontWeight: 500,
+            fontStyle: 'normal',
+            fontSize: '16px',
+            lineHeight: '26px',
+            letterSpacing: '0%',
+            color: '#606D76',
+            margin: 0
+          }}>
+            The only role with the power to build sprints, invite members, set billing rates, and finalize client invoices.
+          </p>
+        </div>
       </div>
 
-      <HoverTimer isActive={isAutoInvoicingHovered} />
+      {/* Automatic monthly invoicing Section */}
+      <div
+        id="invoicing"
+        className="relative mx-auto mt-12 mb-12"
+        style={{
+          width: '832px',
+          height: '104px',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: '16px',
+          opacity: 1
+        }}
+      >
+        <h2 style={{
+          fontFamily: 'Satoshi',
+          fontWeight: 500,
+          fontStyle: 'normal',
+          fontSize: '62px',
+          lineHeight: '104%',
+          letterSpacing: '0%',
+          textAlign: 'center',
+          color: '#0B191F',
+          margin: 0
+        }}>
+          Automatic monthly invoicing
+        </h2>
+      </div>
+
+      {/* Invoice and Features Section */}
+      <div
+        className="relative mx-auto mb-20"
+        style={{
+          display: 'flex',
+          gap: '68px',
+          alignItems: 'flex-start',
+          justifyContent: 'center',
+          opacity: 1,
+          maxWidth: '1400px',
+          padding: '0 20px'
+        }}
+      >
+        {/* Invoice Image with Shadow */}
+        <div
+          style={{
+            position: 'relative',
+            width: '600px',
+            height: '808.33px',
+            flexShrink: 0
+          }}
+        >
+          {/* Second Shadow Div - Behind the first shadow */}
+          <div
+            style={{
+              position: 'absolute',
+              width: '600px',
+              height: '783px',
+              top: '52px',
+              left: '-50px',
+              borderRadius: '36px',
+              border: '1px solid #EBEDEE',
+              background: '#FFFFFF',
+              opacity: isInvoiceHovered ? 0 : 1,
+              zIndex: 1,
+              transition: 'opacity 0.5s ease-in-out'
+            }}
+          />
+
+          {/* Shadow Div - Behind the image */}
+          <div
+            style={{
+              position: 'absolute',
+              width: '600px',
+              height: '785px',
+              top: '26px',
+              left: '-25px',
+              borderRadius: '36px',
+              border: '1px solid #EBEDEE',
+              background: '#FFFFFF',
+              opacity: isInvoiceHovered ? 0 : 1,
+              zIndex: 2,
+              transition: 'opacity 0.5s ease-in-out'
+            }}
+          />
+
+          {/* Invoice Image - On top */}
+          <div
+            onMouseEnter={() => setIsInvoiceHovered(true)}
+            onMouseLeave={() => setIsInvoiceHovered(false)}
+            style={{
+              position: 'relative',
+              width: '100%',
+              height: '100%',
+              zIndex: 3,
+              transform: isInvoiceHovered ? 'translate(-50px, 52px)' : 'translate(0, 0)',
+              transition: 'transform 0.5s ease-in-out'
+            }}
+          >
+            <img
+              src="/landing-page/invoice.png"
+              alt="Invoice Interface"
+              style={{
+                width: '100%',
+                height: '100%',
+                objectFit: 'contain',
+                display: 'block'
+              }}
+            />
+          </div>
+        </div>
+
+        {/* Text Sections - Aligned with invoice height */}
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'space-between',
+            height: '808.33px',
+            flex: 1,
+            maxWidth: '500px'
+          }}
+        >
+          {/* Section 1: Sync sprints to your ledger */}
+          <div
+            ref={sectionRef0}
+            style={{
+              display: 'flex',
+              gap: '16px',
+              alignItems: 'flex-start'
+            }}
+          >
+            {/* Blue Vertical Line - Only show if active */}
+            {activeSection === 0 ? (
+              <div
+                style={{
+                  width: '4px',
+                  height: '182px',
+                  backgroundColor: '#2E99F9',
+                  opacity: 1,
+                  flexShrink: 0,
+                  transition: 'opacity 0.8s ease-in-out',
+                  borderRadius: '4px'
+                }}
+              />
+            ) : (
+              <div
+                style={{
+                  width: '4px',
+                  height: '182px',
+                  backgroundColor: '#2E99F9',
+                  opacity: 0,
+                  flexShrink: 0,
+                  transition: 'opacity 0.8s ease-in-out',
+                  borderRadius: '4px'
+                }}
+              />
+            )}
+
+            {/* Text Content */}
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '12px',
+                maxWidth: '400px'
+              }}
+            >
+              <h3 style={{
+                fontFamily: 'Satoshi',
+                fontWeight: 500,
+                fontStyle: 'normal',
+                fontSize: '38.32px',
+                lineHeight: '104%',
+                letterSpacing: '0%',
+                color: activeSection === 0 ? '#0B191F' : '#606D76',
+                margin: 0,
+                transition: 'color 0.8s ease-in-out'
+              }}>
+                Sync sprints to your ledger
+              </h3>
+              <p style={{
+                fontFamily: 'Satoshi',
+                fontWeight: 500,
+                fontStyle: 'normal',
+                fontSize: '16px',
+                lineHeight: '26px',
+                letterSpacing: '0%',
+                color: '#606D76',
+                margin: 0
+              }}>
+                Auto-populate invoices with completed sprint data and tasks, capturing every billable hour without the manual effort.
+              </p>
+            </div>
+          </div>
+
+          {/* Section 2: Precision billing by project */}
+          <div
+            ref={sectionRef1}
+            style={{
+              display: 'flex',
+              gap: '16px',
+              alignItems: 'flex-start'
+            }}
+          >
+            {/* Blue Vertical Line - Only show if active */}
+            {activeSection === 1 ? (
+              <div
+                style={{
+                  width: '4px',
+                  height: '182px',
+                  backgroundColor: '#2E99F9',
+                  opacity: 1,
+                  flexShrink: 0,
+                  transition: 'opacity 0.8s ease-in-out',
+                  borderRadius: '4px'
+                }}
+              />
+            ) : (
+              <div
+                style={{
+                  width: '4px',
+                  height: '182px',
+                  backgroundColor: '#2E99F9',
+                  opacity: 0,
+                  flexShrink: 0,
+                  transition: 'opacity 0.8s ease-in-out',
+                  borderRadius: '4px'
+                }}
+              />
+            )}
+
+            {/* Text Content */}
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '12px',
+                maxWidth: '400px'
+              }}
+            >
+              <h3 style={{
+                fontFamily: 'Satoshi',
+                fontWeight: 500,
+                fontStyle: 'normal',
+                fontSize: '38.32px',
+                lineHeight: '104%',
+                letterSpacing: '0%',
+                color: activeSection === 1 ? '#0B191F' : '#606D76',
+                margin: 0,
+                transition: 'color 0.8s ease-in-out'
+              }}>
+                Precision billing by project
+              </h3>
+              <p style={{
+                fontFamily: 'Satoshi',
+                fontWeight: 500,
+                fontStyle: 'normal',
+                fontSize: '16px',
+                lineHeight: '26px',
+                letterSpacing: '0%',
+                color: '#606D76',
+                margin: 0
+              }}>
+                Set your rates once and let Continuum calculate totals and taxes for instant, accurate billing in one click.
+              </p>
+            </div>
+          </div>
+
+          {/* Section 3: From review to PDF */}
+          <div
+            ref={sectionRef2}
+            style={{
+              display: 'flex',
+              gap: '16px',
+              alignItems: 'flex-start'
+            }}
+          >
+            {/* Blue Vertical Line - Only show if active */}
+            {activeSection === 2 ? (
+              <div
+                style={{
+                  width: '4px',
+                  height: '182px',
+                  backgroundColor: '#2E99F9',
+                  opacity: 1,
+                  flexShrink: 0,
+                  transition: 'opacity 0.8s ease-in-out',
+                  borderRadius: '4px'
+                }}
+              />
+            ) : (
+              <div
+                style={{
+                  width: '4px',
+                  height: '182px',
+                  backgroundColor: '#2E99F9',
+                  opacity: 0,
+                  flexShrink: 0,
+                  transition: 'opacity 0.8s ease-in-out',
+                  borderRadius: '4px'
+                }}
+              />
+            )}
+
+            {/* Text Content */}
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '12px',
+                maxWidth: '400px'
+              }}
+            >
+              <h3 style={{
+                fontFamily: 'Satoshi',
+                fontWeight: 500,
+                fontStyle: 'normal',
+                fontSize: '38.32px',
+                lineHeight: '104%',
+                letterSpacing: '0%',
+                color: activeSection === 2 ? '#0B191F' : '#606D76',
+                margin: 0,
+                transition: 'color 0.8s ease-in-out'
+              }}>
+                From review to PDF
+              </h3>
+              <p style={{
+                fontFamily: 'Satoshi',
+                fontWeight: 500,
+                fontStyle: 'normal',
+                fontSize: '16px',
+                lineHeight: '26px',
+                letterSpacing: '0%',
+                color: '#606D76',
+                margin: 0
+              }}>
+                Finalise auto-generated drafts instantly. One click updates your records and delivers a professional breakdown to your client.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Client Portal Section */}
+      <div
+        id="clients"
+        className="relative mx-auto mt-12 mb-20"
+        style={{
+          width: '832px',
+          height: '104px',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: '16px',
+          opacity: 1
+        }}
+      >
+        <h2 style={{
+          fontFamily: 'Satoshi',
+          fontWeight: 500,
+          fontStyle: 'normal',
+          fontSize: '62px',
+          lineHeight: '104%',
+          letterSpacing: '0%',
+          textAlign: 'center',
+          color: '#0B191F',
+          margin: 0
+        }}>
+          Client Portal
+        </h2>
+        <p style={{
+          fontFamily: 'Satoshi',
+          fontWeight: 500,
+          fontStyle: 'normal',
+          fontSize: '16px',
+          lineHeight: '24px',
+          letterSpacing: '0%',
+          textAlign: 'center',
+          color: '#606D76',
+          margin: 0
+        }}>
+          Coming soon. Give your clients direct access to project updates, invoices, and deliverables in real-time.
+        </p>
+      </div>
+
+      {/* Client Portal Background Container */}
+      <div
+        className="relative mx-auto mb-20"
+        style={{
+          width: '1187px',
+          height: '955.75px',
+          borderRadius: '36px',
+          padding: '48px',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'flex-start',
+          opacity: 1,
+          backgroundColor: '#FFFFFF',
+          backgroundImage: 'linear-gradient(180deg, rgba(178, 247, 194, 0.48) 0%, rgba(253, 251, 247, 0.48) 100%)',
+          boxShadow: `
+            0px 2px 3px 0px rgba(181, 181, 181, 0.24),
+            0px 6px 6px 0px rgba(181, 181, 181, 0.20),
+            0px 14px 8px 0px rgba(181, 181, 181, 0.12),
+            0px 25px 10px 0px rgba(181, 181, 181, 0.04),
+            0px 39px 11px 0px rgba(181, 181, 181, 0.00)
+          `
+        }}
+      >
+        {/* Left Section */}
+        <div
+          style={{
+            width: '332px',
+            height: '859.75px',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'space-between',
+            opacity: 1,
+            alignSelf: 'flex-start',
+            position: 'relative',
+            flexShrink: 0
+          }}
+        >
+          {/* Top Content */}
+          <div
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              margin: 0,
+              padding: 0
+            }}
+          >
+            {/* Heading */}
+            <h2 style={{
+              fontFamily: 'Satoshi',
+              fontWeight: 500,
+              fontStyle: 'normal',
+              fontSize: '38.32px',
+              lineHeight: '104%',
+              letterSpacing: '0%',
+              color: '#0B191F',
+              margin: 0,
+              marginBottom: '24px',
+              padding: 0,
+              display: 'block'
+            }}>
+              Real-time Project Health
+            </h2>
+
+            {/* Description */}
+            <p style={{
+              fontFamily: 'Satoshi',
+              fontWeight: 500,
+              fontStyle: 'normal',
+              fontSize: '16px',
+              lineHeight: '26px',
+              letterSpacing: '0%',
+              color: '#606D76',
+              margin: 0,
+              marginBottom: '36px'
+            }}>
+              Never be surprised by a missed deadline. Track velocity and see instantly if a project is 'Project On Track' or 'At Risk.'
+            </p>
+
+            {/* Start for free Button */}
+            <button
+              style={{
+                width: '115px',
+                height: '32px',
+                borderRadius: '8px',
+                border: '1px solid #EDEDED',
+                padding: '8px 16px',
+                gap: '8px',
+                opacity: 1,
+                background: '#FFFFFF',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'pointer',
+                boxShadow: `
+                  0px 1px 1px 0px rgba(14, 34, 34, 0.03),
+                  0px 2px 1px 0px rgba(14, 34, 34, 0.02),
+                  0px 3px 1px 0px rgba(14, 34, 34, 0.01),
+                  0px 5px 1px 0px rgba(14, 34, 34, 0.00)
+                `
+              }}
+            >
+              <span style={{
+                fontFamily: 'Satoshi',
+                fontWeight: 700,
+                fontStyle: 'normal',
+                fontSize: '14px',
+                lineHeight: '100%',
+                letterSpacing: '0%',
+                color: '#0B191F',
+                whiteSpace: 'nowrap'
+              }}>
+                Start for free
+              </span>
+            </button>
+          </div>
+
+          {/* Bottom Disclaimer */}
+          <p style={{
+            fontFamily: 'Satoshi',
+            fontWeight: 500,
+            fontStyle: 'normal',
+            fontSize: '14px',
+            lineHeight: '20px',
+            letterSpacing: '0%',
+            color: '#606D76',
+            margin: 0
+          }}>
+            Disclaimer goes here
+          </p>
+        </div>
+
+        {/* Right Section - Dashboard Image */}
+        <div
+          style={{
+            width: '900px',
+            height: '1050px',
+            flexShrink: 0,
+            alignSelf: 'flex-start',
+            margin: 0,
+            marginTop: '-100px',
+            marginRight: '-60px',
+            padding: 0,
+            position: 'relative',
+            top: 0
+          }}
+        >
+          <img
+            src="/landing-page/client-portal-components/background.png"
+            alt="Client Portal Dashboard"
+            style={{
+              width: '100%',
+              height: '100%',
+              objectFit: 'contain',
+              display: 'block',
+              margin: 0,
+              padding: 0,
+              verticalAlign: 'top',
+              lineHeight: 0
+            }}
+          />
+        </div>
+      </div>
     </section>
   );
 };
