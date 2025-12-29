@@ -5,10 +5,13 @@ const Hero = () => {
   const [activeSection, setActiveSection] = useState(0);
   const [isHeroHovered, setIsHeroHovered] = useState(false);
   const [isInvoiceHovered, setIsInvoiceHovered] = useState(false);
-  const sectionRefs = [useRef<HTMLDivElement>(null), useRef<HTMLDivElement>(null), useRef<HTMLDivElement>(null)];
+  const sectionRef0 = useRef<HTMLDivElement>(null);
+  const sectionRef1 = useRef<HTMLDivElement>(null);
+  const sectionRef2 = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const observers = sectionRefs.map((ref, index) => {
+    const refs = [sectionRef0, sectionRef1, sectionRef2];
+    const observers = refs.map((ref, index) => {
       if (!ref.current) return null;
 
       const observer = new IntersectionObserver(
@@ -36,7 +39,7 @@ const Hero = () => {
         }
       });
     };
-  }, []);
+  }, [sectionRef0, sectionRef1, sectionRef2]);
   return (
     <section className="relative flex flex-col items-center w-full" style={{ paddingTop: '190px' }}>
       <div style={{ width: '776px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '24px' }}>
@@ -778,7 +781,7 @@ const Hero = () => {
         >
           {/* Section 1: Sync sprints to your ledger */}
           <div
-            ref={sectionRefs[0]}
+            ref={sectionRef0}
             style={{
               display: 'flex',
               gap: '16px',
@@ -851,7 +854,7 @@ const Hero = () => {
 
           {/* Section 2: Precision billing by project */}
           <div
-            ref={sectionRefs[1]}
+            ref={sectionRef1}
             style={{
               display: 'flex',
               gap: '16px',
@@ -924,7 +927,7 @@ const Hero = () => {
 
           {/* Section 3: From review to PDF */}
           <div
-            ref={sectionRefs[2]}
+            ref={sectionRef2}
             style={{
               display: 'flex',
               gap: '16px',
