@@ -6,6 +6,9 @@ import Login from './pages/Auth/Login';
 import Register from './pages/Auth/Register';
 import ForgotPassword from './pages/Auth/ForgotPassword';
 import ResetPassword from './pages/Auth/ResetPassword';
+import Loading from './pages/Auth/Loading';
+import EmailVerification from './pages/Auth/EmailVerification';
+import SignUp from './pages/Auth/SignUp';
 
 // Main pages
 import Landing from './pages/Landing';
@@ -25,6 +28,9 @@ const router = createBrowserRouter([
       { path: 'register', element: <Register /> },
       { path: 'forgot-password', element: <ForgotPassword /> },
       { path: 'reset-password', element: <ResetPassword /> },
+      { path: 'loading', element: <Loading /> },
+      { path: 'email-verification', element: <EmailVerification /> },
+      { path: 'sign-up', element: <SignUp /> },
       
       // Dashboard
       { path: 'dashboard', element: <Overview /> },
