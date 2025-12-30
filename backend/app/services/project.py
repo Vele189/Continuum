@@ -15,7 +15,7 @@ from app.schemas.project import (
 )
 from fastapi import HTTPException, status
 from sqlalchemy import func
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 
 
 class ProjectService:
@@ -462,7 +462,13 @@ class ProjectService:
         Fetch a project by ID and return a sanitized version for the Client Portal.
         Verifies that the project belongs to the given client.
         """
-        project = db.query(Project).filter(Project.id == project_id).first()
+        # Eagerly load members and their user relationships to avoid N+1 queries
+        project = (
+            db.query(Project)
+            .options(joinedload(Project.members).joinedload(ProjectMember.user))
+            .filter(Project.id == project_id)
+            .first()
+        )
         if not project:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Project not found")
 
@@ -480,6 +486,9 @@ class ProjectService:
                 name = f"{member.user.first_name} {member.user.last_name}"
                 member_names.append(name)
 
+        # Handle updated_at - use created_at if updated_at is None
+        updated_at = project.updated_at if project.updated_at is not None else project.created_at
+
         return ClientPortalProject(
             id=project.id,
             name=project.name,
@@ -488,5 +497,5 @@ class ProjectService:
             client_name=client.name,
             members=member_names,
             created_at=project.created_at,
-            updated_at=project.updated_at,
+            updated_at=updated_at,
         )
