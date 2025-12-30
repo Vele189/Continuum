@@ -9,6 +9,7 @@ from app.api.deps import (
     is_admin_user,
 )
 from app.dbmodels import User
+from app.schemas.digest import WeeklyDigest
 from app.schemas.milestone import Milestone
 from app.schemas.project import (
     Project,
@@ -20,7 +21,6 @@ from app.schemas.project import (
     ProjectStatistics,
     ProjectUpdate,
 )
-from app.schemas.digest import WeeklyDigest
 from app.services.digest import DigestService
 from app.services.milestone import MilestoneService
 from app.services.project import ProjectService
@@ -35,7 +35,7 @@ def create_project(
     project_in: ProjectCreate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
-    is_admin: User = Depends(get_current_active_admin),
+    is_admin: User = Depends(get_current_active_admin),  # pylint: disable=unused-argument
 ):
     """
     Create a new project.
@@ -104,8 +104,8 @@ def update_project(
 def delete_project(
     project_id: int,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
-    is_admin: User = Depends(get_current_active_admin),
+    current_user: User = Depends(get_current_user),  # pylint: disable=unused-argument
+    is_admin: User = Depends(get_current_active_admin),  # pylint: disable=unused-argument
 ):
     """
     Delete a project.
@@ -122,7 +122,7 @@ def add_member(
     project_id: int,
     member_in: ProjectMemberCreate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_active_admin),
+    current_user: User = Depends(get_current_active_admin),  # pylint: disable=unused-argument
 ):
     """
     Add a member to a project.
@@ -137,7 +137,7 @@ def remove_member(
     project_id: int,
     user_id: int,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_active_admin),
+    current_user: User = Depends(get_current_active_admin),  # pylint: disable=unused-argument
 ):
     """
     Remove a member from a project.
@@ -170,8 +170,8 @@ def get_members(
 def get_project_stats(
     project_id: int,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
-    member: ProjectMember = Depends(get_current_project_member),
+    current_user: User = Depends(get_current_user),  # pylint: disable=unused-argument
+    member: ProjectMember = Depends(get_current_project_member),  # pylint: disable=unused-argument
 ):
     """
     Get project statistics.
@@ -186,8 +186,8 @@ def get_project_stats(
 def get_project_health(
     project_id: int,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
-    member: ProjectMember = Depends(get_current_project_member),
+    current_user: User = Depends(get_current_user),  # pylint: disable=unused-argument
+    member: ProjectMember = Depends(get_current_project_member),  # pylint: disable=unused-argument
 ):
     """
     Get project health.

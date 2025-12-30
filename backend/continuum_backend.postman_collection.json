@@ -1336,6 +1336,51 @@
 						"description": "Get project health indicators (overdue tasks, inactive members) - NOT IMPLEMENTED YET"
 					},
 					"response": []
+				},
+				{
+					"name": "Get Project Digest",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/projects/:project_id/digest?week_start=2024-01-01",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"projects",
+								":project_id",
+								"digest"
+							],
+							"query": [
+								{
+									"key": "week_start",
+									"value": "2024-01-01",
+									"description": "Start of the week (YYYY-MM-DD format)"
+								}
+							],
+							"variable": [
+								{
+									"key": "project_id",
+									"value": "1"
+								}
+							]
+						},
+						"description": "Generate a weekly project digest summarizing work completed, time logged, git activity, and high-level signals. Returns completed tasks, total hours logged (with breakdown per user), commits, milestone progress placeholder, and risks/delays placeholder. Requires project membership (or admin). Query parameter week_start is required (YYYY-MM-DD format)."
+					},
+					"response": []
 				}
 			],
 			"description": "Project management endpoints"
