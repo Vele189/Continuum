@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 from typing import List, Optional
 
-from app.dbmodels import Client, LoggedHour, Project, ProjectMember, Task, User, GitContribution
+from app.dbmodels import Client, LoggedHour, Project, ProjectMember, Task, User, GitContribution, Milestone
 from app.schemas.project import (
     HealthFlag,
     ProjectCreate,
@@ -14,6 +14,9 @@ from app.schemas.project import (
     ProjectProgress,
     ActivityItem
 )
+from app.services.milestone import MilestoneService
+from app.schemas.project import ClientMilestone
+
 from fastapi import HTTPException, status
 from sqlalchemy import func
 from sqlalchemy.orm import Session
@@ -453,7 +456,7 @@ class ProjectService:
     @staticmethod
     def get_project_progress(db: Session,project_id: int,client: Client) -> ProjectProgress:
         """
-        
+        Get project progress details.
         """
         #Access Control
 
@@ -500,7 +503,7 @@ class ProjectService:
         db.query(LoggedHour)
         .filter(LoggedHour.project_id == project.id)
         .order_by(LoggedHour.created_at.desc())
-        .limit(20)
+        .limit(10)
         .all()
         )
 
@@ -508,7 +511,7 @@ class ProjectService:
         db.query(GitContribution)
         .filter(GitContribution.project_id == project.id)
         .order_by(GitContribution.timestamp.desc())
-        .limit(20)
+        .limit(10)
         .all()
         )
 
@@ -526,5 +529,25 @@ class ProjectService:
 
         #Milestones
 
+        milestones = MilestoneService.get_by_project(db, project.id)
+        client_milestones = [
+            ClientMilestone(
+                name=ms.name,
+                status=ms.status,
+                due_date=ms.due_date,
+                completion_percentage=MilestoneService.calculate_progress(db, ms.id).completion_percentage
+            ) for ms in milestones
+        ]
         
+        milestones=client_milestones
 
+
+        return ProjectProgress(
+            project_id=project_id,
+            total_hours=total_hours,
+            total_tasks=total_tasks,
+            completed_tasks=completed_tasks,
+            progress_percentage=progress_percentage,
+            recent_activity=logged_hours_items + git_activity_items,
+            milestones=milestones
+        )
