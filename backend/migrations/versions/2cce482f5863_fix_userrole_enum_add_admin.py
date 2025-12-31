@@ -8,7 +8,6 @@ Create Date: 2025-12-30 23:21:37.327374
 
 from typing import Sequence, Union
 
-import sqlalchemy as sa
 from alembic import op
 
 # revision identifiers, used by Alembic.
@@ -19,10 +18,13 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
-    """Upgrade schema."""
-    pass
+    """Add ADMIN to userrole enum."""
+    # Add ADMIN value to the existing userrole enum
+    op.execute("ALTER TYPE userrole ADD VALUE IF NOT EXISTS 'ADMIN'")
 
 
 def downgrade() -> None:
     """Downgrade schema."""
-    pass
+    # Note: PostgreSQL doesn't support removing enum values easily
+    # This would require recreating the enum, which is complex
+    # For now, we'll leave ADMIN in the enum even on downgrade

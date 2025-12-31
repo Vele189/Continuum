@@ -45,3 +45,9 @@ venv/
 # Test results
 test_results.json
 *.test_results.json
+
+# Coverage reports
+coverage.xml
+.coverage
+htmlcov/
+*.cover

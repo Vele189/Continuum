@@ -51,9 +51,9 @@ info = json.loads(result.stdout.strip())
 api_key = info["api_key"]
 project_id = info["project_id"]
 
-print(f"Testing Client Portal with:")
-print(f"  API Key: {api_key[:20]}...")
-print(f"  Project ID: {project_id}\n")
+print("Testing Client Portal with:")
+print(f"  Project ID: {project_id}")
+print("  API Key: [REDACTED]\n")
 
 # Test 1: Valid request
 print("Test 1: Valid client token + own project")

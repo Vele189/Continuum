@@ -1,6 +1,6 @@
 from app.api import deps
 from app.api.deps import get_current_user
-from app.database import UserRole
+from app.dbmodels import UserRole
 from app.main import app
 from fastapi.testclient import TestClient
 

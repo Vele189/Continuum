@@ -5,7 +5,7 @@ Tests all endpoints and reports failures.
 """
 import json
 import sys
-from typing import Any, Dict, List, Optional
+from typing import Dict, Optional
 
 try:
     import httpx
@@ -30,7 +30,11 @@ except ImportError:
                     return type(
                         "Response",
                         (),
-                        {"status_code": r.status_code, "text": r.text, "json": lambda: r.json()},
+                        {
+                            "status_code": r.status_code,
+                            "text": r.text,
+                            "json": lambda: r.json(),
+                        },  # noqa: W0108
                     )()
 
                 def post(self, url, headers=None, json=None, data=None, files=None):
@@ -45,7 +49,11 @@ except ImportError:
                     return type(
                         "Response",
                         (),
-                        {"status_code": r.status_code, "text": r.text, "json": lambda: r.json()},
+                        {
+                            "status_code": r.status_code,
+                            "text": r.text,
+                            "json": lambda: r.json(),
+                        },  # noqa: W0108
                     )()
 
                 def put(self, url, headers=None, json=None):
@@ -53,7 +61,11 @@ except ImportError:
                     return type(
                         "Response",
                         (),
-                        {"status_code": r.status_code, "text": r.text, "json": lambda: r.json()},
+                        {
+                            "status_code": r.status_code,
+                            "text": r.text,
+                            "json": lambda: r.json(),
+                        },  # noqa: W0108
                     )()
 
                 def patch(self, url, headers=None, json=None, params=None):
@@ -63,7 +75,11 @@ except ImportError:
                     return type(
                         "Response",
                         (),
-                        {"status_code": r.status_code, "text": r.text, "json": lambda: r.json()},
+                        {
+                            "status_code": r.status_code,
+                            "text": r.text,
+                            "json": lambda: r.json(),
+                        },  # noqa: W0108
                     )()
 
                 def delete(self, url, headers=None, params=None):
@@ -71,7 +87,11 @@ except ImportError:
                     return type(
                         "Response",
                         (),
-                        {"status_code": r.status_code, "text": r.text, "json": lambda: r.json()},
+                        {
+                            "status_code": r.status_code,
+                            "text": r.text,
+                            "json": lambda: r.json(),
+                        },  # noqa: W0108
                     )()
 
     except ImportError:
@@ -136,18 +156,17 @@ def make_request(
     with httpx.Client(timeout=30.0) as client:
         if method == "GET":
             return client.get(url, headers=headers, params=params)
-        elif method == "POST":
+        if method == "POST":
             if files:
                 return client.post(url, headers=headers, data=json_data, files=files)
             return client.post(url, headers=headers, json=json_data, params=params)
-        elif method == "PUT":
+        if method == "PUT":
             return client.put(url, headers=headers, json=json_data)
-        elif method == "PATCH":
+        if method == "PATCH":
             return client.patch(url, headers=headers, json=json_data, params=params)
-        elif method == "DELETE":
+        if method == "DELETE":
             return client.delete(url, headers=headers, params=params)
-        else:
-            raise ValueError(f"Unsupported method: {method}")
+        raise ValueError(f"Unsupported method: {method}")
 
 
 def test_health_check():
@@ -157,9 +176,8 @@ def test_health_check():
         if response.status_code == 200:
             log_result("/health", "GET", "PASSED")
             return True
-        else:
-            log_result("/health", "GET", "FAILED", f"Status {response.status_code}")
-            return False
+        log_result("/health", "GET", "FAILED", f"Status {response.status_code}")
+        return False
     except Exception as e:
         log_result("/health", "GET", "FAILED", str(e))
         return False
@@ -167,7 +185,6 @@ def test_health_check():
 
 def test_register_user():
     """Test user registration"""
-    global access_token, refresh_token
     try:
         data = {
             "email": TEST_EMAIL,
@@ -180,18 +197,17 @@ def test_register_user():
         if response.status_code in [200, 201]:
             log_result("/api/v1/users/", "POST", "PASSED")
             return True
-        elif response.status_code == 400:
+        if response.status_code == 400:
             # User might already exist, try login instead
             log_result("/api/v1/users/", "POST", "SKIPPED", "User may already exist")
             return test_login()
-        else:
-            log_result(
-                "/api/v1/users/",
-                "POST",
-                "FAILED",
-                f"Status {response.status_code}: {response.text}",
-            )
-            return False
+        log_result(
+            "/api/v1/users/",
+            "POST",
+            "FAILED",
+            f"Status {response.status_code}: {response.text}",
+        )
+        return False
     except Exception as e:
         log_result("/api/v1/users/", "POST", "FAILED", str(e))
         return False
@@ -205,18 +221,17 @@ def test_login():
         response = make_request("POST", f"{BASE_URL}/api/v1/auth/login", json_data=data)
         if response.status_code == 200:
             json_data = response.json()
-            access_token = json_data.get("access_token", "")
-            refresh_token = json_data.get("refresh_token", "")
+            access_token = json_data.get("access_token", "")  # noqa: PLW0602
+            refresh_token = json_data.get("refresh_token", "")  # noqa: PLW0602
             log_result("/api/v1/auth/login", "POST", "PASSED")
             return True
-        else:
-            log_result(
-                "/api/v1/auth/login",
-                "POST",
-                "FAILED",
-                f"Status {response.status_code}: {response.text}",
-            )
-            return False
+        log_result(
+            "/api/v1/auth/login",
+            "POST",
+            "FAILED",
+            f"Status {response.status_code}: {response.text}",
+        )
+        return False
     except Exception as e:
         log_result("/api/v1/auth/login", "POST", "FAILED", str(e))
         return False
@@ -287,7 +302,7 @@ def test_endpoint(item: Dict, base_path: str = ""):
         if raw_body:
             try:
                 json_data = json.loads(raw_body)
-            except:
+            except (json.JSONDecodeError, ValueError):
                 pass
 
     # Handle authentication
@@ -349,7 +364,7 @@ def test_all_endpoints():
         collection = None
         for path in collection_paths:
             try:
-                with open(path, "r") as f:
+                with open(path, "r", encoding="utf-8") as f:
                     collection = json.load(f)
                     break
             except FileNotFoundError:
@@ -382,7 +397,7 @@ def test_all_endpoints():
                 test_endpoint(item)
 
     except FileNotFoundError:
-        print(f"ERROR: Postman collection file not found")
+        print("ERROR: Postman collection file not found")
     except Exception as e:
         print(f"ERROR: {str(e)}")
 
@@ -410,7 +425,7 @@ def print_summary():
     ]
     for path in result_paths:
         try:
-            with open(path, "w") as f:
+            with open(path, "w", encoding="utf-8") as f:
                 json.dump(results, f, indent=2)
             print(f"\nDetailed results saved to {path}")
             break
