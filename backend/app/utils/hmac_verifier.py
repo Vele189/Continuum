@@ -4,8 +4,9 @@ HMAC verification utilities for webhook security.
 Provides secure HMAC SHA-256 signature verification for GitHub and Bitbucket webhooks.
 Uses hmac.compare_digest to prevent timing attacks.
 """
-import hmac
+
 import hashlib
+import hmac
 from typing import Optional
 
 from app.utils.logger import get_logger
@@ -14,9 +15,7 @@ logger = get_logger(__name__)
 
 
 def verify_github_signature(
-    payload_body: bytes,
-    signature_header: Optional[str],
-    secret: str
+    payload_body: bytes, signature_header: Optional[str], secret: str
 ) -> bool:
     """
     Verify GitHub webhook signature using HMAC SHA-256.
@@ -50,9 +49,7 @@ def verify_github_signature(
 
         # Compute HMAC SHA-256
         computed_signature = hmac.new(
-            secret.encode('utf-8'),
-            payload_body,
-            hashlib.sha256
+            secret.encode("utf-8"), payload_body, hashlib.sha256
         ).hexdigest()
 
         # Use compare_digest to prevent timing attacks
@@ -64,9 +61,7 @@ def verify_github_signature(
 
 
 def verify_bitbucket_signature(
-    payload_body: bytes,
-    signature_header: Optional[str],
-    secret: str
+    payload_body: bytes, signature_header: Optional[str], secret: str
 ) -> bool:
     """
     Verify Bitbucket webhook signature using HMAC SHA-256.
@@ -96,9 +91,7 @@ def verify_bitbucket_signature(
 
         # Compute HMAC SHA-256
         computed_signature = hmac.new(
-            secret.encode('utf-8'),
-            payload_body,
-            hashlib.sha256
+            secret.encode("utf-8"), payload_body, hashlib.sha256
         ).hexdigest()
 
         # Use compare_digest to prevent timing attacks

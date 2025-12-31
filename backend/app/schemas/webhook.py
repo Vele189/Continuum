@@ -4,20 +4,24 @@ Webhook payload schemas for Git providers.
 These schemas validate the structure of incoming webhook payloads
 from GitHub, GitLab, and Bitbucket.
 """
-from typing import Optional, List, Dict, Any
+
 from datetime import datetime
+from typing import Any, Dict, List, Optional
+
 from pydantic import BaseModel, Field, field_validator
 
 
 # Common schemas
 class CommitAuthor(BaseModel):
     """Commit author information."""
+
     name: str
     email: str
 
 
 class CommitInfo(BaseModel):
     """Standardized commit information."""
+
     hash: str
     message: str
     branch: str
@@ -30,6 +34,7 @@ class CommitInfo(BaseModel):
 # GitHub schemas
 class GitHubCommit(BaseModel):
     """GitHub commit object."""
+
     id: str = Field(alias="sha")
     message: str
     author: Optional[Dict[str, Any]] = None
@@ -48,6 +53,7 @@ class GitHubCommit(BaseModel):
 
 class GitHubPushPayload(BaseModel):
     """GitHub push event payload."""
+
     ref: str  # e.g., "refs/heads/main"
     commits: List[GitHubCommit]
     repository: Dict[str, Any]
@@ -65,6 +71,7 @@ class GitHubPushPayload(BaseModel):
 # GitLab schemas
 class GitLabCommit(BaseModel):
     """GitLab commit object."""
+
     id: str
     message: str
     author_name: str
@@ -83,6 +90,7 @@ class GitLabCommit(BaseModel):
 
 class GitLabPushPayload(BaseModel):
     """GitLab push event payload."""
+
     ref: str  # e.g., "refs/heads/main"
     commits: List[GitLabCommit]
     project: Optional[Dict[str, Any]] = None
@@ -100,6 +108,7 @@ class GitLabPushPayload(BaseModel):
 # Bitbucket schemas
 class BitbucketCommit(BaseModel):
     """Bitbucket commit object."""
+
     hash: str
     message: str
     author: Optional[Dict[str, Any]] = None
@@ -116,6 +125,7 @@ class BitbucketCommit(BaseModel):
 
 class BitbucketPushPayload(BaseModel):
     """Bitbucket push event payload."""
+
     push: Optional[Dict[str, Any]] = None
     repository: Optional[Dict[str, Any]] = None
 

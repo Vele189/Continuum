@@ -41,3 +41,7 @@ venv/
 *.db-journal
 *.db-shm
 *.db-wal
+
+# Test results
+test_results.json
+*.test_results.json
