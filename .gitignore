@@ -45,6 +45,11 @@ venv/
 # Test results
 test_results.json
 *.test_results.json
+TEST_RESULTS_SUMMARY.md
+
+# Manual/integration test files (not pytest tests)
+backend/test_*.py
+backend/test_*.md
 
 # Coverage reports
 coverage.xml
