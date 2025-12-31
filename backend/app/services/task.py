@@ -1,13 +1,9 @@
 from typing import List, Optional
 
+from app.dbmodels import Project, ProjectMember, Task, User
+from app.schemas.task import TaskCreate, TaskUpdate
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
-
-from app.models.task import Task
-from app.models.project import Project
-from app.models.user import User
-from app.database import ProjectMember
-from app.schemas.task import TaskCreate, TaskUpdate
 
 
 def validate_project_membership(db: Session, project_id: int, user_id: int) -> bool:
@@ -16,10 +12,11 @@ def validate_project_membership(db: Session, project_id: int, user_id: int) -> b
 
     Returns True if the user is a member of the project, False otherwise.
     """
-    member = db.query(ProjectMember).filter(
-        ProjectMember.project_id == project_id,
-        ProjectMember.user_id == user_id
-    ).first()
+    member = (
+        db.query(ProjectMember)
+        .filter(ProjectMember.project_id == project_id, ProjectMember.user_id == user_id)
+        .first()
+    )
     return member is not None
 
 
@@ -34,7 +31,7 @@ def get_multi(
     limit: int = 100,
     project_id: Optional[int] = None,
     status: Optional[str] = None,
-    assigned_to: Optional[int] = None
+    assigned_to: Optional[int] = None,
 ) -> List[Task]:
     """Get multiple tasks with optional filters."""
     query = db.query(Task)
@@ -59,7 +56,8 @@ def create(db: Session, obj_in: TaskCreate) -> Task:
         description=obj_in.description,
         status=obj_in.status,
         project_id=obj_in.project_id,
-        assigned_to=obj_in.assigned_to
+        assigned_to=obj_in.assigned_to,
+        due_date=obj_in.due_date,
     )
     db.add(db_obj)
     db.commit()
@@ -114,10 +112,7 @@ def assign(db: Session, task_id: int, user_id: Optional[int]) -> Task:
             raise HTTPException(status_code=404, detail="User not found")
         # Validate user is member of the task's project
         if not validate_project_membership(db, task.project_id, user_id):
-            raise HTTPException(
-                status_code=403,
-                detail="User is not a member of this project"
-            )
+            raise HTTPException(status_code=403, detail="User is not a member of this project")
 
     task.assigned_to = user_id
     db.add(task)

@@ -1,10 +1,20 @@
-from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
+from datetime import datetime
+from typing import Optional
 
 from app.api import deps
-from app.schemas.user import UserCreate, UserUpdate, User, PasswordChangeRequest
+from app.dbmodels import User as UserModel
+from app.schemas.user import (
+    PasswordChangeRequest,
+    User,
+    UserCreate,
+    UserHoursResponse,
+    UserProfile,
+    UserProjects,
+    UserUpdate,
+)
 from app.services import user as user_service
-from app.database import User as UserModel
+from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy.orm import Session
 
 router = APIRouter()
 
@@ -86,10 +96,7 @@ def change_password(
     and a new password that meets security requirements.
     """
     updated_user = user_service.change_password(
-        db,
-        current_user,
-        password_change.current_password,
-        password_change.new_password
+        db, current_user, password_change.current_password, password_change.new_password
     )
 
     if not updated_user:
@@ -99,3 +106,48 @@ def change_password(
         )
 
     return {"message": "Password updated successfully"}
+
+
+@router.get("/me/projects", response_model=UserProjects)
+def get_user_projects(
+    current_user: UserModel = Depends(deps.get_current_user),
+    db: Session = Depends(deps.get_db),
+):
+    """
+    Get current user's projects.
+
+    Returns a list of projects that the current user is a member of.
+    """
+    return user_service.get_user_projects(db, current_user)
+
+
+@router.get("/me/hours", response_model=UserHoursResponse)
+def get_user_hours(
+    current_user: UserModel = Depends(deps.get_current_user),
+    db: Session = Depends(deps.get_db),
+    start_date: Optional[datetime] = None,
+    end_date: Optional[datetime] = None,
+):
+    """
+    Get current user's logged hours grouped by project.
+
+    Optional query parameters:
+    - start_date: Filter hours from this date (ISO format: YYYY-MM-DD)
+    - end_date: Filter hours until this date (ISO format: YYYY-MM-DD)
+    """
+    return user_service.get_user_hours(db, current_user, start_date, end_date)
+
+
+@router.get("/{id}/profile", response_model=UserProfile)
+def get_user_profile(
+    id: int,
+    db: Session = Depends(deps.get_db),
+    current_user: UserModel = Depends(deps.get_current_user),
+):
+    """
+    Get comprehensive user profile including skills, contributions, and activity patterns.
+
+    - **Permissions**: Users can view their own profile, admins and project managers can view any profile.
+    - **Returns**: Aggregated user data including logged hours, commits, and project involvement.
+    """
+    return user_service.get_user_profile(db, user_id=id, current_user=current_user)

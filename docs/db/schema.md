@@ -203,10 +203,10 @@ The structure is centered on the **Project**, which acts as the core hub for all
 
 * **Assumptions:** We assume all time and date tracking should be **timezone-aware** (`DateTime(timezone=True)`). We assume `hourly_rate` is always a positive float (validation handled at the application layer).
 * **Future Extensibility:** The use of the `meta` field (`JSON` or `TEXT`) in `system_logs` allows for adding any future diagnostic data without requiring schema migrations. The `role` string in `project_members` allows the application to define new access levels freely.
-* **Trade-offs (SQLite):** Using SQLite (flat file) is a trade-off for simplicity and easy startup (no external server required). However, it limits concurrency and is not suitable for high-scale applications. The use of **SQLAlchemy's ORM** helps mitigate SQLite's limited `ALTER TABLE` commands by handling complex schema changes automatically during migrations.
+* **Trade-offs:** The use of **SQLAlchemy's ORM** helps handle complex schema changes automatically during migrations. PostgreSQL provides robust support for concurrent operations and production-grade performance.
 
 ### Constraints intentionally omitted (and why)
 
-*   **`ON UPDATE CASCADE`**: SQLite has limited support for this, and primary keys (`id`) in this system are immutable auto-incrementing integers. Changing a primary key is not a supported operation in our application logic, so cascading updates are unnecessary.
+*   **`ON UPDATE CASCADE`**: Primary keys (`id`) in this system are immutable auto-incrementing integers. Changing a primary key is not a supported operation in our application logic, so cascading updates are unnecessary.
 *   **Complex `CHECK` Constraints (e.g., `hours > 0`)**: While the database supports `CHECK` constraints, we have omitted them in the DDL in favor of validation at the Pydantic/Application layer (`app.schemas`). This allows for more user-friendly error messages and keeps the database schema portable and simple.
 *   **Database-level Enum Constraints**: We use `VARCHAR` for status fields (`projects.status`, `tasks.status`) instead of native database ENUMs. This avoids migration complexities when adding new status types, as the valid values are strictly enforced by the application code (Python Enums).

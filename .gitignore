@@ -41,3 +41,39 @@ venv/
 *.db-journal
 *.db-shm
 *.db-wal
+
+# Test results
+test_results.json
+*.test_results.json
+TEST_RESULTS_SUMMARY.md
+
+# Test files and directories
+**/tests/
+**/test_*.py
+**/test_*.md
+**/test_*.ts
+**/test_*.tsx
+**/test_*.js
+**/test_*.jsx
+**/*.test.py
+**/*.test.ts
+**/*.test.tsx
+**/*.test.js
+**/*.test.jsx
+**/*.spec.py
+**/*.spec.ts
+**/*.spec.tsx
+**/*.spec.js
+**/*.spec.jsx
+**/__tests__/
+**/test-results/
+**/playwright-report/
+**/coverage/
+**.coverage
+pytest.ini
+
+# Coverage reports
+coverage.xml
+.coverage
+htmlcov/
+*.cover

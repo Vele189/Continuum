@@ -159,7 +159,7 @@ Continuum/
 |----------|-------------------------------------|
 | Frontend | React, TypeScript, Vite, Tailwind   |
 | Backend  | FastAPI, Python 3.12, SQLAlchemy    |
-| Database | SQLite (PostgreSQL-ready)           |
+| Database | PostgreSQL                          |
 | DevOps   | Docker, Docker Compose              |
 
 ---

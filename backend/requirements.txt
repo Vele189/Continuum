@@ -1,6 +1,7 @@
 fastapi
 uvicorn
 pytest
+pytest-cov
 httpx
 pre-commit
 sqlalchemy
@@ -11,3 +12,12 @@ python-multipart
 python-jose[cryptography]
 passlib[bcrypt]
 bcrypt==4.0.1
+alembic
+psycopg2-binary>=2.9
+sqlmodel
+pylint
+mypy
+black
+isort
+weasyprint
+reportlab

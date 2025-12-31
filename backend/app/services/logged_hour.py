@@ -1,12 +1,11 @@
-from typing import Optional, List
 from datetime import datetime
+from typing import List, Optional
 
-from sqlalchemy.orm import Session
-from sqlalchemy import and_
-from fastapi import HTTPException, status
-
-from app.database import LoggedHour, Task, Project, ProjectMember, User, UserRole
+from app.dbmodels import LoggedHour, Project, ProjectMember, Task, User, UserRole
 from app.schemas.logged_hour import LoggedHourCreate, LoggedHourUpdate
+from fastapi import HTTPException, status
+from sqlalchemy import and_
+from sqlalchemy.orm import Session
 
 
 def _is_admin(user: User) -> bool:
@@ -14,11 +13,7 @@ def _is_admin(user: User) -> bool:
     return user.role in {UserRole.ADMIN, UserRole.PROJECTMANAGER}
 
 
-def create(
-    db: Session,
-    obj_in: LoggedHourCreate,
-    user_id: int
-) -> LoggedHour:
+def create(db: Session, obj_in: LoggedHourCreate, user_id: int) -> LoggedHour:
     """
     Create a new logged hour entry.
 
@@ -32,63 +27,64 @@ def create(
         # Check if task exists and user is assigned to it
         task = db.query(Task).filter(Task.id == obj_in.task_id).first()
         if not task:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Task not found"
-            )
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Task not found")
 
         # Verify task belongs to the specified project
         if task.project_id != obj_in.project_id:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Task does not belong to the specified project"
+                detail="Task does not belong to the specified project",
             )
 
         # Check if user is assigned to the task
         if task.assigned_to != user_id:
             # Also check if user is a project member
             # (they can log hours even if not directly assigned)
-            is_member = db.query(ProjectMember).filter(
-                and_(
-                    ProjectMember.project_id == obj_in.project_id,
-                    ProjectMember.user_id == user_id
+            is_member = (
+                db.query(ProjectMember)
+                .filter(
+                    and_(
+                        ProjectMember.project_id == obj_in.project_id,
+                        ProjectMember.user_id == user_id,
+                    )
                 )
-            ).first()
+                .first()
+            )
             if not is_member:
                 raise HTTPException(
                     status_code=status.HTTP_403_FORBIDDEN,
-                    detail="You are not assigned to this task or a member of this project"
+                    detail="You are not assigned to this task or a member of this project",
                 )
     else:
         # Only project_id provided - check if user is a project member
-        is_member = db.query(ProjectMember).filter(
-            and_(
-                ProjectMember.project_id == obj_in.project_id,
-                ProjectMember.user_id == user_id
+        is_member = (
+            db.query(ProjectMember)
+            .filter(
+                and_(
+                    ProjectMember.project_id == obj_in.project_id, ProjectMember.user_id == user_id
+                )
             )
-        ).first()
+            .first()
+        )
         if not is_member:
             raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="You are not a member of this project"
+                status_code=status.HTTP_403_FORBIDDEN, detail="You are not a member of this project"
             )
 
     # Verify project exists
     project = db.query(Project).filter(Project.id == obj_in.project_id).first()
     if not project:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Project not found"
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Project not found")
 
     # Create the logged hour entry
+    # Map schema fields to model fields: description -> note, date -> logged_at
     db_obj = LoggedHour(
         user_id=user_id,
         task_id=obj_in.task_id,
         project_id=obj_in.project_id,
         hours=float(obj_in.hours),
-        description=obj_in.description,
-        date=obj_in.date
+        note=obj_in.description,
+        logged_at=obj_in.date,
     )
     db.add(db_obj)
     db.commit()
@@ -96,11 +92,7 @@ def create(
     return db_obj
 
 
-def get_by_id(
-    db: Session,
-    logged_hour_id: int,
-    current_user: User
-) -> Optional[LoggedHour]:
+def get_by_id(db: Session, logged_hour_id: int, current_user: User) -> Optional[LoggedHour]:
     """
     Retrieve a logged hour by ID.
 
@@ -119,7 +111,7 @@ def get_by_id(
     if not (is_owner or _is_admin(current_user)):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="You do not have permission to view this logged hour entry"
+            detail="You do not have permission to view this logged hour entry",
         )
 
     return logged_hour
@@ -134,7 +126,7 @@ def list_logged_hours(
     start_date: Optional[datetime] = None,
     end_date: Optional[datetime] = None,
     skip: int = 0,
-    limit: int = 100
+    limit: int = 100,
 ) -> List[LoggedHour]:
     """
     List logged hours with filters.
@@ -164,19 +156,16 @@ def list_logged_hours(
         query = query.filter(LoggedHour.project_id == project_id)
 
     if start_date is not None:
-        query = query.filter(LoggedHour.date >= start_date)
+        query = query.filter(LoggedHour.logged_at >= start_date)
 
     if end_date is not None:
-        query = query.filter(LoggedHour.date <= end_date)
+        query = query.filter(LoggedHour.logged_at <= end_date)
 
     return query.offset(skip).limit(limit).all()
 
 
 def update(
-    db: Session,
-    logged_hour_id: int,
-    obj_in: LoggedHourUpdate,
-    current_user: User
+    db: Session, logged_hour_id: int, obj_in: LoggedHourUpdate, current_user: User
 ) -> LoggedHour:
     """
     Update a logged hour entry.
@@ -188,74 +177,74 @@ def update(
 
     if not logged_hour:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Logged hour entry not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="Logged hour entry not found"
         )
 
     # Check if user is the owner
     if logged_hour.user_id != current_user.id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="You can only update your own logged hour entries"
+            detail="You can only update your own logged hour entries",
         )
 
     # Validate task/project if being updated
     if obj_in.task_id is not None or obj_in.project_id is not None:
-        new_task_id = (
-            obj_in.task_id if obj_in.task_id is not None else logged_hour.task_id
-        )
+        new_task_id = obj_in.task_id if obj_in.task_id is not None else logged_hour.task_id
         new_project_id = (
-            obj_in.project_id
-            if obj_in.project_id is not None
-            else logged_hour.project_id
+            obj_in.project_id if obj_in.project_id is not None else logged_hour.project_id
         )
 
         # If task is provided, verify it belongs to the project
         if new_task_id:
             task = db.query(Task).filter(Task.id == new_task_id).first()
             if not task:
-                raise HTTPException(
-                    status_code=status.HTTP_404_NOT_FOUND,
-                    detail="Task not found"
-                )
+                raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Task not found")
             if task.project_id != new_project_id:
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
-                    detail="Task does not belong to the specified project"
+                    detail="Task does not belong to the specified project",
                 )
 
         # Verify user still has permission (task assignment or project membership)
         if new_task_id:
             task = db.query(Task).filter(Task.id == new_task_id).first()
             if task.assigned_to != current_user.id:
-                is_member = db.query(ProjectMember).filter(
-                    and_(
-                        ProjectMember.project_id == new_project_id,
-                        ProjectMember.user_id == current_user.id
+                is_member = (
+                    db.query(ProjectMember)
+                    .filter(
+                        and_(
+                            ProjectMember.project_id == new_project_id,
+                            ProjectMember.user_id == current_user.id,
+                        )
                     )
-                ).first()
+                    .first()
+                )
                 if not is_member:
                     raise HTTPException(
                         status_code=status.HTTP_403_FORBIDDEN,
-                        detail="You are not assigned to this task or a member of this project"
+                        detail="You are not assigned to this task or a member of this project",
                     )
         else:
-            is_member = db.query(ProjectMember).filter(
-                and_(
-                    ProjectMember.project_id == new_project_id,
-                    ProjectMember.user_id == current_user.id
+            is_member = (
+                db.query(ProjectMember)
+                .filter(
+                    and_(
+                        ProjectMember.project_id == new_project_id,
+                        ProjectMember.user_id == current_user.id,
+                    )
                 )
-            ).first()
+                .first()
+            )
             if not is_member:
                 raise HTTPException(
                     status_code=status.HTTP_403_FORBIDDEN,
-                    detail="You are not a member of this project"
+                    detail="You are not a member of this project",
                 )
 
     # Update fields
     update_data = obj_in.model_dump(exclude_unset=True)
     for field, value in update_data.items():
-        if field == 'hours' and value is not None:
+        if field == "hours" and value is not None:
             setattr(logged_hour, field, float(value))
         else:
             setattr(logged_hour, field, value)
@@ -266,11 +255,7 @@ def update(
     return logged_hour
 
 
-def delete(
-    db: Session,
-    logged_hour_id: int,
-    current_user: User
-) -> bool:
+def delete(db: Session, logged_hour_id: int, current_user: User) -> bool:
     """
     Delete a logged hour entry.
 
@@ -282,8 +267,7 @@ def delete(
 
     if not logged_hour:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Logged hour entry not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="Logged hour entry not found"
         )
 
     # Check permissions: owner or admin
@@ -292,7 +276,7 @@ def delete(
     if not (is_owner or _is_admin(current_user)):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="You do not have permission to delete this logged hour entry"
+            detail="You do not have permission to delete this logged hour entry",
         )
 
     db.delete(logged_hour)
@@ -300,11 +284,7 @@ def delete(
     return True
 
 
-def get_total_hours_for_task(
-    db: Session,
-    task_id: int,
-    current_user: User
-) -> dict:
+def get_total_hours_for_task(db: Session, task_id: int, current_user: User) -> dict:
     """
     Get total hours logged for a specific task.
 
@@ -315,25 +295,27 @@ def get_total_hours_for_task(
     # Verify task exists
     task = db.query(Task).filter(Task.id == task_id).first()
     if not task:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Task not found"
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Task not found")
 
     # Check permissions: user must be assigned to task, project member, or admin
     is_admin = _is_admin(current_user)
     is_assigned = task.assigned_to == current_user.id
-    is_member = db.query(ProjectMember).filter(
-        and_(
-            ProjectMember.project_id == task.project_id,
-            ProjectMember.user_id == current_user.id
+    is_member = (
+        db.query(ProjectMember)
+        .filter(
+            and_(
+                ProjectMember.project_id == task.project_id,
+                ProjectMember.user_id == current_user.id,
+            )
         )
-    ).first() is not None
+        .first()
+        is not None
+    )
 
     if not (is_admin or is_assigned or is_member):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="You do not have permission to view hours for this task"
+            detail="You do not have permission to view hours for this task",
         )
 
     # Get all logged hours for this task
@@ -347,24 +329,17 @@ def get_total_hours_for_task(
         for lh in logged_hours:
             user_id = lh.user_id
             if user_id not in breakdown_per_user:
-                breakdown_per_user[user_id] = {
-                    "user_id": user_id,
-                    "total_hours": 0.0
-                }
+                breakdown_per_user[user_id] = {"user_id": user_id, "total_hours": 0.0}
             breakdown_per_user[user_id]["total_hours"] += lh.hours
 
     return {
         "task_id": task_id,
         "total_hours": total_hours,
-        "breakdown_per_user": list(breakdown_per_user.values()) if breakdown_per_user else None
+        "breakdown_per_user": list(breakdown_per_user.values()) if breakdown_per_user else None,
     }
 
 
-def get_total_hours_for_project(
-    db: Session,
-    project_id: int,
-    current_user: User
-) -> dict:
+def get_total_hours_for_project(db: Session, project_id: int, current_user: User) -> dict:
     """
     Get total hours logged for a specific project.
 
@@ -375,24 +350,23 @@ def get_total_hours_for_project(
     # Verify project exists
     project = db.query(Project).filter(Project.id == project_id).first()
     if not project:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Project not found"
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Project not found")
 
     # Check permissions: user must be project member or admin
     is_admin = _is_admin(current_user)
-    is_member = db.query(ProjectMember).filter(
-        and_(
-            ProjectMember.project_id == project_id,
-            ProjectMember.user_id == current_user.id
+    is_member = (
+        db.query(ProjectMember)
+        .filter(
+            and_(ProjectMember.project_id == project_id, ProjectMember.user_id == current_user.id)
         )
-    ).first() is not None
+        .first()
+        is not None
+    )
 
     if not (is_admin or is_member):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="You do not have permission to view hours for this project"
+            detail="You do not have permission to view hours for this project",
         )
 
     # Get all logged hours for this project
@@ -405,14 +379,11 @@ def get_total_hours_for_project(
     for lh in logged_hours:
         user_id = lh.user_id
         if user_id not in breakdown_per_user:
-            breakdown_per_user[user_id] = {
-                "user_id": user_id,
-                "total_hours": 0.0
-            }
+            breakdown_per_user[user_id] = {"user_id": user_id, "total_hours": 0.0}
         breakdown_per_user[user_id]["total_hours"] += lh.hours
 
     return {
         "project_id": project_id,
         "total_hours": total_hours,
-        "breakdown_per_user": list(breakdown_per_user.values())
+        "breakdown_per_user": list(breakdown_per_user.values()),
     }
