@@ -1336,6 +1336,45 @@
 						"description": "Get project health indicators (overdue tasks, inactive members) - NOT IMPLEMENTED YET"
 					},
 					"response": []
+				},
+				{
+					"name": "Generate Project Summary",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/projects/:project_id/generate-summary",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"projects",
+								":project_id",
+								"generate-summary"
+							],
+							"variable": [
+								{
+									"key": "project_id",
+									"value": "1",
+									"description": "Project ID"
+								}
+							]
+						},
+						"description": "Generate a structured project summary aggregating tasks, commits, and logged hours. Used as input for future AI processing. Admins can generate summary for any project. Members can generate summary for projects they belong to."
+					},
+					"response": []
 				}
 			],
 			"description": "Project management endpoints"

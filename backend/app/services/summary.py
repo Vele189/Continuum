@@ -1,18 +1,14 @@
 from datetime import datetime, timezone
-from typing import Dict, Any, List, Optional
-from sqlalchemy.orm import Session
-from sqlalchemy import func
+from typing import Any, Dict
 
-from app.dbmodels import Project, Task, LoggedHour, GitContribution
+from app.dbmodels import GitContribution, LoggedHour, Task
 from app.services.project import ProjectService
+from sqlalchemy.orm import Session
 
 
 class SummaryService:
     @staticmethod
-    def generate_project_summary(
-        db: Session,
-        project_id: int
-    ) -> Dict[str, Any]:
+    def generate_project_summary(db: Session, project_id: int) -> Dict[str, Any]:
         """
         Aggregates project data (tasks, commits, hours) into a structured summary.
         """
@@ -24,8 +20,10 @@ class SummaryService:
 
         # 2. Tasks Aggregation
         tasks = db.query(Task).filter(Task.project_id == project_id).all()
-        task_descriptions = [t.description for t in tasks if t.description and t.description.strip()]
-        
+        task_descriptions = [
+            t.description for t in tasks if t.description and t.description.strip()
+        ]
+
         task_count_by_status = {}
         for t in tasks:
             status = t.status or "unknown"
@@ -33,7 +31,9 @@ class SummaryService:
 
         # 3. Git Contributions Aggregation
         commits = db.query(GitContribution).filter(GitContribution.project_id == project_id).all()
-        commit_messages = [c.commit_message for c in commits if c.commit_message and c.commit_message.strip()]
+        commit_messages = [
+            c.commit_message for c in commits if c.commit_message and c.commit_message.strip()
+        ]
 
         # 4. Logged Hours Aggregation
         hours_entries = db.query(LoggedHour).filter(LoggedHour.project_id == project_id).all()
@@ -55,11 +55,15 @@ class SummaryService:
         # 6. Generate Aggregated Text
         sections = []
         if task_descriptions:
-            sections.append("### Task Descriptions\n" + "\n".join(f"- {d}" for d in task_descriptions))
+            sections.append(
+                "### Task Descriptions\n" + "\n".join(f"- {d}" for d in task_descriptions)
+            )
         if commit_messages:
             sections.append("### Commit Messages\n" + "\n".join(f"- {m}" for m in commit_messages))
         if logged_hour_notes:
-            sections.append("### Logged Hour Notes\n" + "\n".join(f"- {n}" for n in logged_hour_notes))
+            sections.append(
+                "### Logged Hour Notes\n" + "\n".join(f"- {n}" for n in logged_hour_notes)
+            )
 
         aggregated_text = "\n\n".join(sections)
 
@@ -68,11 +72,8 @@ class SummaryService:
             "total_tasks": len(tasks),
             "total_commits": len(commits),
             "total_logged_hours": int(total_hours),
-            "date_range": {
-                "earliest": earliest,
-                "latest": latest
-            },
-            "task_count_by_status": task_count_by_status
+            "date_range": {"earliest": earliest, "latest": latest},
+            "task_count_by_status": task_count_by_status,
         }
 
         return {
@@ -82,5 +83,5 @@ class SummaryService:
             "commit_messages": commit_messages,
             "logged_hour_notes": logged_hour_notes,
             "aggregated_text": aggregated_text,
-            "metadata": metadata
+            "metadata": metadata,
         }

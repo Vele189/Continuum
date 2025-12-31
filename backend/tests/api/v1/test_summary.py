@@ -1,10 +1,10 @@
 from datetime import datetime, timedelta
-from fastapi.testclient import TestClient
-from sqlalchemy.orm import Session
 
 from app.core.config import settings
-from app.dbmodels import User, Project, Task, LoggedHour, GitContribution, ProjectMember
+from app.dbmodels import GitContribution, LoggedHour, Project, ProjectMember, Task, User
 from app.schemas.user import UserRole
+from fastapi.testclient import TestClient
+from sqlalchemy.orm import Session
 
 
 def test_generate_project_summary_successful(client: TestClient, db: Session):
@@ -17,7 +17,7 @@ def test_generate_project_summary_successful(client: TestClient, db: Session):
         first_name="Admin",
         last_name="Summary",
         hashed_password="hashed_password",
-        role=UserRole.ADMIN
+        role=UserRole.ADMIN,
     )
     db.add(admin_user)
     db.commit()
@@ -25,6 +25,7 @@ def test_generate_project_summary_successful(client: TestClient, db: Session):
 
     # Overwrite auth
     from app.api.deps import get_current_user
+
     app = client.app
     app.dependency_overrides[get_current_user] = lambda: admin_user
 
@@ -38,11 +39,7 @@ def test_generate_project_summary_successful(client: TestClient, db: Session):
     db.refresh(project)
 
     # Add member
-    member = ProjectMember(
-        project_id=project.id,
-        user_id=admin_user.id,
-        role="admin"
-    )
+    member = ProjectMember(project_id=project.id, user_id=admin_user.id, role="admin")
     db.add(member)
 
     # Create activity
@@ -51,7 +48,7 @@ def test_generate_project_summary_successful(client: TestClient, db: Session):
         project_id=project.id,
         title="Summary Task",
         description="This is a test task description.",
-        status="done"
+        status="done",
     )
     db.add(task)
 
@@ -61,7 +58,7 @@ def test_generate_project_summary_successful(client: TestClient, db: Session):
         project_id=project.id,
         commit_hash="summaryhash123",
         commit_message="Documentation update",
-        provider="github"
+        provider="github",
     )
     db.add(contribution)
 
@@ -70,15 +67,13 @@ def test_generate_project_summary_successful(client: TestClient, db: Session):
         user_id=admin_user.id,
         project_id=project.id,
         hours=2.5,
-        note="Writing tests for summary feature"
+        note="Writing tests for summary feature",
     )
     db.add(logged_hour)
     db.commit()
 
     # 2. Call Endpoint
-    response = client.post(
-        f"{settings.API_V1_STR}/projects/{project.id}/generate-summary"
-    )
+    response = client.post(f"{settings.API_V1_STR}/projects/{project.id}/generate-summary")
 
     # 3. Assertions
     assert response.status_code == 200
@@ -91,7 +86,7 @@ def test_generate_project_summary_successful(client: TestClient, db: Session):
     assert "### Task Descriptions" in data["aggregated_text"]
     assert data["metadata"]["total_tasks"] == 1
     assert data["metadata"]["total_commits"] == 1
-    assert data["metadata"]["total_logged_hours"] == 2 # int(2.5)
+    assert data["metadata"]["total_logged_hours"] == 2  # int(2.5)
     assert data["metadata"]["task_count_by_status"]["done"] == 1
     assert "generated_at" in data
 
@@ -102,12 +97,22 @@ def test_generate_project_summary_successful(client: TestClient, db: Session):
 def test_generate_project_summary_forbidden(client: TestClient, db: Session):
     # Setup two users
     user1 = User(
-        email="u1_summary@test.com", username="u1_s", display_name="U1 S",
-        first_name="U1", last_name="S1", hashed_password="pw", role=UserRole.BACKEND
+        email="u1_summary@test.com",
+        username="u1_s",
+        display_name="U1 S",
+        first_name="U1",
+        last_name="S1",
+        hashed_password="pw",
+        role=UserRole.BACKEND,
     )
     user2 = User(
-        email="u2_summary@test.com", username="u2_s", display_name="U2 S",
-        first_name="U2", last_name="S2", hashed_password="pw", role=UserRole.BACKEND
+        email="u2_summary@test.com",
+        username="u2_s",
+        display_name="U2 S",
+        first_name="U2",
+        last_name="S2",
+        hashed_password="pw",
+        role=UserRole.BACKEND,
     )
     db.add(user1)
     db.add(user2)
@@ -125,12 +130,11 @@ def test_generate_project_summary_forbidden(client: TestClient, db: Session):
 
     # User 2 tries to access User 1's summary
     from app.api.deps import get_current_user
+
     app = client.app
     app.dependency_overrides[get_current_user] = lambda: user2
 
-    response = client.post(
-        f"{settings.API_V1_STR}/projects/{project.id}/generate-summary"
-    )
+    response = client.post(f"{settings.API_V1_STR}/projects/{project.id}/generate-summary")
 
     assert response.status_code == 403
     app.dependency_overrides = {}
@@ -139,8 +143,13 @@ def test_generate_project_summary_forbidden(client: TestClient, db: Session):
 def test_generate_project_summary_null_handling(client: TestClient, db: Session):
     # Setup
     admin_user = User(
-        email="admin_null@test.com", username="admin_null", role=UserRole.ADMIN,
-        hashed_password="pw", first_name="A", last_name="N", display_name="Admin Null"
+        email="admin_null@test.com",
+        username="admin_null",
+        role=UserRole.ADMIN,
+        hashed_password="pw",
+        first_name="A",
+        last_name="N",
+        display_name="Admin Null",
     )
     db.add(admin_user)
     db.commit()
@@ -155,24 +164,31 @@ def test_generate_project_summary_null_handling(client: TestClient, db: Session)
     db.add(Task(project_id=project.id, title="T3", description="  ", status="todo"))
     db.add(Task(project_id=project.id, title="T4", description="Valid", status="todo"))
 
-    db.add(GitContribution(
-        user_id=admin_user.id, project_id=project.id, commit_hash="h1",
-        commit_message=None, provider="github"
-    ))
-    db.add(GitContribution(
-        user_id=admin_user.id, project_id=project.id, commit_hash="h2",
-        commit_message="Valid Commit", provider="github"
-    ))
+    db.add(
+        GitContribution(
+            user_id=admin_user.id,
+            project_id=project.id,
+            commit_hash="h1",
+            commit_message=None,
+            provider="github",
+        )
+    )
+    db.add(
+        GitContribution(
+            user_id=admin_user.id,
+            project_id=project.id,
+            commit_hash="h2",
+            commit_message="Valid Commit",
+            provider="github",
+        )
+    )
 
-    db.add(LoggedHour(
-        user_id=admin_user.id, project_id=project.id, hours=1.0, note=""
-    ))
-    db.add(LoggedHour(
-        user_id=admin_user.id, project_id=project.id, hours=1.0, note="Valid Note"
-    ))
+    db.add(LoggedHour(user_id=admin_user.id, project_id=project.id, hours=1.0, note=""))
+    db.add(LoggedHour(user_id=admin_user.id, project_id=project.id, hours=1.0, note="Valid Note"))
     db.commit()
 
     from app.api.deps import get_current_user
+
     client.app.dependency_overrides[get_current_user] = lambda: admin_user
 
     response = client.post(f"{settings.API_V1_STR}/projects/{project.id}/generate-summary")
@@ -186,7 +202,7 @@ def test_generate_project_summary_null_handling(client: TestClient, db: Session)
     assert data["commit_messages"][0] == "Valid Commit"
     assert len(data["logged_hour_notes"]) == 1
     assert data["logged_hour_notes"][0] == "Valid Note"
-    
+
     # Metadata should still count them
     assert data["metadata"]["total_tasks"] == 4
     assert data["metadata"]["total_commits"] == 2
