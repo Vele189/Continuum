@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import List, Optional
 
 from app.api.deps import (
@@ -21,9 +21,11 @@ from app.schemas.project import (
     ProjectStatistics,
     ProjectUpdate,
 )
+from app.schemas.summary import ProjectSummary
 from app.services.digest import DigestService
 from app.services.milestone import MilestoneService
 from app.services.project import ProjectService
+from app.services.summary import SummaryService
 from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.orm import Session
 
@@ -251,3 +253,26 @@ def get_project_digest(
     ProjectService.get_project_with_check(db, project_id, current_user.id, is_admin=is_admin)
 
     return DigestService.generate_weekly_digest(db, project_id, week_start)
+
+
+@router.post("/{project_id}/generate-summary", response_model=ProjectSummary)
+def generate_project_summary(
+    project_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """
+    Generate a structured project summary aggregating tasks, commits, and logged hours.
+    Used as input for future AI processing.
+
+    - Admins can generate summary for any project
+    - Members can generate summary for projects they belong to
+    """
+    is_admin = is_admin_user(current_user)
+    # Verify access to project
+    ProjectService.get_project_with_check(db, project_id, current_user.id, is_admin=is_admin)
+
+    summary_data = SummaryService.generate_project_summary(db, project_id)
+    summary_data["generated_at"] = datetime.now(timezone.utc)
+
+    return summary_data
