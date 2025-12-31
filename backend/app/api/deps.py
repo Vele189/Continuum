@@ -15,6 +15,11 @@ reusable_oauth2 = OAuth2PasswordBearer(tokenUrl=f"{settings.API_V1_STR}/auth/log
 
 
 def get_db() -> Generator:
+    if SessionLocal is None:
+        raise HTTPException(
+            status_code=503,
+            detail="Database is not configured. Please set DATABASE_URL environment variable.",
+        )
     try:
         db = SessionLocal()
         yield db

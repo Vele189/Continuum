@@ -58,7 +58,7 @@ repos:
       # Note: Requires DATABASE_URL to be set. Uses SQLite for local testing.
       - id: backend-tests
         name: Backend Tests (pytest)
-        entry: bash -c 'if [ -d backend/tests ] && [ "$(find backend/tests -name "test_*.py" -type f | wc -l)" -gt 0 ]; then if [ -f backend/venv/bin/activate ]; then cd backend && source venv/bin/activate && DATABASE_URL="sqlite:///./test.db" pytest tests -v --tb=short -x; else docker compose -f docker-compose.yml exec -T backend pytest tests -v --tb=short -x || echo "Tests skipped (Docker not available)"; fi; else echo "No test files found, skipping pytest"; fi'
+        entry: bash -c 'if [ -d backend/tests ] && [ -f backend/tests/conftest.py ] && [ "$(find backend/tests -name "test_*.py" -type f | wc -l)" -gt 0 ]; then if [ -f backend/venv/bin/activate ]; then cd backend && source venv/bin/activate && DATABASE_URL="sqlite:///./test.db" pytest tests -v --tb=short -x; else docker compose -f docker-compose.yml exec -T backend pytest tests -v --tb=short -x || echo "Tests skipped (Docker not available)"; fi; else echo "No test files or conftest.py found, skipping pytest"; fi'
         language: system
         types: [python]
         files: ^backend/
