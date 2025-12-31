@@ -34,6 +34,9 @@ def get_current_user(db: Session = Depends(get_db), token: str = Depends(reusabl
     user = db.query(User).filter(User.id == token_data.sub).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
+    # Access attributes while session is still active to prevent DetachedInstanceError
+    _ = user.role
+    _ = user.id
     return user
 
 

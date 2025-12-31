@@ -218,6 +218,10 @@ def get_user_profile(db: Session, user_id: int, current_user: User) -> UserProfi
     """
     Get comprehensive user profile including skills, contributions, and activity patterns.
     """
+    # Merge current_user into this session to prevent DetachedInstanceError
+    # This works whether the object is attached or detached
+    current_user = db.merge(current_user)
+
     # 1. Permission check - either a user can fetch their own profile or the admin can
     admin_roles = {UserRole.ADMIN, UserRole.PROJECTMANAGER}
     if current_user.id != user_id and current_user.role not in admin_roles:
