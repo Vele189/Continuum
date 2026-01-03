@@ -50,7 +50,7 @@ const ResetPassword = () => {
           <Link to="/login">
             <img src={backArrowIcon} alt="Back Arrow" className="absolute left-4 top-3 h-4" />
           </Link>
-          <h2 className="text-[16px] mx-auto">Reset password</h2>
+          <h2 className="text-[16px] mx-auto">Rest password</h2>
         </div>
 
         {success ? (
@@ -105,7 +105,7 @@ const ResetPassword = () => {
                 className={`w-[297px] h-[40px] bg-[#2299fa] text-white text-[16px] font-bold py-2 px-4 rounded-lg transition-all ${loading ? "animate-pulse opacity-80" : "hover:bg-[#1a8ae5]"
                   }`}
               >
-                Reset password
+                Rest password
               </button>
 
             </div>
