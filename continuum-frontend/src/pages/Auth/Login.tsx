@@ -5,18 +5,61 @@ import { Link, useNavigate } from 'react-router-dom';
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [touched, setTouched] = useState({
+    email: false,
+    password: false
+  });
+  
   const { login, loading, error } = useAuth();
   const navigate = useNavigate();
 
+  // Real-time validation functions
+  const validateEmail = (email: string) => {
+    if (!email.trim()) return 'Email is required';
+    if (!/\S+@\S+\.\S+/.test(email)) return 'Please enter a valid email address';
+    return '';
+  };
+
+  const validatePassword = (password: string) => {
+    if (!password) return 'Password is required';
+    if (password.length < 8) return 'Password must be at least 8 characters';
+    return '';
+  };
+
+  // Get current errors
+  const errors = {
+    email: touched.email ? validateEmail(email) : '',
+    password: touched.password ? validatePassword(password) : ''
+  };
+
+  const handleBlur = (field: keyof typeof touched) => {
+    setTouched({
+      ...touched,
+      [field]: true
+    });
+  };
+
+  const validateForm = () => {
+    // Mark all fields as touched
+    setTouched({
+      email: true,
+      password: true
+    });
+
+    // Check if there are any errors
+    return !validateEmail(email) && !validatePassword(password);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    try {
-      await login(email, password);
-      navigate('/dashboard');
-    } catch (err) {
-      console.error('Login failed:', err);
+    
+    if (!validateForm()) {
+      return;
     }
+    
+    // Proceed with login
+    // await login(email, password);
+    navigate('/loading');
   };
 
   const handleGoogleLogin = () => {
@@ -90,7 +133,7 @@ const Login = () => {
           {/* Form Fields Group - 297x281px */}
           <form onSubmit={handleSubmit} className="w-[297px] h-[281px] flex flex-col gap-2">
             {/* Email Section - 297x63px */}
-            <div className="w-[297px] h-[63px] flex flex-col gap-1">
+            <div className="w-[297px] flex flex-col gap-1">
               <label 
                 htmlFor="email"
                 className="font-satoshi text-sm font-medium text-[#252014]"
@@ -102,14 +145,18 @@ const Login = () => {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                onBlur={() => handleBlur('email')}
                 placeholder="What's your email address?"
                 required
                 className="w-[297px] h-10 rounded-lg border border-[#E9E9E9] bg-white py-2 px-4 font-satoshi text-sm text-[#252014] outline-none"
               />
+              {errors.email && (
+                <p className="text-xs text-red-600 mt-1">{errors.email}</p>
+              )}
             </div>
 
             {/* Password Section - 297x63px */}
-            <div className="w-[297px] h-[63px] flex flex-col gap-1">
+            <div className="w-[297px] flex flex-col gap-1">
               <label 
                 htmlFor="password"
                 className="font-satoshi text-sm font-medium text-[#252014]"
@@ -121,16 +168,20 @@ const Login = () => {
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                onBlur={() => handleBlur('password')}
                 placeholder="What's your password?"
                 required
                 className="w-[297px] h-10 rounded-lg border border-[#E9E9E9] bg-white py-2 px-4 font-satoshi text-sm text-[#252014] outline-none"
               />
+              {errors.password && (
+                <p className="text-xs text-red-600 mt-1">{errors.password}</p>
+              )}
             </div>
 
             {/* Forgot Password */}
             <Link 
               to="/forgot-password"
-              className="self-end font-satoshi font-semibold text-xs text-[#252014] no-underline"
+              className="self-end font-satoshi text-xs text-[#252014] no-underline"
             >
               Forgot password
             </Link>
@@ -157,12 +208,12 @@ const Login = () => {
 
                 {/* Sign Up Link */}
           <div className="flex items-center justify-center gap-1">
-            <p className="font-satoshi text-sm text-[#252014] opacity-60 m-0">
+            <p className="font-satoshi text-sm text-[#9FA5A8]">
               Don't have an account?
             </p>
             <Link 
               to="/sign-up"
-              className="font-satoshi text-sm font-semibold text-[#252014] no-underline"
+              className="font-satoshi text-sm text-[#252014] no-underline"
             >
               Sign up
             </Link>
