@@ -109,8 +109,8 @@ const EmailVerification = () => {
           className="w-[345px] h-[249px] pt-6 pr-6 pb-9 pl-6 bg-white flex flex-col gap-6"
         >
          {/* Instruction Text - 297x38px */}
-  <p className="w-[297px] h-[38px] font-satoshi font-medium text-sm leading-[100%] tracking-[0%] text-[#151515]/50 m-0">
-  Please enter the unique code we sent to <span className="font-semibold text-[#151515]">{email}</span>
+  <p className="w-[297px] h-[38px] font-satoshi font-medium text-sm leading-[100%] tracking-[0%] text-[#9FA5A8] m-0">
+  Please enter the unique code we sent to <span className="w-[297px] h-[38px] font-satoshi font-medium text-[#151515]">{email}</span>
 </p>
 
           {/* Code Input Group - 297x63px */}
