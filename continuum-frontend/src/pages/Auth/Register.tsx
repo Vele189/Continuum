@@ -1,236 +1,287 @@
 import { useState } from 'react';
-import { useAuth } from '../../hooks/useAuth';
-import { useNavigate,Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 const Register = () => {
-  const [firstname, setFirstName] = useState('');
-   const [lastname, setLastName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const { register, loading, error } = useAuth();
   const navigate = useNavigate();
+
+  const [formData, setFormData] = useState({
+    email: '',
+    firstName: '',
+    surname: '',
+    password: '',
+    confirmPassword: ''
+  });
+
+  const [touched, setTouched] = useState({
+    email: false,
+    firstName: false,
+    surname: false,
+    password: false,
+    confirmPassword: false
+  });
+
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Real-time validation functions
+  const validateEmail = (email: string) => {
+    if (!email.trim()) return 'Email is required';
+    if (!/\S+@\S+\.\S+/.test(email)) return 'Please enter a valid email address';
+    return '';
+  };
+
+  const validateFirstName = (name: string) => {
+    if (!name.trim()) return 'First name is required';
+    if (name.trim().length < 2) return 'First name must be at least 2 characters';
+    return '';
+  };
+
+  const validateSurname = (name: string) => {
+    if (!name.trim()) return 'Surname is required';
+    if (name.trim().length < 2) return 'Surname must be at least 2 characters';
+    return '';
+  };
+
+  const validatePassword = (password: string) => {
+    if (!password) return 'Password is required';
+    if (password.length < 8) return 'Password must be at least 8 characters';
+    if (!/[A-Z]/.test(password)) return 'Password must contain at least one uppercase letter';
+    if (!/[a-z]/.test(password)) return 'Password must contain at least one lowercase letter';
+    if (!/[0-9]/.test(password)) return 'Password must contain at least one number';
+    return '';
+  };
+
+  const validateConfirmPassword = (confirmPassword: string, password: string) => {
+    if (!confirmPassword) return 'Please confirm your password';
+    if (password !== confirmPassword) return 'Passwords do not match';
+    return '';
+  };
+
+  // Get current errors
+  const errors = {
+    email: touched.email ? validateEmail(formData.email) : '',
+    firstName: touched.firstName ? validateFirstName(formData.firstName) : '',
+    surname: touched.surname ? validateSurname(formData.surname) : '',
+    password: touched.password ? validatePassword(formData.password) : '',
+    confirmPassword: touched.confirmPassword ? validateConfirmPassword(formData.confirmPassword, formData.password) : ''
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData({
+      ...formData,
+      [name]: value
+    });
+  };
+
+  const handleBlur = (field: keyof typeof touched) => {
+    setTouched({
+      ...touched,
+      [field]: true
+    });
+  };
+
+  const validateForm = () => {
+    // Mark all fields as touched
+    setTouched({
+      email: true,
+      firstName: true,
+      surname: true,
+      password: true,
+      confirmPassword: true
+    });
+
+    // Check if there are any errors
+    return !validateEmail(formData.email) &&
+           !validateFirstName(formData.firstName) &&
+           !validateSurname(formData.surname) &&
+           !validatePassword(formData.password) &&
+           !validateConfirmPassword(formData.confirmPassword, formData.password);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (password !== confirmPassword) {
-      alert('Passwords do not match!');
+    if (!validateForm()) {
       return;
     }
 
+    setIsSubmitting(true);
+
     try {
-      await register(email, password, firstname, lastname);
-      navigate('/dashboard');
+      await new Promise(resolve => setTimeout(resolve, 500));
+
+      navigate('/email-verification', {
+        state: { email: formData.email }
+      });
     } catch (err) {
       console.error('Registration failed:', err);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
- return (
-    <div className="relative flex justify-center items-center min-h-screen p-8 overflow-hidden">
-      {/* Animated gradient background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-blue-200 via-purple-100 to-pink-200">
-        {/* Large decorative circles */}
-        <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-br from-blue-200/40 to-purple-200/40 rounded-full blur-3xl transform translate-x-1/3 -translate-y-1/3"></div>
-        <div className="absolute bottom-0 left-0 w-96 h-96 bg-gradient-to-tr from-purple-200/40 to-pink-200/40 rounded-full blur-3xl transform -translate-x-1/3 translate-y-1/3"></div>
+  return (
+    <div className="relative flex justify-center items-center min-h-screen p-10 overflow-hidden bg-gradient-to-b from-brand-blue to-brand-cream">
+      {/* Form Container - 345x557px */}
+      <div className="w-[345px] h-[557px] rounded-2xl overflow-hidden shadow-[0px_4px_24px_rgba(0,0,0,0.1)]">
 
-        {/* Medium circles */}
-        <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-gradient-to-br from-indigo-200/30 to-blue-200/30 rounded-full blur-2xl"></div>
-        <div className="absolute bottom-1/3 right-1/4 w-72 h-72 bg-gradient-to-tl from-pink-200/30 to-purple-200/30 rounded-full blur-2xl"></div>
+        {/* Top Section - Sign Up Header - 345x54px */}
+        <div className="w-[345px] h-[54px] pt-4 pr-6 pb-4 pl-6 bg-[#F9F9F9] border-b border-[#F5F5F5] flex items-center justify-center relative">
+          {/* Back Arrow - 20x20px */}
+          <Link
+            to="/"
+            className="w-5 h-5 absolute left-6 flex items-center justify-center"
+            aria-label="Back to landing page"
+          >
+            <img
+              src="arrow.svg"
+              alt=""
+              className="w-5 h-5"
+            />
+          </Link>
 
-        {/* Small accent circles */}
-        <div className="absolute top-1/2 right-1/3 w-32 h-32 bg-blue-300/20 rounded-full blur-xl"></div>
-        <div className="absolute top-1/3 right-1/2 w-24 h-24 bg-purple-300/20 rounded-full blur-lg"></div>
-      </div>
-
-      <div className="relative bg-white p-10 rounded-lg shadow-sm w-full max-w-lg text-center">
-        <div className="mb-8 flex justify-center items-center">
-          <img src="/logo.png" alt="Continuum Logo" className="h-16 -mr-5" />
-          <span className="text-3xl font-bold text-slate-900 tracking-tight">Continuum</span>
+          {/* Sign up Text - centered */}
+          <h2 className="w-[54px] h-[22px] font-satoshi font-medium text-sm leading-[100%] tracking-[0%] text-[#595959] m-0">
+            Sign up
+          </h2>
         </div>
 
-        <h1 className="text-gray-900 text-2xl font-semibold mb-8">Create your account</h1>
-
-        <div className="text-left">
-          <div className="mb-5">
-            <label htmlFor="firstname" className="block text-sm text-gray-700 mb-2 font-medium">
-              First Name
-            </label>
-            <div className="relative flex items-center">
-              <span className="absolute left-3 text-gray-400 pointer-events-none">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                  <circle cx="12" cy="7" r="4"></circle>
-                </svg>
-              </span>
-              <input
-                type="text"
-                id="firstname"
-                value={firstname}
-                onChange={(e) => setFirstName(e.target.value)}
-                placeholder="e.g. Lethabo Edmond"
-                required
-                className="w-full py-3 px-11 border border-gray-300 rounded-md text-base text-gray-900 focus:outline-none focus:border-blue-500 transition-colors placeholder:text-gray-500"
-              />
-            </div>
-          </div>
-
-<div className="mb-5">
-            <label htmlFor="lastname" className="block text-sm text-gray-700 mb-2 font-medium">
-              Last Name
-            </label>
-            <div className="relative flex items-center">
-              <span className="absolute left-3 text-gray-400 pointer-events-none">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                  <circle cx="12" cy="7" r="4"></circle>
-                </svg>
-              </span>
-              <input
-                type="text"
-                id="lastname"
-                value={lastname}
-                onChange={(e) => setLastName(e.target.value)}
-                placeholder="e.g. Sehlapelo"
-                required
-                className="w-full py-3 px-11 border border-gray-300 rounded-md text-base text-gray-900 focus:outline-none focus:border-blue-500 transition-colors placeholder:text-gray-500"
-              />
-            </div>
-          </div>
-
-          <div className="mb-5">
-            <label htmlFor="email" className="block text-sm text-gray-700 mb-2 font-medium">
+        {/* Bottom Section - Form - 345x503px */}
+        <form
+          onSubmit={handleSubmit}
+          className="w-[345px] h-[503px] pt-6 pr-6 pb-9 pl-6 bg-white flex flex-col gap-6"
+        >
+          {/* Email Field - 297x63px */}
+          <div className="w-[297px] h-[63px] flex flex-col gap-1">
+            <label
+              htmlFor="email"
+              className="w-[35px] h-[19px] font-satoshi font-medium text-sm leading-[100%] tracking-[0%] text-[#151515]"
+            >
               Email
             </label>
-            <div className="relative flex items-center">
-              <span className="absolute left-3 text-gray-400 pointer-events-none">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
-                  <polyline points="22,6 12,13 2,6"></polyline>
-                </svg>
-              </span>
-              <input
-                type="email"
-                id="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="e.g. LethaboExample@gmail.com"
-                required
-                className="w-full py-3 px-11 border border-gray-300 rounded-md text-base text-gray-900 focus:outline-none focus:border-blue-500 transition-colors placeholder:text-gray-500"
-              />
-            </div>
+            <input
+              id="email"
+              type="email"
+              name="email"
+              value={formData.email}
+              onChange={handleChange}
+              onBlur={() => handleBlur('email')}
+              placeholder="Enter email address"
+              required
+              className="w-[297px] h-10 rounded-lg border border-[#E9E9E9] bg-white pt-2 pr-4 pb-2 pl-4 font-satoshi text-sm text-[#151515] outline-none box-border"
+            />
+            {errors.email && (
+              <p className="text-xs text-red-600 mt-1">{errors.email}</p>
+            )}
           </div>
 
-          <div className="mb-5">
-            <label htmlFor="password" className="block text-sm text-gray-700 mb-2 font-medium">
+          {/* First Name Field - 297x63px */}
+          <div className="w-[297px] h-[63px] flex flex-col gap-1">
+            <label
+              htmlFor="firstName"
+              className="font-satoshi font-medium text-sm leading-[100%] tracking-[0%] text-[#151515]"
+            >
+              First name
+            </label>
+            <input
+              id="firstName"
+              type="text"
+              name="firstName"
+              value={formData.firstName}
+              onChange={handleChange}
+              onBlur={() => handleBlur('firstName')}
+              placeholder="Enter first name"
+              required
+              className="w-[297px] h-10 rounded-lg border border-[#E9E9E9] bg-white pt-2 pr-4 pb-2 pl-4 font-satoshi text-sm text-[#151515] outline-none box-border"
+            />
+            {errors.firstName && (
+              <p className="text-xs text-red-600 mt-1">{errors.firstName}</p>
+            )}
+          </div>
+
+          {/* Surname Field - 297x63px */}
+          <div className="w-[297px] h-[63px] flex flex-col gap-1">
+            <label
+              htmlFor="surname"
+              className="font-satoshi font-medium text-sm leading-[100%] tracking-[0%] text-[#151515]"
+            >
+              Surname
+            </label>
+            <input
+              id="surname"
+              type="text"
+              name="surname"
+              value={formData.surname}
+              onChange={handleChange}
+              onBlur={() => handleBlur('surname')}
+              placeholder="Enter surname"
+              required
+              className="w-[297px] h-10 rounded-lg border border-[#E9E9E9] bg-white pt-2 pr-4 pb-2 pl-4 font-satoshi text-sm text-[#151515] outline-none box-border"
+            />
+            {errors.surname && (
+              <p className="text-xs text-red-600 mt-1">{errors.surname}</p>
+            )}
+          </div>
+
+          {/* Password Field - 297x63px */}
+          <div className="w-[297px] h-[63px] flex flex-col gap-1">
+            <label
+              htmlFor="password"
+              className="font-satoshi font-medium text-sm leading-[100%] tracking-[0%] text-[#151515]"
+            >
               Password
             </label>
-            <div className="relative flex items-center">
-              <span className="absolute left-3 text-gray-400 pointer-events-none">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-                  <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-                </svg>
-              </span>
-              <input
-                type={showPassword ? "text" : "password"}
-                id="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
-                required
-                className="w-full py-3 px-11 border border-gray-300 rounded-md text-base text-gray-900 focus:outline-none focus:border-blue-500 transition-colors placeholder:text-gray-500"
-              />
-              <button
-                type="button"
-                className="absolute right-3 bg-transparent border-0 cursor-pointer text-gray-400 hover:text-gray-700 p-0"
-                onClick={() => setShowPassword(!showPassword)}
-              >
-                {showPassword ? (
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                    <circle cx="12" cy="12" r="3"></circle>
-                    <line x1="1" y1="1" x2="23" y2="23"></line>
-                  </svg>
-                ) : (
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                    <circle cx="12" cy="12" r="3"></circle>
-                  </svg>
-                )}
-              </button>
-            </div>
+            <input
+              id="password"
+              type="password"
+              name="password"
+              value={formData.password}
+              onChange={handleChange}
+              onBlur={() => handleBlur('password')}
+              placeholder="Enter password"
+              required
+              className="w-[297px] h-10 rounded-lg border border-[#E9E9E9] bg-white pt-2 pr-4 pb-2 pl-4 font-satoshi text-sm text-[#151515] outline-none box-border"
+            />
+            {errors.password && (
+              <p className="text-xs text-red-600 mt-1">{errors.password}</p>
+            )}
           </div>
 
-          <div className="mb-5">
-            <label htmlFor="confirm-password" className="block text-sm text-gray-700 mb-2 font-medium">
-              Confirm Password
+          {/* Confirm Password Field - 297x63px */}
+          <div className="w-[297px] h-[63px] flex flex-col gap-1">
+            <label
+              htmlFor="confirmPassword"
+              className="font-satoshi font-medium text-sm leading-[100%] tracking-[0%] text-[#151515]"
+            >
+              Confirm password
             </label>
-            <div className="relative flex items-center">
-              <span className="absolute left-3 text-gray-400 pointer-events-none">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-                  <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-                  <path d="M12 16v1"></path>
-                </svg>
-              </span>
-              <input
-                type={showConfirmPassword ? "text" : "password"}
-                id="confirm-password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                placeholder="••••••••"
-                required
-                className="w-full py-3 px-11 border border-gray-300 rounded-md text-base text-gray-900 focus:outline-none focus:border-blue-500 transition-colors placeholder:text-gray-500"
-              />
-              <button
-                type="button"
-                className="absolute right-3 bg-transparent border-0 cursor-pointer text-gray-400 hover:text-gray-700 p-0"
-                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-              >
-                {showConfirmPassword ? (
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                    <circle cx="12" cy="12" r="3"></circle>
-                    <line x1="1" y1="1" x2="23" y2="23"></line>
-                  </svg>
-                ) : (
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                    <circle cx="12" cy="12" r="3"></circle>
-                  </svg>
-                )}
-              </button>
-            </div>
+            <input
+              id="confirmPassword"
+              type="password"
+              name="confirmPassword"
+              value={formData.confirmPassword}
+              onChange={handleChange}
+              onBlur={() => handleBlur('confirmPassword')}
+              placeholder="Confirm password"
+              required
+              className="w-[297px] h-10 rounded-lg border border-[#E9E9E9] bg-white pt-2 pr-4 pb-2 pl-4 font-satoshi text-sm text-[#151515] outline-none box-border"
+            />
+            {errors.confirmPassword && (
+              <p className="text-xs text-red-600 mt-1">{errors.confirmPassword}</p>
+            )}
           </div>
 
-          {error && (
-            <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-md text-sm">
-              {error}
-            </div>
-          )}
-
+          {/* Next Button - 297x40px */}
           <button
             type="submit"
-            onClick={handleSubmit}
-            disabled={loading}
-            className="w-full bg-blue-600 text-white font-semibold py-3 border-0 rounded-md text-base cursor-pointer mt-4 mb-6 hover:bg-blue-700 transition-colors disabled:bg-blue-400 disabled:cursor-not-allowed"
+            disabled={isSubmitting}
+            className="w-[297px] h-10 rounded-lg bg-[#24B5F8] pt-2 pr-4 pb-2 pl-4 flex items-center justify-center cursor-pointer border-none shadow-[0px_3px_9.3px_0px_rgba(44,158,249,0.1)] disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {loading ? 'Registering...' : 'Sign Up'}
+            <span className="font-satoshi text-sm font-semibold text-white">
+              {isSubmitting ? 'Processing...' : 'Next'}
+            </span>
           </button>
-
-          <p className="text-sm text-gray-600 text-center leading-relaxed mb-6">
-            By signing up, you agree to our <a href="#" className="text-blue-600 no-underline hover:underline">Terms of Service</a><br />
-            and <a href="#" className="text-blue-600 no-underline hover:underline">Privacy Policy</a>.
-          </p>
-
-          <div className="text-sm text-gray-600 text-center">
-            Already have an account? <Link to="/login" className="text-blue-600 font-medium no-underline hover:underline">Log in</Link>
-          </div>
-        </div>
+        </form>
       </div>
     </div>
   );
