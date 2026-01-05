@@ -1,6 +1,6 @@
 # Continuum Database Schema
 
-This document outlines the foundational SQLite database schema for the Continuum application.
+This document outlines the foundational PostgreSQL database schema for the Continuum application.
 
 ---
 

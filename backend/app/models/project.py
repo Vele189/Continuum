@@ -1,7 +1,8 @@
-from sqlalchemy import Column, Integer, String, ForeignKey
+from app.db.base import Base
+from sqlalchemy import Column, ForeignKey, Integer, String
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
-from app.db.base import Base
+
 
 class Project(Base):
     __tablename__ = "projects"
@@ -14,3 +15,4 @@ class Project(Base):
     created_at = Column(String, default=func.now())
 
     tasks = relationship("Task", back_populates="project")
+    milestones = relationship("Milestone", back_populates="project")

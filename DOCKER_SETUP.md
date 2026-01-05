@@ -577,8 +577,8 @@ docker compose up --build
 │  │   (continuum-   │  ────►  │    (continuum-backend)  │   │
 │  │    frontend)    │  HTTP   │                         │   │
 │  │                 │         │  ┌───────────────────┐  │   │
-│  │  Port: 5173     │         │  │   SQLite DB       │  │   │
-│  │  Vite + React   │         │  │   continuum.db    │  │   │
+│  │  Port: 5173     │         │  │  PostgreSQL DB    │  │   │
+│  │  Vite + React   │         │  │   (postgres:16)   │  │   │
 │  └────────┬────────┘         │  └───────────────────┘  │   │
 │           │                  │                         │   │
 │           │                  │  Port: 8000 (internal)  │   │
@@ -616,5 +616,4 @@ After setup is complete:
 2. Create an account or log in
 3. Start exploring the platform!
 
-Happy coding! 
-
+Happy coding!

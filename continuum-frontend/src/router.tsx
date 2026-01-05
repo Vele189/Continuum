@@ -19,13 +19,13 @@ const router = createBrowserRouter([
     children: [
       // Landing
       { index: true, element: <Landing /> },
-      
+
       // Auth
       { path: 'login', element: <Login /> },
       { path: 'register', element: <Register /> },
       { path: 'forgot-password', element: <ForgotPassword /> },
       { path: 'reset-password', element: <ResetPassword /> },
-      
+
       // Dashboard
       { path: 'dashboard', element: <Overview /> },
       { path: 'dashboard/team', element: <Team /> },

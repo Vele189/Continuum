@@ -1,8 +1,10 @@
-from typing import Optional
 from datetime import datetime
 from decimal import Decimal
-from pydantic import BaseModel, EmailStr, field_validator, ConfigDict
-from app.database import UserRole
+from typing import Any, Dict, List, Optional
+
+from app.dbmodels import UserRole
+from pydantic import BaseModel, ConfigDict, EmailStr, field_validator
+
 
 # Shared properties
 class UserBase(BaseModel):
@@ -10,6 +12,7 @@ class UserBase(BaseModel):
     first_name: str
     last_name: str
     role: Optional[UserRole] = UserRole.FRONTEND
+
 
 # Properties to receive via API on creation
 class UserCreate(UserBase):
@@ -24,21 +27,24 @@ class UserUpdate(BaseModel):
     hourly_rate: Optional[float] = None
     display_name: Optional[str] = None
 
-    @field_validator('hourly_rate')
+    @field_validator("hourly_rate")
     @classmethod
     def validate_hourly_rate(cls, v):
         """Validate that hourly_rate is positive if provided"""
         if v is not None and v < 0:
-            raise ValueError('hourly_rate must be positive')
+            raise ValueError("hourly_rate must be positive")
         return v
+
 
 class UserInDBBase(UserBase):
     model_config = ConfigDict(from_attributes=True)
 
     id: Optional[int] = None
 
+
 class User(UserInDBBase):
     """Full user response with all public fields"""
+
     id: int
     email: EmailStr
     first_name: str
@@ -49,13 +55,16 @@ class User(UserInDBBase):
     is_verified: bool
     created_at: datetime
 
+
 class UserInDB(UserInDBBase):
     hashed_password: str
+
 
 # Login schemas
 class UserLogin(BaseModel):
     email: EmailStr
     password: str
+
 
 # Token schemas
 class Token(BaseModel):
@@ -63,12 +72,13 @@ class Token(BaseModel):
     token_type: str
     refresh_token: str
 
+
 class TokenPayload(BaseModel):
-    model_config = ConfigDict(extra='ignore')
+    model_config = ConfigDict(extra="ignore")
 
     sub: Optional[int] = None
 
-    @field_validator('sub', mode='before')
+    @field_validator("sub", mode="before")
     @classmethod
     def convert_sub_to_int(cls, v):
         """Allow sub to be string or int, convert string to int"""
@@ -81,23 +91,83 @@ class TokenPayload(BaseModel):
                 return v
         return v
 
+
 # Password Reset Schemas
 class PasswordResetRequest(BaseModel):
     email: EmailStr
 
+
 class PasswordResetConfirm(BaseModel):
     token: str
     new_password: str
+
 
 # Password Change Schema
 class PasswordChangeRequest(BaseModel):
     current_password: str
     new_password: str
 
-    @field_validator('new_password')
+    @field_validator("new_password")
     @classmethod
     def validate_new_password(cls, v):
         """Validate that new password meets security requirements"""
         if len(v) < 8:
-            raise ValueError('Password must be at least 8 characters long')
+            raise ValueError("Password must be at least 8 characters long")
         return v
+
+
+# User Projects Schemas
+class UserProject(BaseModel):
+    project_id: int
+    name: str
+    role: str
+    status: str
+
+
+class UserProjects(BaseModel):
+    projects: List[UserProject]
+
+
+class ProjectHours(BaseModel):
+    project_id: int
+    project_name: str
+    total_hours: float
+
+
+class UserHoursResponse(BaseModel):
+    total_hours: float
+    projects: List[ProjectHours]
+
+
+# User Profile Schemas
+class ProjectSummary(BaseModel):
+    id: int
+    name: str
+    role: str  # from ProjectMember
+    hours_logged: float
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class UserProfile(BaseModel):
+    id: int
+    name: str  # Computed from first_name + last_name
+    email: str
+    skills: List[str]
+    contributions_summary: Dict[str, Any]
+    # Structure:
+    # {
+    #   "total_logged_hours": float,
+    #   "total_commits": int,
+    #   "projects_count": int
+    # }
+    activity_patterns: Dict[str, Any]
+    # Structure:
+    # {
+    #   "hours_by_week": Dict[str, float],
+    #   "hours_by_month": Dict[str, float],
+    #   "most_active_days": List[str]
+    # }
+    projects_worked_on: List[ProjectSummary]
+
+    model_config = ConfigDict(from_attributes=True)

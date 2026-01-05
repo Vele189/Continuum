@@ -1,18 +1,18 @@
-from typing import Optional, List
+import secrets
 from datetime import datetime, timezone
-from sqlalchemy.orm import Session
+from typing import List, Optional
 
-from app.database import Client
+from app.dbmodels import Client
 from app.schemas.client import ClientCreate, ClientUpdate
+from sqlalchemy.orm import Session
 
 
 def create(db: Session, obj_in: ClientCreate, created_by: Optional[int] = None) -> Client:
-    """Create a new client"""
-    db_obj = Client(
-        name=obj_in.name,
-        email=obj_in.email,
-        created_by=created_by
-    )
+    """Create a new client with auto-generated API key for client portal access"""
+    # Generate a secure API key for client portal access
+    api_key = secrets.token_urlsafe(32)
+
+    db_obj = Client(name=obj_in.name, email=obj_in.email, created_by=created_by, api_key=api_key)
     db.add(db_obj)
     db.commit()
     db.refresh(db_obj)
@@ -36,7 +36,7 @@ def update(db: Session, client: Client, obj_in: ClientUpdate) -> Client:
     for field, value in update_data.items():
         setattr(client, field, value)
 
-    # Manually update updated_at since SQLite doesn't support onupdate triggers
+    # Update updated_at timestamp
     client.updated_at = datetime.now(timezone.utc)
 
     db.add(client)

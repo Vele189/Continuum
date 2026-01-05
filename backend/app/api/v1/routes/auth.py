@@ -1,17 +1,16 @@
 from typing import Any
 
-from jose import jwt, JWTError
-from pydantic import ValidationError
-from fastapi import APIRouter, Depends, HTTPException, status
-from fastapi.security import OAuth2PasswordRequestForm
-from sqlalchemy.orm import Session
-
 from app.api import deps
 from app.core import security
 from app.core.config import settings
-from app.schemas.user import Token, UserLogin, TokenPayload, PasswordResetConfirm
+from app.dbmodels import User
+from app.schemas.user import PasswordResetConfirm, Token, TokenPayload, UserLogin
 from app.services import user as user_service
-from app.database import User
+from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.security import OAuth2PasswordRequestForm
+from jose import JWTError, jwt
+from pydantic import ValidationError
+from sqlalchemy.orm import Session
 
 router = APIRouter()
 
@@ -23,16 +22,13 @@ def login(
 ) -> Any:
     """
     Login with email and password (JSON body).
-    
+
     Returns access token and refresh token.
     """
-    user = user_service.authenticate(
-        db, email=login_data.email, password=login_data.password
-    )
+    user = user_service.authenticate(db, email=login_data.email, password=login_data.password)
     if not user:
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect email or password"
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Incorrect email or password"
         )
 
     access_token = security.create_access_token({"sub": user.id})
@@ -50,18 +46,15 @@ def login(
 
 @router.post("/login/access-token", response_model=Token)
 def login_access_token(
-    db: Session = Depends(deps.get_db),
-    form_data: OAuth2PasswordRequestForm = Depends()
+    db: Session = Depends(deps.get_db), form_data: OAuth2PasswordRequestForm = Depends()
 ) -> Any:
     """
     OAuth2 compatible token login (form data).
-    
+
     This endpoint is used by Swagger UI and OAuth2-compliant clients.
     Uses 'username' field for email (per OAuth2 spec).
     """
-    user = user_service.authenticate(
-        db, email=form_data.username, password=form_data.password
-    )
+    user = user_service.authenticate(db, email=form_data.username, password=form_data.password)
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -91,9 +84,7 @@ def refresh_access_token(
     Refresh access token using a refresh token.
     """
     try:
-        payload = jwt.decode(
-            refresh_token, settings.SECRET_KEY, algorithms=[security.ALGORITHM]
-        )
+        payload = jwt.decode(refresh_token, settings.SECRET_KEY, algorithms=[security.ALGORITHM])
         token_data = TokenPayload(**payload)
 
         # Verify it's a refresh token
@@ -111,10 +102,7 @@ def refresh_access_token(
 
     user = db.query(User).filter(User.id == token_data.sub).first()
     if not user:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found"
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
 
     # Validate token against stored token
     if user.refresh_token != refresh_token:
@@ -140,7 +128,7 @@ def refresh_access_token(
 def recover_password(email: str, db: Session = Depends(deps.get_db)) -> dict:
     """
     Request password recovery.
-    
+
     Sends a password reset token to the email if it exists.
     For security, always returns success even if email doesn't exist.
     """
@@ -156,9 +144,7 @@ def reset_password(
     """
     Reset password using a reset token.
     """
-    user = user_service.reset_password(
-        db, token=data.token, new_password=data.new_password
-    )
+    user = user_service.reset_password(db, token=data.token, new_password=data.new_password)
     if not user:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -174,7 +160,7 @@ def logout(
 ) -> dict:
     """
     Logout user by invalidating refresh token.
-    
+
     Idempotent: can be called multiple times safely.
     """
     user_service.update_refresh_token(db, current_user, None)

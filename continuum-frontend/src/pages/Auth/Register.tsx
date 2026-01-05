@@ -36,11 +36,11 @@ const Register = () => {
         {/* Large decorative circles */}
         <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-br from-blue-200/40 to-purple-200/40 rounded-full blur-3xl transform translate-x-1/3 -translate-y-1/3"></div>
         <div className="absolute bottom-0 left-0 w-96 h-96 bg-gradient-to-tr from-purple-200/40 to-pink-200/40 rounded-full blur-3xl transform -translate-x-1/3 translate-y-1/3"></div>
-        
+
         {/* Medium circles */}
         <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-gradient-to-br from-indigo-200/30 to-blue-200/30 rounded-full blur-2xl"></div>
         <div className="absolute bottom-1/3 right-1/4 w-72 h-72 bg-gradient-to-tl from-pink-200/30 to-purple-200/30 rounded-full blur-2xl"></div>
-        
+
         {/* Small accent circles */}
         <div className="absolute top-1/2 right-1/3 w-32 h-32 bg-blue-300/20 rounded-full blur-xl"></div>
         <div className="absolute top-1/3 right-1/2 w-24 h-24 bg-purple-300/20 rounded-full blur-lg"></div>
