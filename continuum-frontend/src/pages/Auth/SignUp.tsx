@@ -31,18 +31,18 @@ const SignUp = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!validateForm()) {
       return;
     }
-    
+
     setIsSubmitting(true);
-    
+
     try {
       // Here you would typically check if email exists or proceed with signup
       // For now, we'll just navigate after a brief delay
       await new Promise(resolve => setTimeout(resolve, 500));
-      
+
       // Navigate to register screen with email
       navigate('/register', { state: { email } });
     } catch (err) {
@@ -59,23 +59,23 @@ const SignUp = () => {
   const handleAppleLogin = () => {
     console.log('Apple login');
   };
-  
+
   return (
     <div className="relative flex justify-center items-center min-h-screen p-10 overflow-hidden bg-gradient-to-b from-brand-blue to-brand-cream">
       {/* Form Container - 345x438px */}
       <div className="w-[345px] h-[438px] rounded-2xl overflow-hidden shadow-[0px_4px_24px_rgba(0,0,0,0.1)]">
-        
+
         {/* Top Section - Continuum Header - 345x118px */}
         <div className="w-[345px] h-[118px] pt-9 px-6 pb-6 bg-white border-b border-[#F5F5F5] flex flex-col items-center gap-4">
           {/* Continuum logo and subtitle group - 219x58px */}
           <div className="w-[219px] h-[58px] flex flex-col gap-3 items-center">
             {/* Continuum Logo - 219x37px */}
-            <img 
-              src="Continuum.svg" 
-              alt="Continuum Logo" 
+            <img
+              src="Continuum.svg"
+              alt="Continuum Logo"
               className="w-[219px] h-[37px]"
             />
-            
+
             {/* Subtitle - 139x15px */}
             <p className="w-[139px] h-[15px] font-sathu font-normal text-xs leading-[100%] tracking-[-0.12px] text-center text-[#252014] opacity-80">
               Time track with one click.
@@ -85,7 +85,7 @@ const SignUp = () => {
 
         {/* Bottom Section - Form - 345x320px */}
         <div className="w-[345px] h-[320px] pt-6 px-6 pb-9 bg-[#F8F9F9] flex flex-col gap-6">
-          
+
           {/* Social Buttons Group - 297x88px */}
           <div className="w-[297px] h-[88px] flex flex-col gap-2">
             {/* Google Button - 297x40px */}
@@ -94,9 +94,9 @@ const SignUp = () => {
               type="button"
               className="w-[297px] h-10 rounded-lg border border-[#E9E9E9] bg-white py-2 px-4 flex items-center justify-center cursor-pointer relative"
             >
-              <img 
-                src="google.svg" 
-                alt="Google Logo" 
+              <img
+                src="google.svg"
+                alt="Google Logo"
                 className="w-5 h-5 absolute left-4"
               />
               <span className="font-satoshi text-sm font-medium text-[#252014] tracking-[0px] leading-[100%]">
@@ -110,9 +110,9 @@ const SignUp = () => {
               type="button"
               className="w-[297px] h-10 rounded-lg border border-[#E9E9E9] bg-white py-2 px-4 flex items-center justify-center cursor-pointer relative"
             >
-              <img 
-                src="apple.svg" 
-                alt="Apple Logo" 
+              <img
+                src="apple.svg"
+                alt="Apple Logo"
                 className="w-5 h-5 absolute left-4"
               />
               <span className="font-satoshi text-sm font-medium text-[#252014] tracking-[0px] leading-[100%]">
@@ -123,7 +123,7 @@ const SignUp = () => {
 
           {/* Email Section - 297x63px */}
           <form onSubmit={handleSubmit} className="w-[297px] flex flex-col gap-1">
-            <label 
+            <label
               htmlFor="email"
               className="font-satoshi text-sm font-medium text-[#252014]"
             >
@@ -162,7 +162,7 @@ const SignUp = () => {
             <div className="w-[297px] h-[27px] flex items-center justify-center gap-1">
             <p className="text-center font-satoshi text-sm text-[#9FA5A8]">
               Have an account?{' '}</p>
-              <Link 
+              <Link
                 to="/login"
                 className="font-satoshi text-sm text-[#252014] no-underline"
               >
@@ -178,7 +178,7 @@ const SignUp = () => {
       <div className="absolute w-[345px] h-12 mt-[502px] px-4 gap-[10px] flex items-center justify-center">
         <p className="font-satoshi text-[11px] leading-[1.4] text-center text-[#252014] opacity-60">
           By clicking "Sign in" or "Continue" above, you acknowledge that you have read and understood, and agree to Continuum's{' '}
-          <button 
+          <button
             type="button"
             className="bg-transparent border-none text-[11px] text-[#252014] cursor-pointer underline opacity-80"
           >
