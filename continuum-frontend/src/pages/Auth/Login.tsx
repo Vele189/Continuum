@@ -10,7 +10,7 @@ const Login = () => {
     password: false
   });
   
-  const { login, loading, error } = useAuth();
+  const { loading, error } = useAuth();
   const navigate = useNavigate();
 
   // Real-time validation functions
