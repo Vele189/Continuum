@@ -3,24 +3,36 @@ import { Link, useNavigate } from 'react-router-dom';
 
 const SignUp = () => {
   const [email, setEmail] = useState('');
-  const [error, setError] = useState('');
+  const [touched, setTouched] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
+
+  // Real-time validation function
+  const validateEmail = (email: string) => {
+    if (!email.trim()) return 'Email is required';
+    if (!/\S+@\S+\.\S+/.test(email)) return 'Please enter a valid email address';
+    return '';
+  };
+
+  // Get current error
+  const error = touched ? validateEmail(email) : '';
+
+  const handleBlur = () => {
+    setTouched(true);
+  };
+
+  const validateForm = () => {
+    // Mark field as touched
+    setTouched(true);
+
+    // Check if there's an error
+    return !validateEmail(email);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Reset error
-    setError('');
-    
-    // Validate email
-    if (!email.trim()) {
-      setError('Please enter your email address');
-      return;
-    }
-    
-    if (!/\S+@\S+\.\S+/.test(email)) {
-      setError('Please enter a valid email address');
+    if (!validateForm()) {
       return;
     }
     
@@ -34,7 +46,6 @@ const SignUp = () => {
       // Navigate to register screen with email
       navigate('/register', { state: { email } });
     } catch (err) {
-      setError('Something went wrong. Please try again.');
       console.error('Sign up failed:', err);
     } finally {
       setIsSubmitting(false);
@@ -122,10 +133,8 @@ const SignUp = () => {
               id="email"
               type="email"
               value={email}
-              onChange={(e) => {
-                setEmail(e.target.value);
-                if (error) setError('');
-              }}
+              onChange={(e) => setEmail(e.target.value)}
+              onBlur={handleBlur}
               placeholder="What's your email address?"
               required
               className="w-[297px] h-10 rounded-lg border border-[#E9E9E9] bg-white py-2 px-4 font-satoshi text-sm text-[#252014] outline-none"
@@ -151,11 +160,11 @@ const SignUp = () => {
 
             {/* Sign In Link */}
             <div className="w-[297px] h-[27px] flex items-center justify-center gap-1">
-            <p className="text-center font-satoshi text-sm text-[#252014] opacity-60">
+            <p className="text-center font-satoshi text-sm text-[#9FA5A8]">
               Have an account?{' '}</p>
               <Link 
                 to="/login"
-                className="font-satoshi font-semibold text-[#252014] text-sm opacity-100 no-underline"
+                className="font-satoshi text-sm text-[#252014] no-underline"
               >
                 Sign in
               </Link>
