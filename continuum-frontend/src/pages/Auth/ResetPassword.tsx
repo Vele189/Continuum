@@ -1,26 +1,16 @@
 import { useState } from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import { Link } from "react-router-dom";
 import backArrowIcon from "../../assets/back-arrow.png"
-import { useAuth } from "../../hooks/useAuth";
 
 const ResetPassword = () => {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [success, setSuccess] = useState(false);
   const [localError, setLocalError] = useState<string | null>(null);
-  const [searchParams] = useSearchParams();
-  const { resetPassword, loading, error: apiError } = useAuth();
 
-  const token = searchParams.get("token");
-
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setLocalError(null);
-
-    if (!token) {
-      setLocalError("Invalid or missing token");
-      return;
-    }
 
     if (newPassword.length < 8) {
       setLocalError("Password must be at least 8 characters");
@@ -32,25 +22,21 @@ const ResetPassword = () => {
       return;
     }
 
-    try {
-      await resetPassword(token, newPassword);
-      setSuccess(true);
-    } catch (err) {
-      // Error handled by useAuth
-    }
+    // Static flow - just show success without backend call
+    setSuccess(true);
   };
 
-  const displayError = localError || apiError;
+  const displayError = localError;
 
   return (
-    <div className="bg-linear-to-b from-[#B2E6F7] to-[#FFFFFF] min-h-screen flex items-center justify-center relative overflow-hidden">
+    <div className="bg-linear-to-b from-[#B2E6F7] to-[#FFFFFF] min-h-screen flex items-start justify-center pt-[160px] relative overflow-hidden">
 
       <div className="bg-white flex flex-col w-[345px] h-[320px] items-center rounded-2xl border-2 border-gray-100 shadow-lg">
         <div className="relative h-[54px] rounded-t-lg bg-[#F5F5F5] flex items-center justify-between w-full font-medium text-[#595959]">
           <Link to="/login">
             <img src={backArrowIcon} alt="Back Arrow" className="absolute left-4 top-3 h-4" />
           </Link>
-          <h2 className="text-[16px] mx-auto">Rest password</h2>
+          <h2 className="text-[16px] mx-auto">Reset password</h2>
         </div>
 
         {success ? (
@@ -75,7 +61,8 @@ const ResetPassword = () => {
                     id="new-password"
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
-                    className={`w-[297px] h-[40px] border rounded-lg font-medium text-[14px] leading-[100%] tracking-[0] opacity-100 py-[8px] px-[16px] focus:outline-none focus:ring focus:ring-blue-500 ${displayError ? "border-red-500" : "border-gray-300"
+                    style={{ fontFamily: 'Satoshi' }}
+                    className={`w-[297px] h-[40px] border rounded-lg font-medium text-[14px] leading-[100%] tracking-[0] bg-[#FFFFFF] py-[8px] px-[16px] focus:outline-none focus:ring focus:ring-blue-500 ${displayError ? "border-red-500" : "border-gray-300"
                       }`}
                     placeholder="Enter new password"
                   />
@@ -87,7 +74,8 @@ const ResetPassword = () => {
                     id="confirm-password"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
-                    className={`w-[297px] h-[40px] border rounded-lg font-medium text-[14px] leading-[100%] tracking-[0] opacity-100 py-[8px] px-[16px] focus:outline-none focus:ring focus:ring-blue-500 ${displayError ? "border-red-500" : "border-gray-300"
+                    style={{ fontFamily: 'Satoshi' }}
+                    className={`w-[297px] h-[40px] border rounded-lg font-medium text-[14px] leading-[100%] tracking-[0] bg-[#FFFFFF] py-[8px] px-[16px] focus:outline-none focus:ring focus:ring-blue-500 ${displayError ? "border-red-500" : "border-gray-300"
                       }`}
                     placeholder="Confirm new password"
                   />
@@ -101,11 +89,9 @@ const ResetPassword = () => {
 
               <button
                 type="submit"
-                disabled={loading}
-                className={`w-[297px] h-[40px] bg-[#2299fa] text-white text-[16px] font-bold py-2 px-4 rounded-lg transition-all ${loading ? "animate-pulse opacity-80" : "hover:bg-[#1a8ae5]"
-                  }`}
+                className="w-[297px] h-[40px] bg-[#2299fa] text-white text-[16px] font-bold py-2 px-4 rounded-lg transition-all hover:bg-[#1a8ae5]"
               >
-                Rest password
+                Reset password
               </button>
 
             </div>
