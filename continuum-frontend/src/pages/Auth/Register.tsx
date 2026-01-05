@@ -12,15 +12,58 @@ const Register = () => {
     confirmPassword: ''
   });
   
-  const [errors, setErrors] = useState({
-    email: '',
-    firstName: '',
-    surname: '',
-    password: '',
-    confirmPassword: ''
+  const [touched, setTouched] = useState({
+    email: false,
+    firstName: false,
+    surname: false,
+    password: false,
+    confirmPassword: false
   });
   
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Real-time validation functions
+  const validateEmail = (email: string) => {
+    if (!email.trim()) return 'Email is required';
+    if (!/\S+@\S+\.\S+/.test(email)) return 'Please enter a valid email address';
+    return '';
+  };
+
+  const validateFirstName = (name: string) => {
+    if (!name.trim()) return 'First name is required';
+    if (name.trim().length < 2) return 'First name must be at least 2 characters';
+    return '';
+  };
+
+  const validateSurname = (name: string) => {
+    if (!name.trim()) return 'Surname is required';
+    if (name.trim().length < 2) return 'Surname must be at least 2 characters';
+    return '';
+  };
+
+  const validatePassword = (password: string) => {
+    if (!password) return 'Password is required';
+    if (password.length < 8) return 'Password must be at least 8 characters';
+    if (!/[A-Z]/.test(password)) return 'Password must contain at least one uppercase letter';
+    if (!/[a-z]/.test(password)) return 'Password must contain at least one lowercase letter';
+    if (!/[0-9]/.test(password)) return 'Password must contain at least one number';
+    return '';
+  };
+
+  const validateConfirmPassword = (confirmPassword: string, password: string) => {
+    if (!confirmPassword) return 'Please confirm your password';
+    if (password !== confirmPassword) return 'Passwords do not match';
+    return '';
+  };
+
+  // Get current errors
+  const errors = {
+    email: touched.email ? validateEmail(formData.email) : '',
+    firstName: touched.firstName ? validateFirstName(formData.firstName) : '',
+    surname: touched.surname ? validateSurname(formData.surname) : '',
+    password: touched.password ? validatePassword(formData.password) : '',
+    confirmPassword: touched.confirmPassword ? validateConfirmPassword(formData.confirmPassword, formData.password) : ''
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -28,63 +71,31 @@ const Register = () => {
       ...formData,
       [name]: value
     });
-    
-    // Clear error when user types
-    if (errors[name as keyof typeof errors]) {
-      setErrors({
-        ...errors,
-        [name]: ''
-      });
-    }
+  };
+
+  const handleBlur = (field: keyof typeof touched) => {
+    setTouched({
+      ...touched,
+      [field]: true
+    });
   };
 
   const validateForm = () => {
-    const newErrors = {
-      email: '',
-      firstName: '',
-      surname: '',
-      password: '',
-      confirmPassword: ''
-    };
-    
-    let isValid = true;
-    
-    if (!formData.email.trim()) {
-      newErrors.email = 'Email is required';
-      isValid = false;
-    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = 'Email is invalid';
-      isValid = false;
-    }
-    
-    if (!formData.firstName.trim()) {
-      newErrors.firstName = 'First name is required';
-      isValid = false;
-    }
-    
-    if (!formData.surname.trim()) {
-      newErrors.surname = 'Surname is required';
-      isValid = false;
-    }
-    
-    if (!formData.password) {
-      newErrors.password = 'Password is required';
-      isValid = false;
-    } else if (formData.password.length < 8) {
-      newErrors.password = 'Password must be at least 8 characters';
-      isValid = false;
-    }
-    
-    if (!formData.confirmPassword) {
-      newErrors.confirmPassword = 'Please confirm your password';
-      isValid = false;
-    } else if (formData.password !== formData.confirmPassword) {
-      newErrors.confirmPassword = 'Passwords do not match';
-      isValid = false;
-    }
-    
-    setErrors(newErrors);
-    return isValid;
+    // Mark all fields as touched
+    setTouched({
+      email: true,
+      firstName: true,
+      surname: true,
+      password: true,
+      confirmPassword: true
+    });
+
+    // Check if there are any errors
+    return !validateEmail(formData.email) &&
+           !validateFirstName(formData.firstName) &&
+           !validateSurname(formData.surname) &&
+           !validatePassword(formData.password) &&
+           !validateConfirmPassword(formData.confirmPassword, formData.password);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -97,20 +108,13 @@ const Register = () => {
     setIsSubmitting(true);
     
     try {
-      // Here you would typically register with your backend
-      // For now, we'll just navigate after a brief delay
       await new Promise(resolve => setTimeout(resolve, 500));
       
-      // Navigate to email verification with email in state
       navigate('/email-verification', { 
         state: { email: formData.email } 
       });
     } catch (err) {
       console.error('Registration failed:', err);
-      setErrors({
-        ...errors,
-        email: 'Registration failed. Please try again.'
-      });
     } finally {
       setIsSubmitting(false);
     }
@@ -161,6 +165,7 @@ const Register = () => {
               name="email"
               value={formData.email}
               onChange={handleChange}
+              onBlur={() => handleBlur('email')}
               placeholder="Enter email address"
               required
               className="w-[297px] h-10 rounded-lg border border-[#E9E9E9] bg-white pt-2 pr-4 pb-2 pl-4 font-satoshi text-sm text-[#151515] outline-none box-border"
@@ -184,6 +189,7 @@ const Register = () => {
               name="firstName"
               value={formData.firstName}
               onChange={handleChange}
+              onBlur={() => handleBlur('firstName')}
               placeholder="Enter first name"
               required
               className="w-[297px] h-10 rounded-lg border border-[#E9E9E9] bg-white pt-2 pr-4 pb-2 pl-4 font-satoshi text-sm text-[#151515] outline-none box-border"
@@ -207,6 +213,7 @@ const Register = () => {
               name="surname"
               value={formData.surname}
               onChange={handleChange}
+              onBlur={() => handleBlur('surname')}
               placeholder="Enter surname"
               required
               className="w-[297px] h-10 rounded-lg border border-[#E9E9E9] bg-white pt-2 pr-4 pb-2 pl-4 font-satoshi text-sm text-[#151515] outline-none box-border"
@@ -230,6 +237,7 @@ const Register = () => {
               name="password"
               value={formData.password}
               onChange={handleChange}
+              onBlur={() => handleBlur('password')}
               placeholder="Enter password"
               required
               className="w-[297px] h-10 rounded-lg border border-[#E9E9E9] bg-white pt-2 pr-4 pb-2 pl-4 font-satoshi text-sm text-[#151515] outline-none box-border"
@@ -253,6 +261,7 @@ const Register = () => {
               name="confirmPassword"
               value={formData.confirmPassword}
               onChange={handleChange}
+              onBlur={() => handleBlur('confirmPassword')}
               placeholder="Confirm password"
               required
               className="w-[297px] h-10 rounded-lg border border-[#E9E9E9] bg-white pt-2 pr-4 pb-2 pl-4 font-satoshi text-sm text-[#151515] outline-none box-border"
