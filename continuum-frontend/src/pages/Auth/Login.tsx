@@ -9,7 +9,7 @@ const Login = () => {
     email: false,
     password: false
   });
-  
+
   const { loading, error } = useAuth();
   const navigate = useNavigate();
 
@@ -52,11 +52,11 @@ const Login = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!validateForm()) {
       return;
     }
-    
+
     // Proceed with login
     // await login(email, password);
     navigate('/loading');
@@ -69,23 +69,23 @@ const Login = () => {
   const handleAppleLogin = () => {
     console.log('Apple login');
   };
-  
+
   return (
     <div className="relative flex justify-center items-center min-h-screen p-10 overflow-hidden bg-gradient-to-b from-brand-blue to-brand-cream">
       {/* Form Container - 345x550px */}
       <div className="w-[345px] h-[550px] rounded-2xl overflow-hidden shadow-[0px_4px_24px_rgba(0,0,0,0.1)]">
-        
+
         {/* Top Section - Continuum Header - 345x118px */}
         <div className="w-[345px] h-[118px] pt-9 px-6 pb-6 bg-white border-b border-[#F5F5F5] flex flex-col items-center gap-4">
           {/* Continuum logo and subtitle group - 219x58px */}
           <div className="w-[219px] h-[58px] flex flex-col gap-3 items-center">
             {/* Continuum Logo - 219x37px */}
-            <img 
-              src="Continuum.svg" 
-              alt="Continuum Logo" 
+            <img
+              src="Continuum.svg"
+              alt="Continuum Logo"
               className="w-[219px] h-[37px]"
             />
-            
+
             {/* Subtitle - 139x15px */}
             <p className="w-[139px] h-[15px] font-sathu font-normal text-xs leading-[100%] tracking-[-0.12px] text-center text-[#252014] opacity-80">
               Time track with one click.
@@ -95,7 +95,7 @@ const Login = () => {
 
         {/* Bottom Section - Form - 345x432px */}
         <div className="w-[345px] h-[432px] pt-6 px-6 pb-9 bg-[#F8F9F9] flex flex-col gap-6">
-          
+
           {/* Social Buttons Group - 297x88px */}
           <div className="w-[297px] h-[88px] flex flex-col gap-2">
             {/* Google Button - 297x40px */}
@@ -104,9 +104,9 @@ const Login = () => {
               type="button"
               className="w-[297px] h-10 rounded-lg border border-[#E9E9E9] bg-white py-2 px-4 flex items-center justify-center cursor-pointer relative"
             >
-              <img 
-                src="google.svg" 
-                alt="Google Logo" 
+              <img
+                src="google.svg"
+                alt="Google Logo"
                 className="w-5 h-5 absolute left-4"
               />
               <span className="font-satoshi text-sm font-medium text-[#252014] tracking-[0px] leading-[100%]">
@@ -119,9 +119,9 @@ const Login = () => {
               onClick={handleAppleLogin}
               type="button"
               className="w-[297px] h-10 rounded-lg border border-[#E9E9E9] bg-white py-2 px-4 flex items-center justify-center cursor-pointer relative">
-              <img 
-                src="apple.svg" 
-                alt="Apple Logo" 
+              <img
+                src="apple.svg"
+                alt="Apple Logo"
                 className="w-5 h-5 absolute left-4"
               />
               <span className="font-satoshi text-sm font-medium text-[#252014] tracking-[0px] leading-[100%]">
@@ -134,7 +134,7 @@ const Login = () => {
           <form onSubmit={handleSubmit} className="w-[297px] h-[281px] flex flex-col gap-2">
             {/* Email Section - 297x63px */}
             <div className="w-[297px] flex flex-col gap-1">
-              <label 
+              <label
                 htmlFor="email"
                 className="font-satoshi text-sm font-medium text-[#252014]"
               >
@@ -157,7 +157,7 @@ const Login = () => {
 
             {/* Password Section - 297x63px */}
             <div className="w-[297px] flex flex-col gap-1">
-              <label 
+              <label
                 htmlFor="password"
                 className="font-satoshi text-sm font-medium text-[#252014]"
               >
@@ -179,7 +179,7 @@ const Login = () => {
             </div>
 
             {/* Forgot Password */}
-            <Link 
+            <Link
               to="/forgot-password"
               className="self-end font-satoshi text-xs text-[#252014] no-underline"
             >
@@ -211,7 +211,7 @@ const Login = () => {
             <p className="font-satoshi text-sm text-[#9FA5A8]">
               Don't have an account?
             </p>
-            <Link 
+            <Link
               to="/sign-up"
               className="font-satoshi text-sm text-[#252014] no-underline"
             >
@@ -223,12 +223,11 @@ const Login = () => {
         </div>
       </div>
 
-
       {/* Terms Text - Outside the form, below it - 345x48px */}
       <div className="absolute w-[345px] h-12 mt-[630px] px-4 flex items-center justify-center">
         <p className="font-satoshi text-[11px] leading-[1.4] text-center text-[#252014] opacity-60">
           By clicking "Sign in" or "Continue" above, you acknowledge that you have read and understood, and agree to Continuum's{' '}
-          <button 
+          <button
             type="button"
             className="bg-transparent border-none text-[11px] text-[#252014] cursor-pointer underline opacity-80"
           >

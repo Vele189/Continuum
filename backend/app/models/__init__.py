@@ -1,8 +1,6 @@
 # Models package
-from .user import User, UserRole
-from .project import Project
-from .task import Task
+# NOTE: Models have been moved to app.dbmodels to avoid conflicts
+# This package is kept for backward compatibility but should not be imported
+# All models should be imported from app.dbmodels instead
 
-from .client import Client
-
-__all__ = ['User', 'UserRole', 'Project', 'Task', 'Client']
+__all__ = []

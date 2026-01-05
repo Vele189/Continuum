@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 
 const Register = () => {
   const navigate = useNavigate();
-  
+
   const [formData, setFormData] = useState({
     email: '',
     firstName: '',
@@ -11,7 +11,7 @@ const Register = () => {
     password: '',
     confirmPassword: ''
   });
-  
+
   const [touched, setTouched] = useState({
     email: false,
     firstName: false,
@@ -19,7 +19,7 @@ const Register = () => {
     password: false,
     confirmPassword: false
   });
-  
+
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Real-time validation functions
@@ -100,18 +100,18 @@ const Register = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!validateForm()) {
       return;
     }
-    
+
     setIsSubmitting(true);
-    
+
     try {
       await new Promise(resolve => setTimeout(resolve, 500));
-      
-      navigate('/email-verification', { 
-        state: { email: formData.email } 
+
+      navigate('/email-verification', {
+        state: { email: formData.email }
       });
     } catch (err) {
       console.error('Registration failed:', err);
@@ -124,22 +124,22 @@ const Register = () => {
     <div className="relative flex justify-center items-center min-h-screen p-10 overflow-hidden bg-gradient-to-b from-brand-blue to-brand-cream">
       {/* Form Container - 345x557px */}
       <div className="w-[345px] h-[557px] rounded-2xl overflow-hidden shadow-[0px_4px_24px_rgba(0,0,0,0.1)]">
-        
+
         {/* Top Section - Sign Up Header - 345x54px */}
         <div className="w-[345px] h-[54px] pt-4 pr-6 pb-4 pl-6 bg-[#F9F9F9] border-b border-[#F5F5F5] flex items-center justify-center relative">
           {/* Back Arrow - 20x20px */}
-          <Link 
+          <Link
             to="/"
             className="w-5 h-5 absolute left-6 flex items-center justify-center"
             aria-label="Back to landing page"
           >
-            <img 
-              src="arrow.svg" 
-              alt="" 
+            <img
+              src="arrow.svg"
+              alt=""
               className="w-5 h-5"
             />
           </Link>
-          
+
           {/* Sign up Text - centered */}
           <h2 className="w-[54px] h-[22px] font-satoshi font-medium text-sm leading-[100%] tracking-[0%] text-[#595959] m-0">
             Sign up
@@ -147,13 +147,13 @@ const Register = () => {
         </div>
 
         {/* Bottom Section - Form - 345x503px */}
-        <form 
+        <form
           onSubmit={handleSubmit}
           className="w-[345px] h-[503px] pt-6 pr-6 pb-9 pl-6 bg-white flex flex-col gap-6"
         >
           {/* Email Field - 297x63px */}
           <div className="w-[297px] h-[63px] flex flex-col gap-1">
-            <label 
+            <label
               htmlFor="email"
               className="w-[35px] h-[19px] font-satoshi font-medium text-sm leading-[100%] tracking-[0%] text-[#151515]"
             >
@@ -177,7 +177,7 @@ const Register = () => {
 
           {/* First Name Field - 297x63px */}
           <div className="w-[297px] h-[63px] flex flex-col gap-1">
-            <label 
+            <label
               htmlFor="firstName"
               className="font-satoshi font-medium text-sm leading-[100%] tracking-[0%] text-[#151515]"
             >
@@ -201,7 +201,7 @@ const Register = () => {
 
           {/* Surname Field - 297x63px */}
           <div className="w-[297px] h-[63px] flex flex-col gap-1">
-            <label 
+            <label
               htmlFor="surname"
               className="font-satoshi font-medium text-sm leading-[100%] tracking-[0%] text-[#151515]"
             >
@@ -225,7 +225,7 @@ const Register = () => {
 
           {/* Password Field - 297x63px */}
           <div className="w-[297px] h-[63px] flex flex-col gap-1">
-            <label 
+            <label
               htmlFor="password"
               className="font-satoshi font-medium text-sm leading-[100%] tracking-[0%] text-[#151515]"
             >
@@ -249,7 +249,7 @@ const Register = () => {
 
           {/* Confirm Password Field - 297x63px */}
           <div className="w-[297px] h-[63px] flex flex-col gap-1">
-            <label 
+            <label
               htmlFor="confirmPassword"
               className="font-satoshi font-medium text-sm leading-[100%] tracking-[0%] text-[#151515]"
             >

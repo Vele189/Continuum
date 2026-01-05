@@ -1,5 +1,6 @@
-from typing import Optional, Literal
 from datetime import datetime
+from typing import Literal, Optional
+
 from pydantic import BaseModel, ConfigDict
 
 # Allowed status values
@@ -11,7 +12,9 @@ class TaskBase(BaseModel):
     description: Optional[str] = None
     status: Literal["todo", "in_progress", "done"] = "todo"
     project_id: int
+    milestone_id: Optional[int] = None
     assigned_to: Optional[int] = None
+    due_date: Optional[datetime] = None
 
 
 class TaskCreate(TaskBase):
@@ -23,13 +26,15 @@ class TaskUpdate(BaseModel):
     description: Optional[str] = None
     status: Optional[Literal["todo", "in_progress", "done"]] = None
     assigned_to: Optional[int] = None
+    due_date: Optional[datetime] = None
+    milestone_id: Optional[int] = None
 
 
 class TaskInDBBase(TaskBase):
     model_config = ConfigDict(from_attributes=True)
     id: int
     created_at: datetime
-    updated_at: datetime
+    updated_at: Optional[datetime] = None
 
 
 class Task(TaskInDBBase):
