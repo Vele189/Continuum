@@ -38,8 +38,7 @@ const EmailVerification = () => {
     setIsSubmitting(true);
 
     try {
-      // Here you would typically verify the code with your backend
-      // For now, we'll just navigate after a brief delay
+      //  navigate after a brief delay
       await new Promise(resolve => setTimeout(resolve, 500));
 
       // Navigate to loading screen
