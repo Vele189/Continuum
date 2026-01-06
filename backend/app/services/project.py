@@ -453,19 +453,46 @@ class ProjectService:
             activity_dropoff=activity_indicator,
         )
     
+    #Helper for getting list of clients relaated to a project
     @staticmethod
-    def get_project_progress(db: Session,project_id: int,client: Client) -> ProjectProgress:
+    def get_clients_for_project(db: Session,project_id: int,) -> list[int]:
+        project = db.query(Project).filter(Project.id == project_id).first()
+
+        if not project:
+            raise HTTPException(status_code=404, detail="Project not found")
+    # CURRENT MODEL: one client
+        return [project.client_id]
+
+    
+    @staticmethod
+    def get_project_progress(db: Session,project_id: int,client: Client, activity_limit: int = 10) -> ProjectProgress:
         """
-        Get project progress details.
+        Get project progress for a client.
+        Args:
+            db (Session): Database session.
+            project_id (int): ID of the project.
+            client (Client): Client object requesting the progress.
+            activity_limit (int): Number of recent activities to fetch.
+        Returns:
+            ProjectProgress: Project progress data.
         """
         #Access Control
 
         project = db.query(Project).filter(Project.id == project_id).first()
         if not project:
             raise HTTPException(status_code=404, detail="Project not found")
-        elif project.client_id != client.id:
-            raise HTTPException(status_code=403, detail="Not authorized to access this project")
         
+        allowed_client_ids = ProjectService.get_clients_for_project(
+        db=db,
+        project_id=project_id,
+         )
+
+        if client.id not in allowed_client_ids: #CREATED BY
+            raise HTTPException(
+            status_code=403,
+            detail="Not authorized to access this project",
+        )
+
         #Progress Calculation
 
         #Hours
@@ -502,29 +529,29 @@ class ProjectService:
         logged_hours = (
         db.query(LoggedHour)
         .filter(LoggedHour.project_id == project.id)
-        .order_by(LoggedHour.created_at.desc())
-        .limit(10)
+        .order_by(LoggedHour.logged_at.desc())
+        .limit(activity_limit)
         .all()
         )
 
         git_contributions = (
         db.query(GitContribution)
         .filter(GitContribution.project_id == project.id)
-        .order_by(GitContribution.timestamp.desc())
-        .limit(10)
+        .order_by(GitContribution.created_at.desc())
+        .limit(activity_limit)
         .all()
         )
 
         logged_hours_items = [ ActivityItem(
-            type="logged_hour",
+            type="logged_hours",
             description=f"Logged {lh.hours} hours",
-            timestamp=lh.logged_at
+            date=lh.logged_at
         ) for lh in logged_hours ]
 
         git_activity_items = [ ActivityItem(
             type="commit",
             description="Committed code changes",
-            timestamp=gc.timestamp
+            date=gc.created_at
         ) for gc in git_contributions ]
 
         #Milestones

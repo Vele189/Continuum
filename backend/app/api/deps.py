@@ -3,7 +3,7 @@ from typing import Generator, Optional
 from app.core import security
 from app.core.config import settings
 from app.db.session import SessionLocal
-from app.dbmodels import Project, ProjectMember, User, UserRole
+from app.dbmodels import Project, ProjectMember, User, UserRole, Client
 from app.schemas.user import TokenPayload
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
@@ -28,7 +28,7 @@ def get_current_user(db: Session = Depends(get_db), token: str = Depends(reusabl
         token_data = TokenPayload(**payload)
     except (JWTError, ValidationError) as exc:
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
+            status_code=status.HTTP_401_UNAUTHORIZED, #CHANGED FROM 403 TO 401
             detail="Could not validate credentials",
         ) from exc
     user = db.query(User).filter(User.id == token_data.sub).first()
@@ -132,3 +132,26 @@ def get_current_project_admin(
     raise HTTPException(
         status_code=403, detail="You must be an admin or a project manager of this project"
     )
+
+#Matches PM mental model
+def get_current_client(
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+) -> Client:
+    client = (
+        db.query(Client)
+        .filter(Client.created_by == user.id)
+        .first()
+    )
+
+    if not client:
+        raise HTTPException(
+            status_code=403,
+            detail="User is not associated with any client",
+        )
+
+    return client
+
+#ADD FUNCTION FOR GETTING CURRENT CLIENT. 
+#ADD FUNCTION FOR GETTING LIST OF CLIENTS. Done but doesnt work for the current model
+#ADD ENDPOINT FOR POST MAN TESTING LIKE A JSON TEMPLATE POSTMAN COLLECTION
