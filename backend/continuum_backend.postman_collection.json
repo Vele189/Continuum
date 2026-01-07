@@ -1809,6 +1809,236 @@
 			"description": "Task management endpoints"
 		},
 		{
+			"name": "Work Sessions",
+			"item": [
+				{
+					"name": "Start Session",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"project_id\": 1,\n    \"task_id\": 1,\n    \"note\": \"Working on implementation\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/work-sessions/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"work-sessions",
+								""
+							]
+						},
+						"description": "Start a new work session. Only one active/paused session is allowed per user."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Active Session",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/work-sessions/active",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"work-sessions",
+								"active"
+							]
+						},
+						"description": "Get the current active or paused session for the authenticated user."
+					},
+					"response": []
+				},
+				{
+					"name": "Pause Session",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/work-sessions/:id/pause",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"work-sessions",
+								":id",
+								"pause"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "1",
+									"description": "Work Session ID"
+								}
+							]
+						},
+						"description": "Pause an active work session."
+					},
+					"response": []
+				},
+				{
+					"name": "Resume Session",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/work-sessions/:id/resume",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"work-sessions",
+								":id",
+								"resume"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "1",
+									"description": "Work Session ID"
+								}
+							]
+						},
+						"description": "Resume a paused work session."
+					},
+					"response": []
+				},
+				{
+					"name": "Stop Session",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/work-sessions/:id/stop",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"work-sessions",
+								":id",
+								"stop"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "1",
+									"description": "Work Session ID"
+								}
+							]
+						},
+						"description": "Stop a work session and automatically create a Logged Hour entry."
+					},
+					"response": []
+				},
+				{
+					"name": "List Sessions",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/work-sessions/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"work-sessions",
+								""
+							]
+						},
+						"description": "List session history for the current user."
+					},
+					"response": []
+				}
+			],
+			"description": "Work Session (live timer) management endpoints"
+		},
+		{
 			"name": "Logged Hours",
 			"item": [
 				{
