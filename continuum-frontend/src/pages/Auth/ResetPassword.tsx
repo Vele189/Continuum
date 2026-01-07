@@ -29,21 +29,22 @@ const ResetPassword = () => {
   const displayError = localError;
 
   return (
-    <div className="bg-linear-to-b from-[#B2E6F7] to-[#FFFFFF] min-h-screen flex items-start justify-center pt-[160px] relative overflow-hidden">
+    <div className="bg-linear-to-b from-[#B2E6F7] to-[#FFFFFF] min-h-screen flex items-start justify-center pt-[137px] relative overflow-hidden">
 
-      <div className="bg-white flex flex-col w-[345px] h-[320px] items-center rounded-2xl border-2 border-gray-100 shadow-lg">
-        <div className="relative h-[54px] rounded-t-lg bg-[#F5F5F5] flex items-center justify-between w-full font-medium text-[#595959]">
+      <div className="w-full max-w-[345px] h-[320px] rounded-2xl border border-[#F0F0F0] shadow-lg flex flex-col overflow-hidden">
+        <div className="relative h-[54px] w-full flex items-center justify-center gap-4 px-6 py-4 bg-[#F9F9F9] border-b border-[#F5F5F5] text-[#595959]">
           <Link to="/login">
-            <img src={backArrowIcon} alt="Back Arrow" className="absolute left-4 top-3 h-4" />
+            <img src={backArrowIcon} alt="Back Arrow" 
+            className="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5" />
           </Link>
-          <h2 className="text-[16px] mx-auto">Reset password</h2>
+          <h2 className="text-[16px] font-medium leading-[100%] tracking-[-0.01em] text-[#595959]">Reset password</h2>
         </div>
 
         <form onSubmit={handleSubmit} className="w-full">
-            <div className="h-[266px] w-[345px] flex flex-col items-center justify-center gap-[24px]">
+            <div className="w-full h-[266px] flex flex-col gap-6 pt-6 px-6 pb-9 bg-white">
 
-              <div className="w-[297px] h-[142px] flex flex-col mx-auto gap-[16px] relative">
-                <div className="w-[297px] h-[63px] flex flex-col gap-[4px]">
+              <div className="w-full flex flex-col gap-2 relative">
+                <div className="w-full h-[63px] flex flex-col gap-1">
                   <label htmlFor="new-password"
                     className=" text-[#151515] font-medium text-[14px] leading-[100%] tracking-[0]">New Password</label>
                   <input
@@ -52,12 +53,12 @@ const ResetPassword = () => {
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
                     style={{ fontFamily: 'Satoshi' }}
-                    className={`w-[297px] h-[40px] border rounded-lg font-medium text-[14px] leading-[100%] tracking-[0] bg-[#FFFFFF] py-[8px] px-[16px] focus:outline-none focus:ring focus:ring-blue-500 ${displayError ? "border-red-500" : "border-gray-300"
+                    className={`w-full h-[40px] border rounded-lg font-medium text-[14px] leading-[100%] tracking-[0] bg-[#FFFFFF] py-[8px] px-[16px] focus:outline-none focus:ring focus:ring-blue-500 ${displayError ? "border-red-500" : "border-gray-300"
                       }`}
                     placeholder="Enter new password"
                   />
                 </div>
-                <div className="w-[297px] h-[63px] flex flex-col gap-[4px]">
+                <div className="w-full h-[63px] flex flex-col gap-1">
                   <label htmlFor="confirm-password" className="text-[#151515] font-medium text-[14px] leading-[100%] tracking-[0]">Confirm new password</label>
                   <input
                     type="password"
@@ -65,7 +66,7 @@ const ResetPassword = () => {
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     style={{ fontFamily: 'Satoshi' }}
-                    className={`w-[297px] h-[40px] border rounded-lg font-medium text-[14px] leading-[100%] tracking-[0] bg-[#FFFFFF] py-[8px] px-[16px] focus:outline-none focus:ring focus:ring-blue-500 ${displayError ? "border-red-500" : "border-gray-300"
+                    className={`w-full h-[40px] border rounded-lg font-medium text-[14px] leading-[100%] tracking-[0] bg-[#FFFFFF] py-[8px] px-[16px] focus:outline-none focus:ring focus:ring-blue-500 ${displayError ? "border-red-500" : "border-gray-300"
                       }`}
                     placeholder="Confirm new password"
                   />
@@ -79,8 +80,7 @@ const ResetPassword = () => {
 
               <button
                 type="submit"
-                className="w-[297px] h-[40px] bg-[#2299fa] text-white text-[16px] font-bold py-2 px-4 rounded-lg transition-all hover:bg-[#1a8ae5]"
-              >
+                className="w-full h-[40px] px-4 py-2 rounded-lg bg-gradient-to-r from-[#24B5F8] to-[#5521FE] text-white text-[14px] font-semibold leading-[100%] flex items-center justify-center gap-2">
                 Reset password
               </button>
 
