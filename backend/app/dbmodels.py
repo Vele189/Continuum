@@ -43,6 +43,12 @@ class UserRole(enum.Enum):
     ADMIN = "admin"
 
 
+class WorkSessionStatus(enum.Enum):
+    ACTIVE = "ACTIVE"
+    PAUSED = "PAUSED"
+    COMPLETED = "COMPLETED"
+
+
 # --- Models ---
 
 
@@ -230,6 +236,29 @@ class LoggedHour(Base):
     user = relationship("User", back_populates="logged_hours")
     task = relationship("Task", back_populates="logged_hours")
     project = relationship("Project", back_populates="logged_hours")
+
+
+class WorkSession(Base):
+    __tablename__ = "work_sessions"
+
+    id = Column(Integer, primary_key=True, index=True)
+
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    task_id = Column(Integer, ForeignKey("tasks.id"), nullable=True)
+    project_id = Column(Integer, ForeignKey("projects.id"), nullable=False)
+
+    started_at = Column(DateTime, nullable=False)
+    ended_at = Column(DateTime, nullable=True)
+
+    last_resumed_at = Column(DateTime, nullable=True)
+    duration_seconds = Column(Integer, default=0)
+
+    status = Column(Enum(WorkSessionStatus), nullable=False)
+    note = Column(Text, nullable=True)
+
+    user = relationship("User")
+    task = relationship("Task")
+    project = relationship("Project")
 
 
 class GitContribution(Base):
