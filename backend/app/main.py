@@ -16,6 +16,7 @@ from app.api.v1.routes import (
     tasks,
     users,
     webhooks,
+    work_sessions,
 )
 from app.core.config import settings
 from app.utils.logger import get_logger
@@ -61,6 +62,9 @@ app.include_router(
     client_portal.router, prefix=f"{settings.API_V1_STR}/client-portal", tags=["Client Portal"]
 )
 app.include_router(webhooks.router, prefix=f"{settings.API_V1_STR}/webhooks", tags=["Webhooks"])
+app.include_router(
+    work_sessions.router, prefix=f"{settings.API_V1_STR}/work-sessions", tags=["Work Sessions"]
+)
 
 
 @app.get("/health")
