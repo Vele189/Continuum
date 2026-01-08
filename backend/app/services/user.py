@@ -15,7 +15,11 @@ from app.schemas.user import (
     UserProjects,
     UserUpdate,
 )
+
+from app.utils.email_service import send_verification_email, send_password_reset_email,send_simple_email
+
 from fastapi import HTTPException
+from fastapi import BackgroundTasks
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
@@ -24,7 +28,7 @@ def get_by_email(db: Session, email: str) -> Optional[User]:
     return db.query(User).filter(User.email == email).first()
 
 
-def create(db: Session, obj_in: UserCreate) -> User:
+def create(db: Session, obj_in: UserCreate, background_tasks: BackgroundTasks) -> User:
     verification_token = str(uuid.uuid4())
     db_obj = User(
         username=obj_in.email,
@@ -41,14 +45,8 @@ def create(db: Session, obj_in: UserCreate) -> User:
     db.commit()
     db.refresh(db_obj)
 
-    # Mock sending email
-    # Mock sending email (development only - tokens are sensitive)
-    print("--- MOCK EMAIL ---")
-    print("To: " + obj_in.email)
-    print("Subject: Verify your email")
-    print("Link: http://localhost:8000/api/v1/users/verify-email?token=[REDACTED]")
-    print(f"Token (dev only): {verification_token[:8]}...")
-    print("------------------")
+    #Replaced the mock that was here with a call to the email service
+    background_tasks.add_task(send_verification_email,obj_in.email,verification_token)
 
     return db_obj
 
@@ -82,7 +80,7 @@ def verify_email(db: Session, token: str) -> Optional[User]:
     return user
 
 
-def initiate_password_reset(db: Session, email: str) -> Optional[User]:
+def initiate_password_reset(db: Session, email: str, background_tasks: BackgroundTasks) -> Optional[User]:
     user = get_by_email(db, email=email)
     if not user:
         return None
@@ -93,12 +91,8 @@ def initiate_password_reset(db: Session, email: str) -> Optional[User]:
     db.commit()
     db.refresh(user)
 
-    # Mock sending email (development only - tokens are sensitive)
-    print("--- MOCK EMAIL ---")
-    print("To: " + email)
-    print("Subject: Reset your password")
-    print(f"Token (dev only): {reset_token[:8]}...")
-    print("------------------")
+    #Replaced the mock that was here with a call to the email service
+    background_tasks.add_task(send_password_reset_email,email,reset_token)
 
     return user
 

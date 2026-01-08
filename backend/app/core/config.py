@@ -23,5 +23,13 @@ class Settings(BaseSettings):
     GITLAB_WEBHOOK_TOKEN: str = ""
     BITBUCKET_WEBHOOK_SECRET: str = ""
 
+    # SMTP settings (Also added to docker-compose.yml)
+    SMTP_HOST: str = "mailpit"
+    SMTP_PORT: int = 1025
+    SMTP_USER: str = ""
+    SMTP_PASSWORD: str = ""
+    EMAILS_FROM_EMAIL: str
+    EMAILS_FROM_NAME: str 
+
 
 settings = Settings()
