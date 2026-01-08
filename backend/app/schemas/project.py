@@ -1,7 +1,7 @@
 from datetime import datetime
 from decimal import Decimal
 from enum import Enum
-from typing import List, Optional, Literal
+from typing import List, Literal, Optional
 
 from app.schemas.client import Client
 from app.schemas.task import Task
@@ -144,7 +144,7 @@ class ProjectHealth(BaseModel):
     activity_dropoff: ProjectHealthIndicator
 
 
-#Support schemas for ProjectProgress
+# Support schemas for ProjectProgress
 class ActivityItem(BaseModel):
     type: Literal["logged_hours", "commit"]
     description: str
@@ -168,4 +168,3 @@ class ProjectProgress(BaseModel):
 
     recent_activity: List[ActivityItem]
     milestones: Optional[List[ClientMilestone]]
-
