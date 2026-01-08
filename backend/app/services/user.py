@@ -45,7 +45,7 @@ def create(db: Session, obj_in: UserCreate, background_tasks: BackgroundTasks) -
     db.commit()
     db.refresh(db_obj)
 
-    #Replaced the mock that was here with a call to the email service
+    
     background_tasks.add_task(send_verification_email,obj_in.email,verification_token)
 
     return db_obj
@@ -91,7 +91,7 @@ def initiate_password_reset(db: Session, email: str, background_tasks: Backgroun
     db.commit()
     db.refresh(user)
 
-    #Replaced the mock that was here with a call to the email service
+    
     background_tasks.add_task(send_password_reset_email,email,reset_token)
 
     return user
