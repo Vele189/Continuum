@@ -3,9 +3,13 @@ from sqlalchemy.orm import Session
 from fastapi import HTTPException, status
 from app.dbmodels import Repository, Project
 from app.schemas.repository import RepositoryCreate, RepositoryUpdate
+from app.services.webhook import WebhookService
 
 def link_repository(db: Session, data: RepositoryCreate) -> Repository:
     """Create and persist a repository → project mapping"""
+    # Normalize URL before comparison and storage
+    data.repository_url = WebhookService._normalize_repository_url(data.repository_url)
+    
     # Check if project exists
     project = db.query(Project).filter(Project.id == data.project_id).first()
     if not project:

@@ -165,7 +165,7 @@ class WebhookService:
         
         # Try finding by exact URL (normalized)
         repo = db.query(Repository).filter(
-            Repository.repository_url.ilike(f"{normalized_url}%"),
+            Repository.repository_url == normalized_url,
             Repository.is_active == True
         ).first()
 

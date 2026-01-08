@@ -19,6 +19,7 @@ class RepositoryUpdate(BaseModel):
 class RepositoryOut(RepositoryBase):
     id: int
     project_id: int
+    webhook_secret: Optional[str] = None
     created_at: datetime
     updated_at: datetime
 
