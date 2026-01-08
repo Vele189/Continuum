@@ -28,8 +28,11 @@ class Settings(BaseSettings):
     SMTP_PORT: int = 1025
     SMTP_USER: str = ""
     SMTP_PASSWORD: str = ""
-    EMAILS_FROM_EMAIL: str
-    EMAILS_FROM_NAME: str 
+    EMAILS_FROM_EMAIL: str = "noreply@continuum.app"
+    EMAILS_FROM_NAME: str = "Continuum"
+
+    # Frontend/Base URL for email links
+    FRONTEND_URL: str = "http://localhost:5173"  # Default for local dev, override in production
 
 
 settings = Settings()

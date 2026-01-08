@@ -35,3 +35,11 @@ services:
       POSTGRES_DB: app
     ports:
       - "5435:5432"  # Map to 5435 on host to avoid conflict with other PostgreSQL instances
+
+  mailpit:
+    image: axllent/mailpit
+    container_name: continuum-mailpit
+    ports:
+      - "1025:1025"  # SMTP port
+      - "8025:8025"  # Web UI port
+    restart: unless-stopped

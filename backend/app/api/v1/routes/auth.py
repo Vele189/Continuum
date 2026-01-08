@@ -6,7 +6,7 @@ from app.core.config import settings
 from app.dbmodels import User
 from app.schemas.user import PasswordResetConfirm, Token, TokenPayload, UserLogin
 from app.services import user as user_service
-from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 from jose import JWTError, jwt
 from pydantic import ValidationError
@@ -125,15 +125,17 @@ def refresh_access_token(
 
 
 @router.post("/password-recovery/{email}")
-def recover_password(email: str, background_tasks: BackgroundTasks, db: Session = Depends(deps.get_db)) -> dict:
+def recover_password(
+    email: str, background_tasks: BackgroundTasks, db: Session = Depends(deps.get_db)
+) -> dict:
     """
     Request password recovery.
 
     Sends a password reset token to the email if it exists.
     For security, always returns success even if email doesn't exist.
     """
-    
-    user_service.initiate_password_reset(db, email=email, background_tasks = background_tasks)
+
+    user_service.initiate_password_reset(db, email=email, background_tasks=background_tasks)
     return {"message": "If this email exists, a password reset token has been sent."}
 
 

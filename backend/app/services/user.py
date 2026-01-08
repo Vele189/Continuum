@@ -15,11 +15,8 @@ from app.schemas.user import (
     UserProjects,
     UserUpdate,
 )
-
-from app.utils.email_service import send_verification_email, send_password_reset_email,send_simple_email
-
-from fastapi import HTTPException
-from fastapi import BackgroundTasks
+from app.utils.email_service import send_password_reset_email, send_verification_email
+from fastapi import BackgroundTasks, HTTPException
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
@@ -45,8 +42,7 @@ def create(db: Session, obj_in: UserCreate, background_tasks: BackgroundTasks) -
     db.commit()
     db.refresh(db_obj)
 
-    
-    background_tasks.add_task(send_verification_email,obj_in.email,verification_token)
+    background_tasks.add_task(send_verification_email, obj_in.email, verification_token)
 
     return db_obj
 
@@ -80,7 +76,9 @@ def verify_email(db: Session, token: str) -> Optional[User]:
     return user
 
 
-def initiate_password_reset(db: Session, email: str, background_tasks: BackgroundTasks) -> Optional[User]:
+def initiate_password_reset(
+    db: Session, email: str, background_tasks: BackgroundTasks
+) -> Optional[User]:
     user = get_by_email(db, email=email)
     if not user:
         return None
@@ -91,8 +89,7 @@ def initiate_password_reset(db: Session, email: str, background_tasks: Backgroun
     db.commit()
     db.refresh(user)
 
-    
-    background_tasks.add_task(send_password_reset_email,email,reset_token)
+    background_tasks.add_task(send_password_reset_email, email, reset_token)
 
     return user
 
