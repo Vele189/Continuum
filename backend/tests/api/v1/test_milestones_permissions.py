@@ -184,7 +184,7 @@ def test_list_milestones_filter_status(client: TestClient):
     m1 = {
         "name": "M1",
         "project_id": project_id,
-        "due_date": "2025-12-31T23:59:59Z",  # Status: not_started (default)
+        "due_date": "2030-12-31T23:59:59Z",  # Status: not_started (future date)
     }
     client.post(
         f"{settings.API_V1_STR}/milestones/",
