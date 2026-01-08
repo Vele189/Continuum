@@ -11,6 +11,7 @@ from app.api.v1.routes import (
     logged_hours,
     milestones,
     projects,
+    repositories,
     task_attachments,
     task_comments,
     tasks,
@@ -57,6 +58,9 @@ app.include_router(
     task_attachments.router, prefix=f"{settings.API_V1_STR}", tags=["Task Attachments"]
 )
 app.include_router(invoices.router, prefix=f"{settings.API_V1_STR}/invoices", tags=["Invoices"])
+app.include_router(
+    repositories.router, prefix=f"{settings.API_V1_STR}", tags=["Repositories"]
+)
 app.include_router(
     client_portal.router, prefix=f"{settings.API_V1_STR}/client-portal", tags=["Client Portal"]
 )
