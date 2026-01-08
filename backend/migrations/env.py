@@ -9,6 +9,7 @@ from app.dbmodels import (  # Import all models to register them with Base
     LoggedHour,
     Project,
     ProjectMember,
+    Repository,
     SystemLog,
     Task,
     User,
