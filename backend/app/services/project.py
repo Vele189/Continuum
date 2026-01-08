@@ -5,6 +5,7 @@ from app.dbmodels import Client, GitContribution, LoggedHour, Project, ProjectMe
 from app.schemas.project import (
     ActivityItem,
     ClientMilestone,
+    ClientPortalProject,
     HealthFlag,
     ProjectCreate,
     ProjectHealth,
@@ -18,7 +19,7 @@ from app.schemas.project import (
 from app.services.milestone import MilestoneService
 from fastapi import HTTPException, status
 from sqlalchemy import func
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 
 
 class ProjectService:
@@ -297,8 +298,13 @@ class ProjectService:
             ):
                 total_overdue_tasks += 1
 
-        # then we have to get the total logged hours of the project
-        total_logged_hours = project.total_logged_hours
+        # Calculate total logged hours for the project
+        total_logged_hours = (
+            db.query(func.sum(LoggedHour.hours))
+            .filter(LoggedHour.project_id == project_id)
+            .scalar()
+            or 0.0
+        )
         # then we return the project statistics
         return ProjectStatistics(
             id=project.id,
@@ -580,4 +586,50 @@ class ProjectService:
             progress_percentage=round(progress_percentage, 2),
             recent_activity=recent_activity,
             milestones=client_milestones,
+        )
+
+    @staticmethod
+    def get_client_portal_project(
+        db: Session, project_id: int, client: Client
+    ) -> ClientPortalProject:
+        """
+        Fetch a project by ID and return a sanitized version for the Client Portal.
+        Verifies that the project belongs to the given client.
+        """
+        # Eagerly load members and their user relationships to avoid N+1 queries
+        project = (
+            db.query(Project)
+            .options(joinedload(Project.members).joinedload(ProjectMember.user))
+            .filter(Project.id == project_id)
+            .first()
+        )
+        if not project:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Project not found")
+
+        if project.client_id != client.id:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="You do not have access to this project",
+            )
+
+        # Extract member names
+        # Ensure we have the user names
+        member_names = []
+        for member in project.members:
+            if member.user:
+                name = f"{member.user.first_name} {member.user.last_name}"
+                member_names.append(name)
+
+        # Handle updated_at - use created_at if updated_at is None
+        updated_at = project.updated_at if project.updated_at is not None else project.created_at
+
+        return ClientPortalProject(
+            id=project.id,
+            name=project.name,
+            description=project.description,
+            status=project.status,
+            client_name=client.name,
+            members=member_names,
+            created_at=project.created_at,
+            updated_at=updated_at,
         )

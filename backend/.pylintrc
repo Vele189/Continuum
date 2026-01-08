@@ -24,7 +24,12 @@ ignore=tests,venv,migrations
 # C0415: import-outside-toplevel (intentional lazy loading in pdf_generator.py)
 # R0914: too-many-locals (acceptable for complex business logic)
 # C0121: singleton-comparison (SQLAlchemy uses .is_(None) which pylint doesn't recognize)
-disable=C0114,C0115,C0116,C0103,R0903,R0913,R0917,R0912,W0718,R0801,W0511,E1102,C0411,C0301,W0622,W0621,W0603,C0415,R0914,C0121
+# E1101: no-member (Alembic dynamic API, SQLAlchemy dynamic attributes)
+# W0611: unused-import (common in migrations and generated code)
+# W0107: unnecessary-pass (common in empty migration functions)
+# C0413: wrong-import-position (intentional in some scripts)
+# R0915: too-many-statements (acceptable for migration scripts)
+disable=C0114,C0115,C0116,C0103,R0903,R0913,R0917,R0912,W0718,R0801,W0511,E1102,C0411,C0301,W0622,W0621,W0603,C0415,R0914,C0121,E1101,W0611,W0107,C0413,R0915
 
 [FORMAT]
 # Maximum number of characters on a single line

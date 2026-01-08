@@ -16,6 +16,9 @@ logger = get_logger(__name__)
 
 
 def init_db():
+    if engine is None:
+        logger.error("Cannot initialize database: engine is None (DATABASE_URL not set)")
+        raise RuntimeError("Database engine is not available. DATABASE_URL must be set.")
     logger.info("Starting database initialization process.")
     try:
         Base.metadata.create_all(bind=engine)
@@ -26,6 +29,10 @@ def init_db():
 
 
 def get_db():
+    if SessionLocal is None:
+        raise RuntimeError(
+            "Database is not configured. Please set DATABASE_URL environment variable."
+        )
     db = SessionLocal()
     try:
         yield db

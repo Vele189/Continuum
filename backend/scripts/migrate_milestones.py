@@ -5,7 +5,7 @@ import sys
 # Add backend directory to path so we can import app config if needed
 sys.path.append(os.path.join(os.getcwd(), ".."))
 
-from app.core.config import settings
+from app.core.config import settings  # pylint: disable=wrong-import-position
 
 
 def migrate():

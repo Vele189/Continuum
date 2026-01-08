@@ -5,7 +5,7 @@ from app.core.config import settings
 from app.db.session import SessionLocal
 from app.dbmodels import Client, Project, ProjectMember, User, UserRole
 from app.schemas.user import TokenPayload
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, Header, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
 from pydantic import ValidationError
@@ -15,6 +15,11 @@ reusable_oauth2 = OAuth2PasswordBearer(tokenUrl=f"{settings.API_V1_STR}/auth/log
 
 
 def get_db() -> Generator:
+    if SessionLocal is None:
+        raise HTTPException(
+            status_code=503,
+            detail="Database is not configured. Please set DATABASE_URL environment variable.",
+        )
     try:
         db = SessionLocal()
         yield db
@@ -34,6 +39,9 @@ def get_current_user(db: Session = Depends(get_db), token: str = Depends(reusabl
     user = db.query(User).filter(User.id == token_data.sub).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
+    # Access attributes while session is still active to prevent DetachedInstanceError
+    _ = user.role
+    _ = user.id
     return user
 
 
@@ -134,11 +142,15 @@ def get_current_project_admin(
     )
 
 
-# Matches PM mental model
+# Matches PM mental model - user-based authentication
 def get_current_client(
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),
 ) -> Client:
+    """
+    Dependency to get the current client based on the authenticated user.
+    Used for the Client Portal progress endpoint.
+    """
     client = db.query(Client).filter(Client.created_by == user.id).first()
 
     if not client:
@@ -150,6 +162,24 @@ def get_current_client(
     return client
 
 
-# ADD FUNCTION FOR GETTING CURRENT CLIENT.
-# ADD FUNCTION FOR GETTING LIST OF CLIENTS. Done but doesnt work for the current model
-# ADD ENDPOINT FOR POST MAN TESTING LIKE A JSON TEMPLATE POSTMAN COLLECTION
+def get_current_client_by_token(
+    db: Session = Depends(get_db),
+    x_client_token: Optional[str] = Header(None, alias="X-Client-Token"),
+) -> Client:
+    """
+    Dependency to get the current client based on the X-Client-Token header.
+    Used for the Client Portal.
+    """
+    if not x_client_token:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Missing client token",
+        )
+
+    client = db.query(Client).filter(Client.api_key == x_client_token).first()
+    if not client:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid client token",
+        )
+    return client

@@ -732,10 +732,10 @@
 								"key": "Content-Type",
 								"value": "application/json"
 							},
-                             {
-                                "key": "Authorization",
-                                "value": "Bearer {{access_token}}"
-                            }
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
 						],
 						"body": {
 							"mode": "raw",
@@ -761,11 +761,11 @@
 					"request": {
 						"method": "GET",
 						"header": [
-                             {
-                                "key": "Authorization",
-                                "value": "Bearer {{access_token}}"
-                            }
-                        ],
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
 						"url": {
 							"raw": "{{base_url}}/api/v1/tasks/?project_id=1",
 							"host": [
@@ -792,11 +792,11 @@
 					"request": {
 						"method": "GET",
 						"header": [
-                             {
-                                "key": "Authorization",
-                                "value": "Bearer {{access_token}}"
-                            }
-                        ],
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
 						"url": {
 							"raw": "{{base_url}}/api/v1/tasks/1",
 							"host": [
@@ -821,10 +821,10 @@
 								"key": "Content-Type",
 								"value": "application/json"
 							},
-                             {
-                                "key": "Authorization",
-                                "value": "Bearer {{access_token}}"
-                            }
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
 						],
 						"body": {
 							"mode": "raw",
@@ -854,10 +854,10 @@
 								"key": "Content-Type",
 								"value": "application/json"
 							},
-                             {
-                                "key": "Authorization",
-                                "value": "Bearer {{access_token}}"
-                            }
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
 						],
 						"body": {
 							"mode": "raw",
@@ -888,11 +888,11 @@
 								"key": "Content-Type",
 								"value": "application/json"
 							},
-                             {
-                                "key": "Authorization",
-                                "value": "Bearer {{access_token}}"
-                            }
-                        ],
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
 						"body": {
 							"mode": "raw",
 							"raw": "{\n    \"user_id\": 1\n}"
@@ -918,11 +918,11 @@
 					"request": {
 						"method": "DELETE",
 						"header": [
-                             {
-                                "key": "Authorization",
-                                "value": "Bearer {{access_token}}"
-                            }
-                        ],
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
 						"url": {
 							"raw": "{{base_url}}/api/v1/tasks/1",
 							"host": [
@@ -1364,6 +1364,90 @@
 							]
 						},
 						"description": "Get project health indicators (overdue tasks, inactive members) - NOT IMPLEMENTED YET"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Project Digest",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/projects/:project_id/digest?week_start=2024-01-01",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"projects",
+								":project_id",
+								"digest"
+							],
+							"query": [
+								{
+									"key": "week_start",
+									"value": "2024-01-01",
+									"description": "Start of the week (YYYY-MM-DD format)"
+								}
+							],
+							"variable": [
+								{
+									"key": "project_id",
+									"value": "1"
+								}
+							]
+						},
+						"description": "Generate a weekly project digest summarizing work completed, time logged, git activity, and high-level signals. Returns completed tasks, total hours logged (with breakdown per user), commits, milestone progress placeholder, and risks/delays placeholder. Requires project membership (or admin). Query parameter week_start is required (YYYY-MM-DD format)."
+					},
+					"response": []
+				},
+				{
+					"name": "Generate Project Summary",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/projects/:project_id/generate-summary",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"projects",
+								":project_id",
+								"generate-summary"
+							],
+							"variable": [
+								{
+									"key": "project_id",
+									"value": "1",
+									"description": "Project ID"
+								}
+							]
+						},
+						"description": "Generate a structured project summary aggregating tasks, commits, and logged hours. Used as input for future AI processing. Admins can generate summary for any project. Members can generate summary for projects they belong to."
 					},
 					"response": []
 				}
@@ -3017,6 +3101,47 @@
 				}
 			],
 			"description": "Milestone management endpoints - Group tasks into deliverables and track progress automatically"
+		},
+		{
+			"name": "Client Portal",
+			"item": [
+				{
+					"name": "Get Project View",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-Client-Token",
+								"value": "YOUR_CLIENT_TOKEN_HERE",
+								"description": "Client-specific API key"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/client-portal/projects/:project_id",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"client-portal",
+								"projects",
+								":project_id"
+							],
+							"variable": [
+								{
+									"key": "project_id",
+									"value": "1",
+									"description": "Project ID"
+								}
+							]
+						},
+						"description": "Expose a sanitized, read-only project view for clients. Protected via X-Client-Token header."
+					},
+					"response": []
+				}
+			],
+			"description": "Public-facing client endpoints protected by client token"
 		}
 	],
 	"variable": [

@@ -42,10 +42,12 @@ def create(db: Session, obj_in: UserCreate) -> User:
     db.refresh(db_obj)
 
     # Mock sending email
+    # Mock sending email (development only - tokens are sensitive)
     print("--- MOCK EMAIL ---")
     print("To: " + obj_in.email)
     print("Subject: Verify your email")
-    print("Link: http://localhost:8000/api/v1/users/verify-email?token=" + verification_token)
+    print("Link: http://localhost:8000/api/v1/users/verify-email?token=[REDACTED]")
+    print(f"Token (dev only): {verification_token[:8]}...")
     print("------------------")
 
     return db_obj
@@ -91,11 +93,11 @@ def initiate_password_reset(db: Session, email: str) -> Optional[User]:
     db.commit()
     db.refresh(user)
 
-    # Mock sending email
+    # Mock sending email (development only - tokens are sensitive)
     print("--- MOCK EMAIL ---")
     print("To: " + email)
     print("Subject: Reset your password")
-    print("Token: " + reset_token)
+    print(f"Token (dev only): {reset_token[:8]}...")
     print("------------------")
 
     return user
@@ -216,6 +218,10 @@ def get_user_profile(db: Session, user_id: int, current_user: User) -> UserProfi
     """
     Get comprehensive user profile including skills, contributions, and activity patterns.
     """
+    # Merge current_user into this session to prevent DetachedInstanceError
+    # This works whether the object is attached or detached
+    current_user = db.merge(current_user)
+
     # 1. Permission check - either a user can fetch their own profile or the admin can
     admin_roles = {UserRole.ADMIN, UserRole.PROJECTMANAGER}
     if current_user.id != user_id and current_user.role not in admin_roles:
