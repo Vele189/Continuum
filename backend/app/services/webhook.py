@@ -162,12 +162,13 @@ class WebhookService:
         Get project by repository URL using Repository mapping table.
         """
         normalized_url = WebhookService._normalize_repository_url(repository_url)
-        
+
         # Try finding by exact URL (normalized)
-        repo = db.query(Repository).filter(
-            Repository.repository_url == normalized_url,
-            Repository.is_active == True
-        ).first()
+        repo = (
+            db.query(Repository)
+            .filter(Repository.repository_url == normalized_url, Repository.is_active == True)
+            .first()
+        )
 
         if repo:
             return repo.project

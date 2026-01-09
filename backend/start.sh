@@ -1,10 +1,10 @@
 #!/bin/bash
-
-# Navigate to the project root (one level up from this script)
-cd "$(dirname "$0")/.."
-
-echo "Starting Backend Container..."
-docker compose up -d --build backend db
-
-echo "Backend container started. Following logs (Ctrl+C to exit logs)..."
-docker compose logs -f backend
+set -e
+echo "Running database migrations..."
+if [ -n "$DATABASE_URL" ]; then
+  alembic upgrade head || echo "Warning: Migrations failed, continuing anyway..."
+else
+  echo "Warning: DATABASE_URL not set, skipping migrations"
+fi
+echo "Starting application server on port $PORT..."
+exec uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}

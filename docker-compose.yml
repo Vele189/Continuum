@@ -17,12 +17,12 @@ services:
     build: ./continuum-frontend
     container_name: continuum-frontend
     ports:
-      - "5173:5173"
+      - "5174:5173"  # Map to 5174 on host to avoid conflict with jc-ui-app
     volumes:
       - ./continuum-frontend:/app
       - /app/node_modules
     environment:
-      VITE_API_BASE_URL: http://backend:8000/api  # frontend can call backend via service name
+      VITE_API_BASE_URL: http://localhost:8001/api/v1  # Use host URL for browser access
     depends_on:
       - backend
     restart: unless-stopped # will auto-restart upon docker crashes or system reboots
