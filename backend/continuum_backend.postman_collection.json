@@ -25,6 +25,36 @@
 			"response": []
 		},
 		{
+		"name": "Get Client Project Progress",
+		"request": {
+			"method": "GET",
+			"header": [
+			{
+				"key": "Authorization",
+				"value": "Bearer {{access_token}}",
+				"type": "text"
+			}
+			],
+			"url": {
+			"raw": "{{base_url}}/client_portal/projects/{{project_id}}/progress?activity_limit={{activity_limit}}",
+			"host": ["{{base_url}}"],
+			"path": [
+				"client_portal",
+				"projects",
+				"{{project_id}}",
+				"progress"
+			],
+			"query": [
+				{
+				"key": "activity_limit",
+				"value": "{{activity_limit}}"
+				}
+			]
+			}
+		},
+		"response": []
+		},
+		{
 			"name": "Authentication",
 			"item": [
 				{
