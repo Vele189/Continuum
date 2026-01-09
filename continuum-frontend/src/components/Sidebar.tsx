@@ -46,10 +46,10 @@ const Sidebar = () => {
 
   return (
     <aside className="w-[212px] h-screen bg-[#F7FBFF] border-r border-[#E9EEF5] flex flex-col">
-      {/* TOP SECTION () */}
-      <div className="w-[212px] flex flex-col gap-[16px]">
+      {/* TOP SECTION */}
+      <div className="w-[212px] flex flex-col px-[12px] pt-[24px] pb-[16px] gap-[20px]">
         {/* LOGO  */}
-        <div className="w-[212px] h-[78px] pt-[32px] pb-[16px] flex items-start justify-center">
+        <div className="w-full flex items-center justify-center pb-[4px]">
           <img
             src="/icons/Continuum (1).svg"
             alt="Continuum"
@@ -58,7 +58,7 @@ const Sidebar = () => {
         </div>
 
         {/* SEARCH  */}
-        <div className="w-[212px] h-[40px] rounded-full bg-[#EFF4FA] border border-[#E9EEF5] flex items-center gap-[8px] px-[12px]">
+        <div className="w-full h-[40px] rounded-full bg-[#EFF4FA] border border-[#E9EEF5] flex items-center gap-[8px] px-[12px]">
           <img
             src="/icons/search.svg"
             alt=""
@@ -73,7 +73,7 @@ const Sidebar = () => {
         </div>
 
         {/* NAV ICONS ROW  */}
-        <div className="w-[212px] h-[40px] flex gap-[8px]">
+        <div className="w-full flex gap-[8px]">
           <button
             type="button"
             title="Home"
@@ -116,8 +116,8 @@ const Sidebar = () => {
         </div>
 
         {/* PROJECTS HEADER  */}
-        <div className="w-[212px] h-[35px] flex items-center justify-between pt-[8px] pb-[8px]">
-          <p className="w-[51px] h-[19px] text-[14px] font-medium leading-[14px] text-[#606D76]">
+        <div className="w-full flex items-center justify-between pt-[4px]">
+          <p className="text-[14px] font-medium leading-[14px] text-[#606D76]">
             Projects
           </p>
 
@@ -150,88 +150,90 @@ const Sidebar = () => {
       </div>
 
       {/* PROJECT LIST (scrollable) */}
-      <div className="w-[212px] flex-1 overflow-y-auto pt-[4px]">
-        {filteredParents.map((p) => {
-          const parentSelected = p.id === selectedParentId;
+      <div className="w-[212px] flex-1 overflow-y-auto px-[12px]">
+        <div className="flex flex-col gap-[4px]">
+          {filteredParents.map((p) => {
+            const parentSelected = p.id === selectedParentId;
 
-          return (
-            <div key={p.id} className="w-[212px]">
-              {/* PARENT ROW */}
-              <button
-                type="button"
-                onClick={() => {
-                  setSelectedParentId(p.id);
-                  if (p.children?.length) setSelectedChildId(p.children[0].id);
-                }}
-                className="w-[212px] h-[40px] flex items-center text-left pl-[12px] pr-[12px] gap-[8px] rounded-[8px]"
-              >
-                <img
-                  src={
-                    parentSelected
-                      ? "/icons/folder-open-dot.svg"
-                      : "/icons/folder-dot.svg"
-                  }
-                  alt=""
-                  className="w-[18px] h-[18px]"
-                />
-                <span className="w-[164px] h-[19px] text-[14px] font-medium leading-[14px] text-[#0B191F] truncate">
-                  {p.name}
-                </span>
-              </button>
+            return (
+              <div key={p.id} className="w-full">
+                {/* PARENT ROW */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelectedParentId(p.id);
+                    if (p.children?.length) setSelectedChildId(p.children[0].id);
+                  }}
+                  className="w-full h-[40px] flex items-center text-left px-[4px] gap-[8px] rounded-[8px] hover:bg-[#EEF3F8] transition-colors"
+                >
+                  <img
+                    src={
+                      parentSelected
+                        ? "/icons/folder-open-dot.svg"
+                        : "/icons/folder-dot.svg"
+                    }
+                    alt=""
+                    className="w-[18px] h-[18px] flex-shrink-0"
+                  />
+                  <span className="flex-1 text-[14px] font-medium leading-[14px] text-[#0B191F] truncate">
+                    {p.name}
+                  </span>
+                </button>
 
-              {/* CHILD ROWS (only when selected parent has children) */}
-              {parentSelected && p.children?.length ? (
-                <div className="w-[212px]">
-                  {p.children.map((c) => {
-                    const childSelected = c.id === selectedChildId;
+                {/* CHILD ROWS (only when selected parent has children) */}
+                {parentSelected && p.children?.length ? (
+                  <div className="w-full flex flex-col gap-[4px] mt-[4px] mb-[8px]">
+                    {p.children.map((c) => {
+                      const childSelected = c.id === selectedChildId;
 
-                    return (
-                      <button
-                        key={c.id}
-                        type="button"
-                        onClick={() => setSelectedChildId(c.id)}
-                        className={`w-[212px] h-[40px] flex items-center text-left pl-[24px] pr-[12px] gap-[4px] rounded-[8px]
-                          ${childSelected ? "bg-[#DCE3E5AD]" : ""}
-                        `}
-                      >
-                        <img
-                          src="/icons/corner-down-right.svg"
-                          alt=""
-                          className="w-[14px] h-[14px]"
-                        />
-                        <span className="w-[164px] h-[19px] text-[14px] font-medium leading-[14px] text-[#0B191F] truncate">
-                          {c.name}
-                        </span>
-                      </button>
-                    );
-                  })}
-                </div>
-              ) : null}
-            </div>
-          );
-        })}
+                      return (
+                        <button
+                          key={c.id}
+                          type="button"
+                          onClick={() => setSelectedChildId(c.id)}
+                          className={`w-full h-[40px] flex items-center text-left pl-[20px] pr-[4px] gap-[4px] rounded-[8px] transition-colors
+                            ${childSelected ? "bg-[#DCE3E5AD]" : "hover:bg-[#EEF3F8]"}
+                          `}
+                        >
+                          <img
+                            src="/icons/corner-down-right.svg"
+                            alt=""
+                            className="w-[14px] h-[14px] flex-shrink-0"
+                          />
+                          <span className="flex-1 text-[14px] font-medium leading-[14px] text-[#0B191F] truncate">
+                            {c.name}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                ) : null}
+              </div>
+            );
+          })}
+        </div>
 
         {filteredParents.length === 0 && (
-          <p className="px-[12px] py-[12px] text-[13px] text-[#64748B]">
+          <p className="px-[4px] py-[12px] text-[13px] text-[#64748B]">
             No projects found.
           </p>
         )}
       </div>
 
       {/* USER PROFILE  */}
-      <div className="w-[212px] border-t border-[#E9EEF5] p-[8px] relative">
+      <div className="w-[212px] border-t border-[#E9EEF5] px-[12px] py-[12px] relative">
         <button
           type="button"
           onClick={() => setIsUserMenuOpen((prev) => !prev)}
-          className="w-[212px] h-[40px] flex items-center justify-between rounded-[8px] pr-[12px]"
+          className="w-full h-auto flex items-center justify-between rounded-[8px] p-[8px] hover:bg-[#EEF3F8] transition-colors"
         >
-          <div className="flex items-center gap-[8px] min-w-0 pl-[12px]">
+          <div className="flex items-center gap-[8px] min-w-0 flex-1">
             <img
               src="/icons/Ellipse 1.svg"
               alt=""
-              className="w-[24px] h-[24px] rounded-full"
+              className="w-[24px] h-[24px] rounded-full flex-shrink-0"
             />
-            <div className="min-w-0 text-left">
+            <div className="min-w-0 text-left flex-1">
               <p className="text-[13px] font-medium text-[#0F172A] truncate">
                 Amukelani Shringani
               </p>
@@ -241,11 +243,11 @@ const Sidebar = () => {
             </div>
           </div>
 
-          <img src="/icons/lucide.svg" alt="" className="w-[14px] h-[14px]" />
+          <img src="/icons/lucide.svg" alt="" className="w-[14px] h-[14px] flex-shrink-0 ml-[8px]" />
         </button>
 
         {isUserMenuOpen && (
-          <div className="absolute left-[8px] bottom-[52px] w-[180px] bg-white border border-[#E5E7EB] rounded-lg shadow-md overflow-hidden">
+          <div className="absolute left-[12px] bottom-[64px] w-[180px] bg-white border border-[#E5E7EB] rounded-lg shadow-md overflow-hidden">
             <button
               type="button"
               className="w-full text-left px-3 py-2 hover:bg-[#F8FAFC] text-[13px]"
