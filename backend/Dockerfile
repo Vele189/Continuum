@@ -20,17 +20,19 @@ EXPOSE 8000
 ENV PORT=8000
 
 # Create a startup script that runs migrations then starts the server
-RUN echo '#!/bin/bash\n\
-set -e\n\
-echo "Running database migrations..."\n\
-if [ -n "$DATABASE_URL" ]; then\n\
-  alembic upgrade head || echo "Warning: Migrations failed, continuing anyway..."\n\
-else\n\
-  echo "Warning: DATABASE_URL not set, skipping migrations"\n\
-fi\n\
-echo "Starting application server on port $PORT..."\n\
-exec uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}\n\
-' > /app/start.sh && chmod +x /app/start.sh
+# This script runs INSIDE the container, not on the host
+RUN cat > /app/container-start.sh << 'EOF' && chmod +x /app/container-start.sh
+#!/bin/bash
+set -e
+echo "Running database migrations..."
+if [ -n "$DATABASE_URL" ]; then
+  alembic upgrade head || echo "Warning: Migrations failed, continuing anyway..."
+else
+  echo "Warning: DATABASE_URL not set, skipping migrations"
+fi
+echo "Starting application server on port $PORT..."
+exec uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}
+EOF
 
 # Start the application using the startup script
-CMD ["/app/start.sh"]
+CMD ["/app/container-start.sh"]
