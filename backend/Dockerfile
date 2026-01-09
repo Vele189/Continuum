@@ -26,12 +26,12 @@ RUN cat > /app/container-start.sh << 'EOF' && chmod +x /app/container-start.sh
 set -e
 echo "Running database migrations..."
 if [ -n "$DATABASE_URL" ]; then
-  alembic upgrade head || echo "Warning: Migrations failed, continuing anyway..."
+  python -m alembic upgrade head || echo "Warning: Migrations failed, continuing anyway..."
 else
   echo "Warning: DATABASE_URL not set, skipping migrations"
 fi
-echo "Starting application server on port $PORT..."
-exec uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}
+echo "Starting application server on port ${PORT:-8000}..."
+exec python -m uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}
 EOF
 
 # Start the application using the startup script
