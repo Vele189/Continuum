@@ -1,10 +1,20 @@
+import os
+
+from app.database import SessionLocal
+from app.dbmodels import (
+    Base,
+    LoggedHour,
+    Project,
+    ProjectMember,
+    User,
+    WorkSession,
+    WorkSessionStatus,
+)
+from app.schemas.work_session import WorkSessionCreate
+from app.services import work_session as service
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from app.dbmodels import Base, User, Project, ProjectMember, WorkSession, WorkSessionStatus, LoggedHour
-from app.services import work_session as service
-from app.schemas.work_session import WorkSessionCreate
-from app.database import SessionLocal
-import os
+
 
 def test_lifecycle():
     db = SessionLocal()
@@ -13,15 +23,23 @@ def test_lifecycle():
         user = db.query(User).first()
         if not user:
             print("No user found in DB, creating one...")
-            user = User(username="testuser", email="test@example.com", hashed_password="pw", first_name="Test", last_name="User", display_name="Test User")
+            user = User(
+                username="testuser",
+                email="test@example.com",
+                hashed_password="pw",
+                first_name="Test",
+                last_name="User",
+                display_name="Test User",
+            )
             db.add(user)
             db.commit()
             db.refresh(user)
-        
+
         project = db.query(Project).first()
         if not project:
             print("No project found in DB, creating one...")
             from app.dbmodels import Client
+
             client = db.query(Client).first()
             if not client:
                 client = Client(name="Test Client")
@@ -61,7 +79,12 @@ def test_lifecycle():
         print(f"Stopped session. Status: {ws.status}, Total Duration: {ws.duration_seconds}s")
 
         # Verify LoggedHour
-        lh = db.query(LoggedHour).filter(LoggedHour.user_id == user.id).order_by(LoggedHour.logged_at.desc()).first()
+        lh = (
+            db.query(LoggedHour)
+            .filter(LoggedHour.user_id == user.id)
+            .order_by(LoggedHour.logged_at.desc())
+            .first()
+        )
         if lh:
             print(f"LoggedHour created: {lh.hours}h, Note: {lh.note}")
         else:
@@ -69,6 +92,7 @@ def test_lifecycle():
 
     finally:
         db.close()
+
 
 if __name__ == "__main__":
     os.environ["DATABASE_URL"] = "sqlite:///continuum.db"

@@ -1,18 +1,23 @@
 from datetime import datetime
 from typing import Optional
-from pydantic import BaseModel, ConfigDict, computed_field
+
 from app.dbmodels import WorkSessionStatus
+from pydantic import BaseModel, ConfigDict, computed_field
+
 
 class WorkSessionBase(BaseModel):
     project_id: int
     task_id: Optional[int] = None
     note: Optional[str] = None
 
+
 class WorkSessionCreate(WorkSessionBase):
     pass
 
+
 class WorkSessionUpdate(BaseModel):
     note: Optional[str] = None
+
 
 class WorkSessionOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
@@ -41,6 +46,7 @@ class WorkSessionOut(BaseModel):
             elapsed = int((now - self.last_resumed_at.replace(tzinfo=None)).total_seconds())
             return self.duration_seconds + elapsed
         return self.duration_seconds
+
 
 class WorkSessionAction(BaseModel):
     pass

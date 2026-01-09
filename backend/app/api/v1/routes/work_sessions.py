@@ -1,13 +1,14 @@
 from typing import List, Optional
-from fastapi import APIRouter, Depends, HTTPException, Query, status
-from sqlalchemy.orm import Session
 
 from app.api import deps
 from app.dbmodels import User
-from app.schemas.work_session import WorkSessionCreate, WorkSessionOut, WorkSessionAction
+from app.schemas.work_session import WorkSessionAction, WorkSessionCreate, WorkSessionOut
 from app.services import work_session as work_session_service
+from fastapi import APIRouter, Depends, HTTPException, Query, status
+from sqlalchemy.orm import Session
 
 router = APIRouter()
+
 
 @router.post("/", response_model=WorkSessionOut, status_code=status.HTTP_201_CREATED)
 def start_session(
@@ -18,6 +19,7 @@ def start_session(
     """Start a new work session."""
     return work_session_service.start_session(db, user=current_user, data=data)
 
+
 @router.get("/active", response_model=Optional[WorkSessionOut])
 def get_active_session(
     current_user: User = Depends(deps.get_current_user),
@@ -25,6 +27,7 @@ def get_active_session(
 ):
     """Get the current active or paused session."""
     return work_session_service.get_active_session(db, user_id=current_user.id)
+
 
 @router.post("/{id}/pause", response_model=WorkSessionOut)
 def pause_session(
@@ -35,6 +38,7 @@ def pause_session(
     """Pause an active session."""
     return work_session_service.pause_session(db, session_id=id, user=current_user)
 
+
 @router.post("/{id}/resume", response_model=WorkSessionOut)
 def resume_session(
     id: int,
@@ -43,6 +47,7 @@ def resume_session(
 ):
     """Resume a paused session."""
     return work_session_service.resume_session(db, session_id=id, user=current_user)
+
 
 @router.post("/{id}/stop", response_model=WorkSessionOut)
 def stop_session(
@@ -53,6 +58,7 @@ def stop_session(
     """Stop a session and log hours."""
     return work_session_service.stop_session(db, session_id=id, user=current_user)
 
+
 @router.get("/", response_model=List[WorkSessionOut])
 def list_sessions(
     skip: int = Query(0, ge=0),
@@ -61,6 +67,4 @@ def list_sessions(
     db: Session = Depends(deps.get_db),
 ):
     """List session history for the current user."""
-    return work_session_service.list_sessions(
-        db, user_id=current_user.id, skip=skip, limit=limit
-    )
+    return work_session_service.list_sessions(db, user_id=current_user.id, skip=skip, limit=limit)
