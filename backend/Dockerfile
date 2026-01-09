@@ -19,18 +19,7 @@ EXPOSE 8000
 # Default port (Railway will override with $PORT env var)
 ENV PORT=8000
 
-# Create a startup script that runs migrations then starts the server
-RUN echo '#!/bin/bash\n\
-set -e\n\
-echo "Running database migrations..."\n\
-if [ -n "$DATABASE_URL" ]; then\n\
-  alembic upgrade head || echo "Warning: Migrations failed, continuing anyway..."\n\
-else\n\
-  echo "Warning: DATABASE_URL not set, skipping migrations"\n\
-fi\n\
-echo "Starting application server on port $PORT..."\n\
-exec uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}\n\
-' > /app/start.sh && chmod +x /app/start.sh
-
-# Start the application using the startup script
-CMD ["/app/start.sh"]
+# Start the uvicorn server
+# --host 0.0.0.0 is needed to expose the server to the network
+# Note: Using shell form to allow $PORT variable expansion
+CMD bash -c "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port $PORT"
