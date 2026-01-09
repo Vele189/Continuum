@@ -1,8 +1,13 @@
+import Sidebar from "../../components/Sidebar";
+
 const Overview = () => {
   return (
-    <div className="dashboard-overview">
-      <h1>Dashboard Overview</h1>
-      <p>Welcome to your dashboard overview page.</p>
+    <div className="flex min-h-screen">
+      <Sidebar />
+
+      <main className="flex-1 p-6">
+        <h1 className="text-[18px] font-semibold">Dashboard content</h1>
+      </main>
     </div>
   );
 };
