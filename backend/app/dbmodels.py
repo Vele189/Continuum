@@ -2,6 +2,7 @@
 # pylint: disable=not-callable
 import enum
 import logging
+from datetime import datetime
 
 from app.db.base import Base
 from sqlalchemy import (
@@ -133,6 +134,9 @@ class Project(Base):
     git_contributions = relationship("GitContribution", back_populates="project")
     invoices = relationship("Invoice", back_populates="project")
     milestones = relationship("Milestone", back_populates="project")
+    repositories = relationship(
+        "Repository", back_populates="project", cascade="all, delete-orphan"
+    )
 
 
 class ProjectMember(Base):
@@ -488,6 +492,26 @@ class TaskComment(Base):
     # Relationships
     task = relationship("Task", back_populates="comments")
     author = relationship("User", back_populates="task_comments")
+
+
+class Repository(Base):
+    __tablename__ = "repositories"
+
+    id = Column(Integer, primary_key=True, index=True)
+    project_id = Column(Integer, ForeignKey("projects.id"), nullable=False)
+
+    repository_url = Column(String, unique=True, nullable=False)
+    repository_name = Column(String, nullable=False)
+
+    provider = Column(String, nullable=False)  # github | gitlab | bitbucket
+    webhook_secret = Column(String, nullable=True)
+
+    is_active = Column(Boolean, default=True)
+
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    project = relationship("Project", back_populates="repositories")
 
 
 # --- Initialization Logic ---
