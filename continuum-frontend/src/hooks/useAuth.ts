@@ -1,21 +1,23 @@
 import { useState, useEffect } from 'react';
-import { authApi, type AuthResponse, type User } from '../api/auth';
+import { authApi, type AuthResponse } from '../api/auth';
+import { useAuthStore } from '../store/authStore';
 
 interface ApiError {
   response?: {
     data?: {
       message?: string;
+      detail?: string;
     };
   };
 }
 
 export const useAuth = () => {
-  const [user, setUser] = useState<User | null>(null);
+  const { user, setAuth, clearAuth } = useAuthStore();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('access_token');
     if (token) {
       fetchCurrentUser();
     } else {
@@ -26,10 +28,10 @@ export const useAuth = () => {
   const fetchCurrentUser = async () => {
     try {
       const userData = await authApi.getCurrentUser();
-      setUser(userData);
+      const token = localStorage.getItem('access_token') || '';
+      setAuth(userData, token);
     } catch {
-      localStorage.removeItem('token');
-      setUser(null);
+      clearAuth();
     } finally {
       setLoading(false);
     }
@@ -38,14 +40,14 @@ export const useAuth = () => {
   const login = async (email: string, password: string) => {
     try {
       setLoading(true);
-      setError(null);
+      // Don't clear error here - let it persist until user takes action
       const response: AuthResponse = await authApi.login({ email, password });
-      localStorage.setItem('token', response.token);
-      setUser(response.user);
+      setAuth(response.user, response.access_token);
+      setError(null);  // Only clear error on success
       return response;
     } catch (err: unknown) {
       const apiError = err as ApiError;
-      const errorMessage = apiError.response?.data?.message || 'Login failed';
+      const errorMessage = apiError.response?.data?.detail || apiError.response?.data?.message || 'Login failed';
       setError(errorMessage);
       throw err;
     } finally {
@@ -53,17 +55,16 @@ export const useAuth = () => {
     }
   };
 
-  const register = async (email: string, password: string, firstname: string, lastname: string) => {
+  const register = async (email: string, password: string, first_name: string, last_name: string) => {
     try {
       setLoading(true);
       setError(null);
-      const response: AuthResponse = await authApi.register({ email, password, firstname, lastname });
-      localStorage.setItem('token', response.token);
-      setUser(response.user);
+      const response: AuthResponse = await authApi.register({ email, password, first_name, last_name });
+      setAuth(response.user, response.access_token);
       return response;
     } catch (err: unknown) {
       const apiError = err as ApiError;
-      const errorMessage = apiError.response?.data?.message || 'Registration failed';
+      const errorMessage = apiError.response?.data?.detail || apiError.response?.data?.message || 'Registration failed';
       setError(errorMessage);
       throw err;
     } finally {
@@ -74,11 +75,12 @@ export const useAuth = () => {
   const logout = async () => {
     try {
       await authApi.logout();
+      localStorage.removeItem('access_token');
+      localStorage.removeItem('refresh_token');
     } catch (err) {
       console.error('Logout error:', err);
     } finally {
-      localStorage.removeItem('token');
-      setUser(null);
+      clearAuth();
     }
   };
 
@@ -89,7 +91,7 @@ export const useAuth = () => {
       return await authApi.forgotPassword(email);
     } catch (err: unknown) {
       const apiError = err as ApiError;
-      const errorMessage = apiError.response?.data?.message || 'Password recovery request failed';
+      const errorMessage = apiError.response?.data?.detail || apiError.response?.data?.message || 'Password recovery request failed';
       setError(errorMessage);
       throw err;
     } finally {
@@ -104,7 +106,7 @@ export const useAuth = () => {
       return await authApi.resetPassword({ token, new_password: newPassword });
     } catch (err: unknown) {
       const apiError = err as ApiError;
-      const errorMessage = apiError.response?.data?.message || 'Password reset failed';
+      const errorMessage = apiError.response?.data?.detail || apiError.response?.data?.message || 'Password reset failed';
       setError(errorMessage);
       throw err;
     } finally {
@@ -116,6 +118,7 @@ export const useAuth = () => {
     user,
     loading,
     error,
+    setError, 
     login,
     register,
     logout,
