@@ -20,6 +20,7 @@ from app.api.v1.routes import (
 from app.core.config import settings
 from app.utils.logger import get_logger
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
 logger = get_logger(__name__)
 
@@ -32,6 +33,21 @@ logger.info("Port: %s", port)
 
 
 app = FastAPI(title="Continuum API")
+
+# Configure CORS - REQUIRED for frontend to communicate with backend
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:5173",  # Vite dev server
+        "http://localhost:3000",  # Alternative frontend port
+        "http://127.0.0.1:5173",
+        "http://127.0.0.1:3000",
+        
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],  # Allow all HTTP methods
+    allow_headers=["*"],  # Allow all headers
+)
 app.include_router(users.router, prefix=f"{settings.API_V1_STR}/users", tags=["Users"])
 app.include_router(auth.router, prefix=f"{settings.API_V1_STR}/auth", tags=["Auth"])
 app.include_router(admin.router, prefix=f"{settings.API_V1_STR}/admin", tags=["Admin"])
