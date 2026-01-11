@@ -1,11 +1,15 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { useAuth } from '../../hooks/useAuth';
+
 
 const Register = () => {
   const navigate = useNavigate();
-
+  const { register, error, setError } = useAuth();
+  const location = useLocation();
+  const emailFromSignUp = location.state?.email || '';
   const [formData, setFormData] = useState({
-    email: '',
+    email: emailFromSignUp,
     firstName: '',
     surname: '',
     password: '',
@@ -19,6 +23,8 @@ const Register = () => {
     password: false,
     confirmPassword: false
   });
+
+
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -62,7 +68,9 @@ const Register = () => {
     firstName: touched.firstName ? validateFirstName(formData.firstName) : '',
     surname: touched.surname ? validateSurname(formData.surname) : '',
     password: touched.password ? validatePassword(formData.password) : '',
-    confirmPassword: touched.confirmPassword ? validateConfirmPassword(formData.confirmPassword, formData.password) : ''
+    confirmPassword: touched.confirmPassword ? validateConfirmPassword(formData.confirmPassword, formData.password) : '',
+    error: error || ''
+
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -71,6 +79,10 @@ const Register = () => {
       ...formData,
       [name]: value
     });
+
+    if (error) {
+      setError(null);
+    }
   };
 
   const handleBlur = (field: keyof typeof touched) => {
@@ -92,10 +104,10 @@ const Register = () => {
 
     // Check if there are any errors
     return !validateEmail(formData.email) &&
-           !validateFirstName(formData.firstName) &&
-           !validateSurname(formData.surname) &&
-           !validatePassword(formData.password) &&
-           !validateConfirmPassword(formData.confirmPassword, formData.password);
+      !validateFirstName(formData.firstName) &&
+      !validateSurname(formData.surname) &&
+      !validatePassword(formData.password) &&
+      !validateConfirmPassword(formData.confirmPassword, formData.password);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -108,14 +120,21 @@ const Register = () => {
     setIsSubmitting(true);
 
     try {
-      await new Promise(resolve => setTimeout(resolve, 500));
+      // Map 'surname' to 'lastname' for backend
+      await register(
+        emailFromSignUp,
+        formData.password,
+        formData.firstName,
+        formData.surname  // useAuth maps this to 'lastname'
+      );
 
-      navigate('/email-verification', {
-        state: { email: formData.email }
-      });
+      //for now i will navigate it to the email verification page
+      navigate('/email-verification', { state: { email: emailFromSignUp } });
+      setIsSubmitting(false);
+      //option 2 would be to navigate it to the dashboard page and auto login the user
+      // navigate('/dashboard');
     } catch (err) {
       console.error('Registration failed:', err);
-    } finally {
       setIsSubmitting(false);
     }
   };
@@ -123,7 +142,7 @@ const Register = () => {
   return (
     <div className="relative flex justify-center items-center min-h-screen p-10 overflow-hidden bg-gradient-to-b from-brand-blue to-brand-cream">
       {/* Form Container - 345x557px */}
-      <div className="w-[345px] h-[557px] rounded-2xl overflow-hidden shadow-[0px_4px_24px_rgba(0,0,0,0.1)]">
+      <div className="w-[345px] min-h-[557px] rounded-2xl overflow-hidden shadow-[0px_4px_24px_rgba(0,0,0,0.1)]">
 
         {/* Top Section - Sign Up Header - 345x54px */}
         <div className="w-[345px] h-[54px] pt-4 pr-6 pb-4 pl-6 bg-[#F9F9F9] border-b border-[#F5F5F5] flex items-center justify-center relative">
@@ -149,7 +168,7 @@ const Register = () => {
         {/* Bottom Section - Form - 345x503px */}
         <form
           onSubmit={handleSubmit}
-          className="w-[345px] h-[503px] pt-6 pr-6 pb-9 pl-6 bg-white flex flex-col gap-6"
+          className="w-[345px] pt-6 pr-6 pb-9 pl-6 bg-white flex flex-col gap-6"
         >
           {/* Email Field - 297x63px */}
           <div className="w-[297px] h-[63px] flex flex-col gap-1">
@@ -281,8 +300,17 @@ const Register = () => {
               {isSubmitting ? 'Processing...' : 'Next'}
             </span>
           </button>
+          {/* Error Message */}
+          {errors.error && (
+            <p className="-mt-3 text-xs text-red-600 text-center">
+              {errors.error}
+            </p>
+          )}
         </form>
+
+
       </div>
+
     </div>
   );
 };
