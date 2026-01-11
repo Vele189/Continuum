@@ -25,6 +25,10 @@ axiosClient.interceptors.request.use(
 axiosClient.interceptors.response.use(
   (response) => response,
   (error) => {
+
+    if(error.response?.status >= 500){
+       showGlobalErrorNotification('Something went wrong on our end. Please try again later.');
+    }
     if (error.response?.status === 401) {
       // Handle unauthorized access
       localStorage.removeItem('access_token');
@@ -33,5 +37,11 @@ axiosClient.interceptors.response.use(
     return Promise.reject(error);
   }
 );
+
+function showGlobalErrorNotification(message: string) {
+ window.dispatchEvent(new CustomEvent('globalError', { 
+    detail: { message } 
+  }));
+}
 
 export default axiosClient;
