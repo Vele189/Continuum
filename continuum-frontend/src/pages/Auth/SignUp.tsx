@@ -37,19 +37,7 @@ const SignUp = () => {
     }
 
     setIsSubmitting(true);
-
-    try {
-      // Here you would typically check if email exists or proceed with signup
-      // For now, we'll just navigate after a brief delay
-      await new Promise(resolve => setTimeout(resolve, 500));
-
-      // Navigate to register screen with email
-      navigate('/register', { state: { email } });
-    } catch (err) {
-      console.error('Sign up failed:', err);
-    } finally {
-      setIsSubmitting(false);
-    }
+navigate('/register', { state: { email } });
   };
 
   const handleGoogleLogin = () => {
