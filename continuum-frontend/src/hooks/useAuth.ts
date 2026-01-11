@@ -39,20 +39,19 @@ export const useAuth = () => {
 
   const login = async (email: string, password: string) => {
     try {
-      setLoading(true);
-      // Don't clear error here - let it persist until user takes action
-      const response: AuthResponse = await authApi.login({ email, password });
-      setAuth(response.user, response.access_token);
-      setError(null);  // Only clear error on success
-      return response;
-    } catch (err: unknown) {
-      const apiError = err as ApiError;
-      const errorMessage = apiError.response?.data?.detail || apiError.response?.data?.message || 'Login failed';
-      setError(errorMessage);
-      throw err;
-    } finally {
-      setLoading(false);
-    }
+    setLoading(true);
+    const response: AuthResponse = await authApi.login({ email, password });
+    setAuth(response.user, response.access_token);
+    setError(null);
+    setLoading(false);
+    return response;
+  } catch (err: unknown) {
+    const apiError = err as ApiError;
+    const errorMessage = apiError.response?.data?.detail || apiError.response?.data?.message || 'Login failed';
+    setError(errorMessage);
+    setLoading(false);
+    throw err;
+  }
   };
 
   const register = async (email: string, password: string, first_name: string, last_name: string) => {
@@ -67,6 +66,7 @@ export const useAuth = () => {
       const errorMessage = apiError.response?.data?.detail || apiError.response?.data?.message || 'Registration failed';
       setError(errorMessage);
       throw err;
+      //return null;
     } finally {
       setLoading(false);
     }
@@ -78,7 +78,7 @@ export const useAuth = () => {
       localStorage.removeItem('access_token');
       localStorage.removeItem('refresh_token');
     } catch (err) {
-      console.error('Logout error:', err);
+     // console.error('Logout error:', err);
     } finally {
       clearAuth();
     }
