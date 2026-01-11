@@ -1,17 +1,22 @@
 import { useState } from 'react';
 import { useAuth } from '../../hooks/useAuth';
+
+
 import { Link, useNavigate } from 'react-router-dom';
 
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const { login, loading, error } = useAuth();
   const [touched, setTouched] = useState({
     email: false,
     password: false
   });
 
-  const { loading, error } = useAuth();
+
   const navigate = useNavigate();
+
+
 
   // Real-time validation functions
   const validateEmail = (email: string) => {
@@ -29,7 +34,8 @@ const Login = () => {
   // Get current errors
   const errors = {
     email: touched.email ? validateEmail(email) : '',
-    password: touched.password ? validatePassword(password) : ''
+    password: touched.password ? validatePassword(password) : '',
+    error: error
   };
 
   const handleBlur = (field: keyof typeof touched) => {
@@ -54,12 +60,16 @@ const Login = () => {
     e.preventDefault();
 
     if (!validateForm()) {
+      // setError(null);
       return;
     }
 
-    // Proceed with login
-    // await login(email, password);
-    navigate('/loading');
+    try {
+      await login(email, password);
+      navigate('/dashboard');
+    } catch (err) {
+      console.error('Login failed:', err);
+    }
   };
 
   const handleGoogleLogin = () => {
@@ -115,7 +125,7 @@ const Login = () => {
             </button>
 
             {/* Apple Button - 297x40px */}
-           <button
+            <button
               onClick={handleAppleLogin}
               type="button"
               className="w-[297px] h-10 rounded-lg border border-[#E9E9E9] bg-white py-2 px-4 flex items-center justify-center cursor-pointer relative">
@@ -144,7 +154,7 @@ const Login = () => {
                 id="email"
                 type="email"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(e) => { setEmail(e.target.value) }}
                 onBlur={() => handleBlur('email')}
                 placeholder="What's your email address?"
                 required
@@ -167,7 +177,7 @@ const Login = () => {
                 id="password"
                 type="password"
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={(e) => { setPassword(e.target.value) }}
                 onBlur={() => handleBlur('password')}
                 placeholder="What's your password?"
                 required
@@ -200,24 +210,24 @@ const Login = () => {
               </button>
 
               {/* Error Message */}
-              {error && (
+              {errors.error && (
                 <p className="text-xs text-red-600 text-center">
-                  {error}
+                  {errors.error}
                 </p>
               )}
 
-                {/* Sign Up Link */}
-          <div className="flex items-center justify-center gap-1">
-            <p className="font-satoshi text-sm text-[#9FA5A8]">
-              Don't have an account?
-            </p>
-            <Link
-              to="/sign-up"
-              className="font-satoshi text-sm text-[#252014] no-underline"
-            >
-              Sign up
-            </Link>
-          </div>
+              {/* Sign Up Link */}
+              <div className="flex items-center justify-center gap-1">
+                <p className="font-satoshi text-sm text-[#9FA5A8]">
+                  Don't have an account?
+                </p>
+                <Link
+                  to="/sign-up"
+                  className="font-satoshi text-sm text-[#252014] no-underline"
+                >
+                  Sign up
+                </Link>
+              </div>
             </div>
           </form>
         </div>
