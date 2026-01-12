@@ -6,7 +6,7 @@ const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [touched, setTouched] = useState({ email: false, password: false });
-  const { loading, error } = useAuth();
+  const { login, loading, error } = useAuth();
   const navigate = useNavigate();
 
   const validateEmail = (email: string) => {
@@ -38,7 +38,13 @@ const Login = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validateForm()) return;
-    navigate('/loading');
+
+    try {
+      await login(email, password);
+      navigate('/dashboard');
+    } catch (err) {
+      console.error('Login failed:', err);
+    }
   };
 
   const handleGoogleLogin = () => console.log('Google login');

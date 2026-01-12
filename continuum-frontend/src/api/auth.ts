@@ -20,27 +20,28 @@ export interface User {
 }
 
 export interface AuthResponse {
-  token: string;
-  user: User;
+  access_token: string;
+  token_type: string;
+  refresh_token: string;
 }
 
 export const authApi = {
   login: async (credentials: LoginCredentials): Promise<AuthResponse> => {
-    const response = await axiosClient.post('/auth/login', credentials);
+    const response = await axiosClient.post('/v1/auth/login', credentials);
     return response.data;
   },
 
   register: async (data: RegisterData): Promise<AuthResponse> => {
-    const response = await axiosClient.post('/auth/register', data);
+    const response = await axiosClient.post('/v1/auth/register', data);
     return response.data;
   },
 
   logout: async (): Promise<void> => {
-    await axiosClient.post('/auth/logout');
+    await axiosClient.post('/v1/auth/logout');
   },
 
   getCurrentUser: async () => {
-    const response = await axiosClient.get('/auth/me');
+    const response = await axiosClient.get('/v1/users/me');
     return response.data;
   },
 

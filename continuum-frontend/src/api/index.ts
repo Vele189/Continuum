@@ -2,4 +2,5 @@
 export { default as axiosClient } from './axiosClient';
 export * from './auth';
 export * from './projects';
+export * from './repositories';
 export * from './tasks';

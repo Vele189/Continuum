@@ -24,11 +24,11 @@ def _enrich_comment_with_author(comment) -> dict:
         "author": None,
     }
 
-    if comment.user:
+    if comment.author:
         comment_dict["author"] = {
-            "id": comment.user.id,
-            "display_name": comment.user.display_name,
-            "username": comment.user.username,
+            "id": comment.author.id,
+            "display_name": comment.author.display_name,
+            "username": comment.author.username,
         }
 
     return comment_dict

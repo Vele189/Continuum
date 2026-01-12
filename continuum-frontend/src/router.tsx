@@ -15,6 +15,10 @@ import Landing from './pages/Landing';
 import Overview from './pages/Dashboard/Overview';
 import Team from './pages/Dashboard/Team';
 
+// Project pages
+import Projects from './pages/Projects';
+import ProjectSettings from './pages/Projects/ProjectSettings';
+
 const router = createBrowserRouter([
   {
     path: '/',
@@ -35,6 +39,10 @@ const router = createBrowserRouter([
       // Dashboard
       { path: 'dashboard', element: <Overview /> },
       { path: 'dashboard/team', element: <Team /> },
+
+      // Projects
+      { path: 'projects', element: <Projects /> },
+      { path: 'projects/:projectId/settings', element: <ProjectSettings /> },
     ],
   },
 ]);
