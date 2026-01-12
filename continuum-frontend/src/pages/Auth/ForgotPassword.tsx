@@ -29,40 +29,26 @@ const ForgotPassword = () => {
   const displayError = localError;
 
   return (
-    // Page Container - full screen with gradient background
-    <div className="bg-linear-to-b from-[#B2E6F7] to-[#FFFFFF] min-h-screen flex items-start justify-center pt-[160px] relative overflow-hidden">
+    <div className="bg-linear-to-b from-[#B2E6F7] to-[#FFFFFF] min-h-screen flex items-start justify-center pt-[137px] relative overflow-hidden">
 
-      {/* Card Container - 345x303px, white background, rounded, shadow */}
-      <div className="bg-white w-[345px] h-[303px] border-2 border-gray-100 rounded-2xl shadow-lg flex flex-col justify-center items-center">
-
-      {/* Top Bar - 345x54px, gray background, contains back arrow and title */}
-        <div className="relative h-[54px] rounded-t-lg bg-[#F5F5F5] flex items-center justify-between w-full font-medium text-[#595959]">
-          
-      {/* Back Arrow - navigates to login */}
-        <Link to="/login">
-        <img src={backArrowIcon} alt="Back Arrow" className="absolute top-3 left-4 h-4" />
-        </Link>
-
-      {/* Page Title - centered */}
-        <h2 className="text-[16px] mx-auto">Forgot Password</h2>
+      <div className="bg-white w-full max-w-[345px] h-[303px] border border-[#F0F0F0] rounded-2xl shadow-lg overflow-hidden flex flex-col">
+        <div className="relative h-[54px] w-full flex items-center justify-center gap-4 px-6 py-4 bg-[#F9F9F9] border-b border-[#F5F5F5] font-medium text-[#595959]">
+          <Link to="/login">
+            <img src={backArrowIcon} alt="Back Arrow"
+            className="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5" />
+          </Link>
+          <h2 className="text-[16px]">Forgot password</h2>
         </div>
 
-      {/* Content Area - 345x249px, vertical layout */}
-        <div className="w-[345px] h-[249px] flex flex-col justify-center items-center gap-[24px]">
-          
-      {/* Instruction Text - 297x38px */}
-        <p className="w-[297px] h-[38px] text-gray-400 font-medium text-[14px] leading-[100%] tracking-[0] text-center">
-          We will email a reset link to your email address you used.
-        </p>
+        <div className="w-full h-[249px] flex flex-col gap-6 pt-6 px-6 pb-9 bg-white">
+          <p className="w-[297px] text-[#9FA5A8] text-[14px] font-medium leading-[100%]">
+           We will email a reset link to your email address you used.
+         </p>
 
-      {/* Form Container - 297x107px, email input + submit button */}
-        <form onSubmit={handleSubmit} className="w-full flex flex-col items-center gap-[24px]">
 
-      {/* Email Input Field - 297x63px container */}
-        <div className="w-[297px] h-[63px] flex flex-col gap-1 font-medium relative">
-
-      {/* Email Label */}
-        <label htmlFor="email" className="block text-gray-900 text-[14px]">
+          <form onSubmit={handleSubmit} className="w-full flex flex-col items-center gap-[16px]">
+            <div className="w-[297px] h-[63px] flex flex-col gap-1 font-medium relative">
+              <label htmlFor="email" className="block text-gray-900 text-[14px]">
                 Email
         </label>
 
@@ -81,18 +67,16 @@ const ForgotPassword = () => {
                 <span className="absolute -bottom-5 left-0 text-red-500 text-[11px] font-normal">
                   {displayError}
                 </span>
-         )}
-        </div>
+              )}
+            </div>
 
-    {/* Submit Button - 297x40px */}
-      <button
-      type="submit"
-      className="w-[297px] h-[40px] bg-[#2299fa] text-white text-[14px] font-bold py-2 px-4 rounded-lg transition-all hover:bg-[#1a8ae5]"
-          >
-      Send reset link
-      </button>
-      </form>
-      </div>
+            <button
+              type="submit"
+              className="w-full h-[40px] px-4 py-2 rounded-lg bg-gradient-to-r from-[#24B5F8] to-[#5521FE] text-white text-[14px] font-semibold leading-[100%] flex items-center justify-center gap-2"
+             >Send reset link
+            </button>
+          </form>
+        </div>
 
       </div>
     </div>

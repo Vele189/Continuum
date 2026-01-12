@@ -266,9 +266,7 @@ const Register = () => {
 
           {/* Error Message */}
           {error && (
-            <p className="text-xs text-red-600 text-center">
-              {error}
-            </p>
+            <p className="text-xs text-red-600 text-center mt-2">{error}</p>
           )}
 
           {/* Next Button - 297x40px */}

@@ -5,7 +5,10 @@ import { Link, useNavigate } from 'react-router-dom';
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [touched, setTouched] = useState({ email: false, password: false });
+  const [touched, setTouched] = useState({
+    email: false,
+    password: false
+  });
   const { login, loading, error } = useAuth();
   const navigate = useNavigate();
 
@@ -154,5 +157,4 @@ const Login = () => {
     </div>
   );
 };
-
 export default Login;
