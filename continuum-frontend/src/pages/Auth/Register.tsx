@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useAuth } from '../../hooks/useAuth';
 import { Link, useNavigate } from 'react-router-dom';
 
 const Register = () => {
@@ -20,7 +21,7 @@ const Register = () => {
     confirmPassword: false
   });
 
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { register, loading, error } = useAuth();
 
   // Real-time validation functions
   const validateEmail = (email: string) => {
@@ -105,18 +106,16 @@ const Register = () => {
       return;
     }
 
-    setIsSubmitting(true);
-
     try {
-      await new Promise(resolve => setTimeout(resolve, 500));
-
-      navigate('/email-verification', {
-        state: { email: formData.email }
-      });
+      await register(
+        formData.email,
+        formData.password,
+        formData.firstName,
+        formData.surname
+      );
+      navigate('/dashboard');
     } catch (err) {
       console.error('Registration failed:', err);
-    } finally {
-      setIsSubmitting(false);
     }
   };
 
@@ -271,14 +270,21 @@ const Register = () => {
             )}
           </div>
 
+          {/* Error Message */}
+          {error && (
+            <p className="text-xs text-red-600 text-center">
+              {error}
+            </p>
+          )}
+
           {/* Next Button - 297x40px */}
           <button
             type="submit"
-            disabled={isSubmitting}
+            disabled={loading}
             className="w-[297px] h-10 rounded-lg bg-[#24B5F8] pt-2 pr-4 pb-2 pl-4 flex items-center justify-center cursor-pointer border-none shadow-[0px_3px_9.3px_0px_rgba(44,158,249,0.1)] disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <span className="font-satoshi text-sm font-semibold text-white">
-              {isSubmitting ? 'Processing...' : 'Next'}
+              {loading ? 'Registering...' : 'Next'}
             </span>
           </button>
         </form>
