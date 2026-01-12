@@ -89,6 +89,36 @@ export const useAuth = () => {
     }
   };
 
+  const forgotPassword = async (email: string) => {
+    try {
+      setLoading(true);
+      setError(null);
+      return await authApi.forgotPassword(email);
+    } catch (err: unknown) {
+      const apiError = err as ApiError;
+      const errorMessage = apiError.response?.data?.message || 'Password recovery request failed';
+      setError(errorMessage);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const resetPassword = async (token: string, newPassword: string) => {
+    try {
+      setLoading(true);
+      setError(null);
+      return await authApi.resetPassword({ token, new_password: newPassword });
+    } catch (err: unknown) {
+      const apiError = err as ApiError;
+      const errorMessage = apiError.response?.data?.message || 'Password reset failed';
+      setError(errorMessage);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return {
     user,
     loading,
@@ -96,6 +126,8 @@ export const useAuth = () => {
     login,
     register,
     logout,
+    forgotPassword,
+    resetPassword,
     isAuthenticated: !!user,
   };
 };
