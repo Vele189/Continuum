@@ -34,7 +34,7 @@ const ResetPassword = () => {
       <div className="w-full max-w-[345px] h-[320px] rounded-2xl border border-[#F0F0F0] shadow-lg flex flex-col overflow-hidden">
         <div className="relative h-[54px] w-full flex items-center justify-center gap-4 px-6 py-4 bg-[#F9F9F9] border-b border-[#F5F5F5] text-[#595959]">
           <Link to="/login">
-            <img src={backArrowIcon} alt="Back Arrow" 
+            <img src={backArrowIcon} alt="Back Arrow"
             className="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5" />
           </Link>
           <h2 className="text-[16px] font-medium leading-[100%] tracking-[-0.01em] text-[#595959]">Reset password</h2>

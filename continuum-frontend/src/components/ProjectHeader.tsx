@@ -22,9 +22,9 @@ const ProjectHeader = () => {
           </p>
         </div>
 
-       
+
         <div className="h-[32px] flex items-center justify-end gap-[8px]">
-          
+
           {isClientVisible && (
             <div
               className="w-[258px] h-[32px] rounded-full border border-[#E9EEF5] bg-[#EEF3F8]

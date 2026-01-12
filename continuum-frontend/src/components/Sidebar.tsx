@@ -46,11 +46,11 @@ const Sidebar = () => {
   }, [search]);
 
   return (
-   
+
 
     <aside className="w-[212px] min-h-[962px] bg-[#F7FBFF] border-r border-[#E9EEF5] flex flex-col justify-between shrink-0">
       {/* TOP SECTION */}
-      
+
       <div className="w-[212px] flex flex-col px-[12px] pt-[24px] pb-[16px] gap-[20px]">
         {/* LOGO  */}
         <div className="w-full flex items-center justify-center pb-[4px]">
@@ -152,7 +152,7 @@ const Sidebar = () => {
           </div>
         </div>
       </div>
-      
+
 
       {/* PROJECT LIST */}
       <div className="w-[212px] flex-1 overflow-y-auto px-[12px]">
