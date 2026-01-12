@@ -56,9 +56,12 @@ const router = createBrowserRouter([
       { path: 'sign-up', element: <PublicRoute><SignUp /></PublicRoute> },
 
       // Dashboard
-
       { path: 'dashboard', element: <ProtectedRoute><Overview /></ProtectedRoute> },
       { path: 'dashboard/team', element: <ProtectedRoute><Team /></ProtectedRoute> },
+
+      // Projects
+      { path: 'projects', element: <ProtectedRoute><Projects /></ProtectedRoute> },
+      { path: 'projects/:projectId/settings', element: <ProtectedRoute><ProjectSettings /></ProtectedRoute> },
     ],
   },
 ]);

@@ -11,11 +11,13 @@ from app.api.v1.routes import (
     logged_hours,
     milestones,
     projects,
+    repositories,
     task_attachments,
     task_comments,
     tasks,
     users,
     webhooks,
+    work_sessions,
 )
 from app.core.config import settings
 from app.utils.logger import get_logger
@@ -42,7 +44,7 @@ app.add_middleware(
         "http://localhost:3000",  # Alternative frontend port
         "http://127.0.0.1:5173",
         "http://127.0.0.1:3000",
-        
+        "*",  # Allow all origins for development
     ],
     allow_credentials=True,
     allow_methods=["*"],  # Allow all HTTP methods
@@ -73,10 +75,14 @@ app.include_router(
     task_attachments.router, prefix=f"{settings.API_V1_STR}", tags=["Task Attachments"]
 )
 app.include_router(invoices.router, prefix=f"{settings.API_V1_STR}/invoices", tags=["Invoices"])
+app.include_router(repositories.router, prefix=f"{settings.API_V1_STR}", tags=["Repositories"])
 app.include_router(
     client_portal.router, prefix=f"{settings.API_V1_STR}/client-portal", tags=["Client Portal"]
 )
 app.include_router(webhooks.router, prefix=f"{settings.API_V1_STR}/webhooks", tags=["Webhooks"])
+app.include_router(
+    work_sessions.router, prefix=f"{settings.API_V1_STR}/work-sessions", tags=["Work Sessions"]
+)
 
 
 @app.get("/health")

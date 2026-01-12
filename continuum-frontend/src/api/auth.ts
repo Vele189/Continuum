@@ -21,8 +21,9 @@ export interface User {
 
 export interface AuthResponse {
   access_token: string;
+  token_type?: string;
   refresh_token: string;
-  user: User;
+  user?: User;
 }
 
 export const authApi = {
@@ -43,12 +44,12 @@ export const authApi = {
   },
 
   register: async (data: RegisterData): Promise<AuthResponse> => {
-    const response = await axiosClient.post('/users/', data);
+    const response = await axiosClient.post('/auth/register', data);
     return response.data;
   },
 
   logout: async (): Promise<void> => {
-    await axiosClient.post('/auth/logout');
+    await axiosClient.post('/v1/auth/logout');
   },
 
   getCurrentUser: async () => {

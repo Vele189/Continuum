@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 
-
 const Register = () => {
   const navigate = useNavigate();
   const { register, error, setError } = useAuth();
@@ -119,25 +118,25 @@ const Register = () => {
 
     setIsSubmitting(true);
 
-
-    // Map 'surname' to 'lastname' for backend
-    const result = await register(
-      emailFromSignUp,
-      formData.password,
-      formData.firstName,
-      formData.surname  // useAuth maps this to 'lastname'
-    );
-    setIsSubmitting(false);
-    //for now i will navigate it to the email verification page
-    if (result) {
-      navigate('/email-verification', { state: { email: emailFromSignUp } });
-
+    try {
+      // Map 'surname' to 'last_name' for backend
+      const result = await register(
+        formData.email,
+        formData.password,
+        formData.firstName,
+        formData.surname  // useAuth expects last_name
+      );
+      setIsSubmitting(false);
+      //for now i will navigate it to the email verification page
+      if (result) {
+        navigate('/email-verification', { state: { email: formData.email } });
+      }
+      //option 2 would be to navigate it to the dashboard page and auto login the user
+      // navigate('/dashboard');
+    } catch (err) {
+      console.error('Registration failed:', err);
+      setIsSubmitting(false);
     }
-    //option 2 would be to navigate it to the dashboard page and auto login the user
-    // navigate('/dashboard');
-
-    // console.error('Registration failed:', err);
-    //setIsSubmitting(false);
 
   };
 

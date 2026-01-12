@@ -9,7 +9,7 @@ import re
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
-from app.dbmodels import GitContribution, Project, User
+from app.dbmodels import GitContribution, Project, Repository, User
 from app.schemas.webhook import (
     BitbucketPushPayload,
     CommitInfo,
@@ -138,30 +138,47 @@ class WebhookService:
         return user
 
     @staticmethod
+    def _normalize_repository_url(url: str) -> str:
+        """
+        Normalize repository URL for comparison.
+        - Remove trailing .git
+        - Remove trailing slash
+        - Lowercase
+        """
+        if not url:
+            return ""
+        url = url.strip().lower()
+        if url.endswith(".git"):
+            url = url[:-4]
+        if url.endswith("/"):
+            url = url[:-1]
+        return url
+
+    @staticmethod
     def _get_project_by_repository(
-        _db: Session, repository_url: str, repository_name: str
+        db: Session, repository_url: str, repository_name: str
     ) -> Optional[Project]:
         """
-        Get project by repository URL or name.
-
-        TODO: This is a placeholder. Repository → Project mapping
-        will be implemented in a follow-up ticket.
-
-        Args:
-            _db: Database session (unused for now)
-            repository_url: Repository URL from webhook
-            repository_name: Repository name from webhook
-
-        Returns:
-            Project if mapping exists, None otherwise
+        Get project by repository URL using Repository mapping table.
         """
-        # For now, return None to enforce blocking behavior
-        # This will be implemented in a follow-up ticket
+        normalized_url = WebhookService._normalize_repository_url(repository_url)
+
+        # Try finding by exact URL (normalized)
+        repo = (
+            db.query(Repository)
+            .filter(Repository.repository_url == normalized_url, Repository.is_active == True)
+            .first()
+        )
+
+        if repo:
+            return repo.project
+
         logger.debug(
-            "Repository mapping not yet implemented. URL: %s, Name: %s",
+            "No active project mapping found for repository. URL: %s, Name: %s",
             repository_url,
             repository_name,
         )
+        return None
 
     @staticmethod
     def _extract_github_commits(payload: GitHubPushPayload) -> List[CommitInfo]:
