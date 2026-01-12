@@ -50,7 +50,8 @@ export const useProjects = () => {
     try {
       setError(null);
       const updatedProject = await projectsApi.update(id, data);
-      setProjects(projects.map(p => p.id === id ? updatedProject : p));
+      const idNum = Number(id);
+      setProjects(projects.map(p => p.id === idNum ? updatedProject : p));
       return updatedProject;
     } catch (err: unknown) {
       const apiError = err as ApiError;
@@ -64,7 +65,8 @@ export const useProjects = () => {
     try {
       setError(null);
       await projectsApi.delete(id);
-      setProjects(projects.filter(p => p.id !== id));
+      const idNum = Number(id);
+      setProjects(projects.filter(p => p.id !== idNum));
     } catch (err: unknown) {
       const apiError = err as ApiError;
       const errorMessage = apiError.response?.data?.message || 'Failed to delete project';

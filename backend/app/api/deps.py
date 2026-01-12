@@ -33,7 +33,7 @@ def get_current_user(db: Session = Depends(get_db), token: str = Depends(reusabl
         token_data = TokenPayload(**payload)
     except (JWTError, ValidationError) as exc:
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
+            status_code=status.HTTP_401_UNAUTHORIZED,  # CHANGED FROM 403 TO 401
             detail="Could not validate credentials",
         ) from exc
     user = db.query(User).filter(User.id == token_data.sub).first()
@@ -142,7 +142,27 @@ def get_current_project_admin(
     )
 
 
+# Matches PM mental model - user-based authentication
 def get_current_client(
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+) -> Client:
+    """
+    Dependency to get the current client based on the authenticated user.
+    Used for the Client Portal progress endpoint.
+    """
+    client = db.query(Client).filter(Client.created_by == user.id).first()
+
+    if not client:
+        raise HTTPException(
+            status_code=403,
+            detail="User is not associated with any client",
+        )
+
+    return client
+
+
+def get_current_client_by_token(
     db: Session = Depends(get_db),
     x_client_token: Optional[str] = Header(None, alias="X-Client-Token"),
 ) -> Client:

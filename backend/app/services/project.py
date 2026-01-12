@@ -1,18 +1,22 @@
 from datetime import datetime, timedelta
 from typing import List, Optional
 
-from app.dbmodels import Client, LoggedHour, Project, ProjectMember, Task, User
+from app.dbmodels import Client, GitContribution, LoggedHour, Project, ProjectMember, Task, User
 from app.schemas.project import (
+    ActivityItem,
+    ClientMilestone,
     ClientPortalProject,
     HealthFlag,
     ProjectCreate,
     ProjectHealth,
     ProjectHealthIndicator,
     ProjectMemberCreate,
+    ProjectProgress,
     ProjectStatistics,
     ProjectUpdate,
     TaskCount,
 )
+from app.services.milestone import MilestoneService
 from fastapi import HTTPException, status
 from sqlalchemy import func
 from sqlalchemy.orm import Session, joinedload
@@ -452,6 +456,136 @@ class ProjectService:
             inactive_members=inactive_indicator,
             unassigned_tasks=unassigned_indicator,
             activity_dropoff=activity_indicator,
+        )
+
+    # Helper for getting list of clients relaated to a project
+    @staticmethod
+    def get_clients_for_project(
+        db: Session,
+        project_id: int,
+    ) -> list[int]:
+        project = db.query(Project).filter(Project.id == project_id).first()
+
+        if not project:
+            raise HTTPException(status_code=404, detail="Project not found")
+        # CURRENT MODEL: one client
+        return [project.client_id]
+
+    @staticmethod
+    def get_project_progress(
+        db: Session, project_id: int, client: Client, activity_limit: int = 10
+    ) -> ProjectProgress:
+        """
+        Get project progress for a client.
+        Args:
+            db (Session): Database session.
+            project_id (int): ID of the project.
+            client (Client): Client object requesting the progress.
+            activity_limit (int): Number of recent activities to fetch.
+        Returns:
+            ProjectProgress: Project progress data.
+        """
+        # Access Control
+        project = db.query(Project).filter(Project.id == project_id).first()
+        if not project:
+            raise HTTPException(status_code=404, detail="Project not found")
+
+        # Verify project belongs to the client
+        if project.client_id != client.id:
+            raise HTTPException(
+                status_code=403,
+                detail="Not authorized to access this project",
+            )
+
+        # Progress Calculation
+
+        # Hours
+
+        total_hours = (
+            db.query(func.coalesce(func.sum(LoggedHour.hours), 0.0))
+            .filter(LoggedHour.project_id == project.id)
+            .scalar()
+        )
+
+        # Tasks
+        # Use func.count with Task.id to avoid loading full Task objects (which may have missing columns)
+        total_tasks = (
+            db.query(func.count(Task.id)).filter(Task.project_id == project.id).scalar() or 0
+        )
+
+        completed_tasks = (
+            db.query(func.count(Task.id))
+            .filter(Task.project_id == project.id, Task.status == "done")
+            .scalar()
+            or 0
+        )
+
+        # Progress Percentage
+
+        progress_percentage = (completed_tasks / total_tasks * 100) if total_tasks > 0 else 0.0
+
+        # Recent Activity
+        # Fetch more than needed to ensure we have enough after merging and sorting
+        fetch_limit = activity_limit * 2
+
+        logged_hours = (
+            db.query(LoggedHour)
+            .filter(LoggedHour.project_id == project.id)
+            .order_by(LoggedHour.logged_at.desc())
+            .limit(fetch_limit)
+            .all()
+        )
+
+        git_contributions = (
+            db.query(GitContribution)
+            .filter(GitContribution.project_id == project.id)
+            .order_by(GitContribution.created_at.desc())
+            .limit(fetch_limit)
+            .all()
+        )
+
+        logged_hours_items = [
+            ActivityItem(
+                type="logged_hours", description=f"Logged {lh.hours} hours", date=lh.logged_at
+            )
+            for lh in logged_hours
+        ]
+
+        git_activity_items = [
+            ActivityItem(type="commit", description="Committed code changes", date=gc.created_at)
+            for gc in git_contributions
+        ]
+
+        # Merge and sort by date DESC, then limit
+        all_activities = logged_hours_items + git_activity_items
+        all_activities.sort(key=lambda x: x.date, reverse=True)
+        recent_activity = all_activities[:activity_limit]
+
+        # Milestones
+        milestones = MilestoneService.get_by_project(db, project.id)
+        client_milestones = (
+            [
+                ClientMilestone(
+                    name=ms.name,
+                    status=ms.status,
+                    due_date=ms.due_date,
+                    completion_percentage=MilestoneService.calculate_progress(
+                        db, ms.id
+                    ).completion_percentage,
+                )
+                for ms in milestones
+            ]
+            if milestones
+            else None
+        )
+
+        return ProjectProgress(
+            total_hours=float(total_hours) if total_hours else 0.0,
+            total_tasks=total_tasks,
+            completed_tasks=completed_tasks,
+            progress_percentage=round(progress_percentage, 2),
+            recent_activity=recent_activity,
+            milestones=client_milestones,
         )
 
     @staticmethod

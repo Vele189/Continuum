@@ -1,0 +1,33 @@
+# Exclude host start.sh script - the Dockerfile creates its own startup script
+start.sh
+
+# Exclude Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Exclude virtual environment
+venv/
+env/
+ENV/
+
+# Exclude test databases
+*.db
+test_*.db
+
+# Exclude IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Exclude uploads (these should be handled via volumes in production)
+uploads/
+
+# Exclude migrations (they're in the repo, but we might want to exclude them)
+# migrations/
+
+# Exclude git files
+.git/
+.gitignore
