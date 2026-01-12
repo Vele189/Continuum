@@ -40,8 +40,11 @@ export const useAuth = () => {
       setLoading(true);
       setError(null);
       const response: AuthResponse = await authApi.login({ email, password });
-      localStorage.setItem('token', response.token);
-      setUser(response.user);
+      localStorage.setItem('token', response.access_token);
+      if (response.refresh_token) {
+        localStorage.setItem('refresh_token', response.refresh_token);
+      }
+      await fetchCurrentUser();
       return response;
     } catch (err: unknown) {
       const apiError = err as ApiError;
@@ -58,8 +61,11 @@ export const useAuth = () => {
       setLoading(true);
       setError(null);
       const response: AuthResponse = await authApi.register({ email, password, firstname, lastname });
-      localStorage.setItem('token', response.token);
-      setUser(response.user);
+      localStorage.setItem('token', response.access_token);
+      if (response.refresh_token) {
+        localStorage.setItem('refresh_token', response.refresh_token);
+      }
+      await fetchCurrentUser();
       return response;
     } catch (err: unknown) {
       const apiError = err as ApiError;
@@ -78,6 +84,7 @@ export const useAuth = () => {
       console.error('Logout error:', err);
     } finally {
       localStorage.removeItem('token');
+      localStorage.removeItem('refresh_token');
       setUser(null);
     }
   };
