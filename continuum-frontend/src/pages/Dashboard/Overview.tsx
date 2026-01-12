@@ -1,16 +1,15 @@
+import Sidebar from "../../components/Sidebar";
+
 const Overview = () => {
   return (
     <div className="flex min-h-screen">
-      <aside className="w-[240px] border-r border-gray-200 p-4">
-        Sidebar
-      </aside>
+      <Sidebar />
 
-      <main className="flex-1 p-4">
-        Dashboard content
+      <main className="flex-1 p-6">
+        <h1 className="text-[18px] font-semibold">Dashboard content</h1>
       </main>
     </div>
   );
 };
 
 export default Overview;
-
