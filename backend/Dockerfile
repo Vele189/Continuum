@@ -1,6 +1,9 @@
 # Use Python 3.12 slim image as base
 FROM python:3.12-slim
 
+# Install git (required for pre-commit)
+RUN apt-get update && apt-get install -y --no-install-recommends git && rm -rf /var/lib/apt/lists/*
+
 # Set working directory
 WORKDIR /app
 

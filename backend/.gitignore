@@ -20,3 +20,9 @@ sql_app.db
 # IDE
 .vscode/
 .idea/
+
+# Uploads directory
+uploads/
+
+# Tests directory
+tests/

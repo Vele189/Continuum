@@ -1,8 +1,10 @@
 name: Pre-commit
 
 on:
+  push:
+    branches: [ "master", "main", "develop" ]
   pull_request:
-    branches: [ "master" ]
+    branches: [ "master", "main", "develop" ]
 
 jobs:
   pre-commit:
