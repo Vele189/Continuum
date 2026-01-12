@@ -6,6 +6,13 @@ import Login from './pages/Auth/Login';
 import Register from './pages/Auth/Register';
 import ForgotPassword from './pages/Auth/ForgotPassword';
 import ResetPassword from './pages/Auth/ResetPassword';
+import Loading from './pages/Auth/Loading';
+import EmailVerification from './pages/Auth/EmailVerification';
+import SignUp from './pages/Auth/SignUp';
+
+// Route components
+import ProtectedRoute from './components/ProtectedRoute';
+import PublicRoute from './components/PublicRoute';
 
 // Main pages
 import Landing from './pages/Landing';
@@ -25,18 +32,21 @@ const router = createBrowserRouter([
       { index: true, element: <Landing /> },
 
       // Auth
-      { path: 'login', element: <Login /> },
-      { path: 'register', element: <Register /> },
+      { path: 'login', element: <PublicRoute><Login /></PublicRoute> },
+      { path: 'register', element: <PublicRoute><Register /></PublicRoute> },
       { path: 'forgot-password', element: <ForgotPassword /> },
       { path: 'reset-password', element: <ResetPassword /> },
+      { path: 'loading', element: <Loading /> },
+      { path: 'email-verification', element: <EmailVerification /> },
+      { path: 'sign-up', element: <PublicRoute><SignUp /></PublicRoute> },
 
       // Dashboard
-      { path: 'dashboard', element: <Overview /> },
-      { path: 'dashboard/team', element: <Team /> },
+      { path: 'dashboard', element: <ProtectedRoute><Overview /></ProtectedRoute> },
+      { path: 'dashboard/team', element: <ProtectedRoute><Team /></ProtectedRoute> },
 
       // Projects
-      { path: 'projects', element: <Projects /> },
-      { path: 'projects/:projectId/settings', element: <ProjectSettings /> },
+      { path: 'projects', element: <ProtectedRoute><Projects /></ProtectedRoute> },
+      { path: 'projects/:projectId/settings', element: <ProtectedRoute><ProjectSettings /></ProtectedRoute> },
     ],
   },
 ]);

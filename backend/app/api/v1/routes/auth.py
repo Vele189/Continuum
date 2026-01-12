@@ -4,7 +4,7 @@ from app.api import deps
 from app.core import security
 from app.core.config import settings
 from app.dbmodels import User
-from app.schemas.user import PasswordResetConfirm, Token, TokenPayload, UserLogin
+from app.schemas.user import PasswordResetConfirm, Token, TokenPayload, UserCreate, UserLogin
 from app.services import user as user_service
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
@@ -13,6 +13,42 @@ from pydantic import ValidationError
 from sqlalchemy.orm import Session
 
 router = APIRouter()
+
+
+@router.post("/register", response_model=Token, status_code=status.HTTP_201_CREATED)
+def register(
+    user_in: UserCreate,
+    background_tasks: BackgroundTasks,
+    db: Session = Depends(deps.get_db),
+) -> Any:
+    """
+    Register a new user.
+
+    Creates a new user account and returns access and refresh tokens.
+    """
+    # Check if user already exists
+    existing_user = user_service.get_by_email(db, email=user_in.email)
+    if existing_user:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="A user with this email already exists.",
+        )
+
+    # Create the user
+    user = user_service.create(db, obj_in=user_in, background_tasks=background_tasks)
+
+    # Generate tokens
+    access_token = security.create_access_token({"sub": user.id})
+    refresh_token = security.create_refresh_token({"sub": user.id})
+
+    # Store refresh token in DB
+    user_service.update_refresh_token(db, user, refresh_token)
+
+    return {
+        "access_token": access_token,
+        "token_type": "bearer",
+        "refresh_token": refresh_token,
+    }
 
 
 @router.post("/login", response_model=Token)
