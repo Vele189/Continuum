@@ -80,6 +80,7 @@ def test_repo_mapping():
     ]
 
     for url in test_urls:
+        # pylint: disable=protected-access
         resolved_project = WebhookService._get_project_by_repository(db, url, "some name")
         if resolved_project and resolved_project.id == project_id:
             print(f"SUCCESS: Resolved {url} to Project {resolved_project.id}")
@@ -89,6 +90,7 @@ def test_repo_mapping():
 
     # 4. Test missing repo
     missing_url = "https://github.com/other/repo"
+    # pylint: disable=protected-access
     resolved_project = WebhookService._get_project_by_repository(db, missing_url, "other")
     if resolved_project is None:
         print(f"SUCCESS: Correctly returned None for unlinked repo: {missing_url}")
