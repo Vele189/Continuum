@@ -10,7 +10,7 @@ const Login = () => {
     password: false
   });
 
-  const { loading, error } = useAuth();
+  const { login, loading, error } = useAuth();
   const navigate = useNavigate();
 
   // Real-time validation functions
@@ -57,10 +57,12 @@ const Login = () => {
       return;
     }
 
-    // Proceed with login
-    // await login(email, password);
-    navigate('/loading');
-  };
+    try {
+      await login(email, password);
+      navigate('/dashboard');
+    } catch (err) {
+      console.error('Login failed:', err);
+    }
 
   const handleGoogleLogin = () => {
     console.log('Google login');
@@ -241,3 +243,6 @@ const Login = () => {
 };
 
 export default Login;
+    } catch (err) {
+      console.error('Login failed:', err);
+    }
