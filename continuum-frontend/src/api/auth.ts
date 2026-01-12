@@ -8,31 +8,43 @@ export interface LoginCredentials {
 export interface RegisterData {
   email: string;
   password: string;
-  firstname: string;
-  lastname: string;
+  first_name: string;
+  last_name: string;
 }
 
 export interface User {
   id: string;
   email: string;
-  firstname: string;
-  lastname: string;
+  first_name: string;
+  last_name: string;
 }
 
 export interface AuthResponse {
   access_token: string;
-  token_type: string;
+  token_type?: string;
   refresh_token: string;
+  user?: User;
 }
 
 export const authApi = {
   login: async (credentials: LoginCredentials): Promise<AuthResponse> => {
-    const response = await axiosClient.post('/v1/auth/login', credentials);
-    return response.data;
+    const response = await axiosClient.post('/auth/login', credentials);
+    const { access_token, refresh_token } = response.data;
+
+    // FETCH USER (Backend doesn't return it on login)
+    const userResponse = await axiosClient.get('/users/me', {
+      headers: { Authorization: `Bearer ${access_token}` }
+    });
+
+    return {
+      access_token,
+      refresh_token,
+      user: userResponse.data
+    };
   },
 
   register: async (data: RegisterData): Promise<AuthResponse> => {
-    const response = await axiosClient.post('/v1/auth/register', data);
+    const response = await axiosClient.post('/auth/register', data);
     return response.data;
   },
 
@@ -41,7 +53,7 @@ export const authApi = {
   },
 
   getCurrentUser: async () => {
-    const response = await axiosClient.get('/v1/users/me');
+    const response = await axiosClient.get('/users/me');
     return response.data;
   },
 

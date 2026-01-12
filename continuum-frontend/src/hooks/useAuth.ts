@@ -1,21 +1,23 @@
 import { useState, useEffect } from 'react';
-import { authApi, type AuthResponse, type User } from '../api/auth';
+import { authApi, type AuthResponse } from '../api/auth';
+import { useAuthStore } from '../store/authStore';
 
 interface ApiError {
   response?: {
     data?: {
       message?: string;
+      detail?: string;
     };
   };
 }
 
 export const useAuth = () => {
-  const [user, setUser] = useState<User | null>(null);
+  const { user, setAuth, clearAuth } = useAuthStore();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('access_token');
     if (token) {
       fetchCurrentUser();
     } else {
@@ -26,10 +28,10 @@ export const useAuth = () => {
   const fetchCurrentUser = async () => {
     try {
       const userData = await authApi.getCurrentUser();
-      setUser(userData);
+      const token = localStorage.getItem('access_token') || '';
+      setAuth(userData, token);
     } catch {
-      localStorage.removeItem('token');
-      setUser(null);
+      clearAuth();
     } finally {
       setLoading(false);
     }
@@ -40,15 +42,19 @@ export const useAuth = () => {
       setLoading(true);
       setError(null);
       const response: AuthResponse = await authApi.login({ email, password });
-      localStorage.setItem('token', response.access_token);
+      localStorage.setItem('access_token', response.access_token);
       if (response.refresh_token) {
         localStorage.setItem('refresh_token', response.refresh_token);
       }
-      await fetchCurrentUser();
+      if (response.user) {
+        setAuth(response.user, response.access_token);
+      } else {
+        await fetchCurrentUser();
+      }
       return response;
     } catch (err: unknown) {
       const apiError = err as ApiError;
-      const errorMessage = apiError.response?.data?.message || 'Login failed';
+      const errorMessage = apiError.response?.data?.detail || apiError.response?.data?.message || 'Login failed';
       setError(errorMessage);
       throw err;
     } finally {
@@ -56,20 +62,24 @@ export const useAuth = () => {
     }
   };
 
-  const register = async (email: string, password: string, firstname: string, lastname: string) => {
+  const register = async (email: string, password: string, first_name: string, last_name: string) => {
     try {
       setLoading(true);
       setError(null);
-      const response: AuthResponse = await authApi.register({ email, password, firstname, lastname });
-      localStorage.setItem('token', response.access_token);
+      const response: AuthResponse = await authApi.register({ email, password, first_name, last_name });
+      localStorage.setItem('access_token', response.access_token);
       if (response.refresh_token) {
         localStorage.setItem('refresh_token', response.refresh_token);
       }
-      await fetchCurrentUser();
+      if (response.user) {
+        setAuth(response.user, response.access_token);
+      } else {
+        await fetchCurrentUser();
+      }
       return response;
     } catch (err: unknown) {
       const apiError = err as ApiError;
-      const errorMessage = apiError.response?.data?.message || 'Registration failed';
+      const errorMessage = apiError.response?.data?.detail || apiError.response?.data?.message || 'Registration failed';
       setError(errorMessage);
       throw err;
     } finally {
@@ -80,12 +90,15 @@ export const useAuth = () => {
   const logout = async () => {
     try {
       await authApi.logout();
-    } catch (err) {
-      console.error('Logout error:', err);
-    } finally {
-      localStorage.removeItem('token');
+      localStorage.removeItem('access_token');
       localStorage.removeItem('refresh_token');
-      setUser(null);
+    } catch (err) {
+     // console.error('Logout error:', err);
+    } finally {
+      clearAuth();
+      localStorage.removeItem('access_token');
+      localStorage.removeItem('refresh_token');
+      localStorage.removeItem('token');
     }
   };
 
@@ -96,7 +109,7 @@ export const useAuth = () => {
       return await authApi.forgotPassword(email);
     } catch (err: unknown) {
       const apiError = err as ApiError;
-      const errorMessage = apiError.response?.data?.message || 'Password recovery request failed';
+      const errorMessage = apiError.response?.data?.detail || apiError.response?.data?.message || 'Password recovery request failed';
       setError(errorMessage);
       throw err;
     } finally {
@@ -111,7 +124,7 @@ export const useAuth = () => {
       return await authApi.resetPassword({ token, new_password: newPassword });
     } catch (err: unknown) {
       const apiError = err as ApiError;
-      const errorMessage = apiError.response?.data?.message || 'Password reset failed';
+      const errorMessage = apiError.response?.data?.detail || apiError.response?.data?.message || 'Password reset failed';
       setError(errorMessage);
       throw err;
     } finally {
@@ -123,6 +136,7 @@ export const useAuth = () => {
     user,
     loading,
     error,
+    setError,
     login,
     register,
     logout,
