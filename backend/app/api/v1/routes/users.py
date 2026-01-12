@@ -13,7 +13,7 @@ from app.schemas.user import (
     UserUpdate,
 )
 from app.services import user as user_service
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 router = APIRouter()
@@ -34,6 +34,7 @@ def get_current_user_profile(
 
 @router.post("/", response_model=User, status_code=status.HTTP_201_CREATED)
 def create_user(
+    background_tasks: BackgroundTasks,
     user_in: UserCreate,
     db: Session = Depends(deps.get_db),
 ):
@@ -46,7 +47,7 @@ def create_user(
             status_code=status.HTTP_409_CONFLICT,
             detail="A user with this email already exists.",
         )
-    user = user_service.create(db, obj_in=user_in)
+    user = user_service.create(db, obj_in=user_in, background_tasks=background_tasks)
     return user
 
 

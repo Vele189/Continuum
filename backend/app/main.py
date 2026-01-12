@@ -11,11 +11,13 @@ from app.api.v1.routes import (
     logged_hours,
     milestones,
     projects,
+    repositories,
     task_attachments,
     task_comments,
     tasks,
     users,
     webhooks,
+    work_sessions,
 )
 from app.core.config import settings
 from app.utils.logger import get_logger
@@ -32,6 +34,18 @@ logger.info("Port: %s", port)
 
 
 app = FastAPI(title="Continuum API")
+
+from fastapi.middleware.cors import CORSMiddleware
+
+origins = ["*"]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 app.include_router(users.router, prefix=f"{settings.API_V1_STR}/users", tags=["Users"])
 app.include_router(auth.router, prefix=f"{settings.API_V1_STR}/auth", tags=["Auth"])
 app.include_router(admin.router, prefix=f"{settings.API_V1_STR}/admin", tags=["Admin"])
@@ -57,10 +71,14 @@ app.include_router(
     task_attachments.router, prefix=f"{settings.API_V1_STR}", tags=["Task Attachments"]
 )
 app.include_router(invoices.router, prefix=f"{settings.API_V1_STR}/invoices", tags=["Invoices"])
+app.include_router(repositories.router, prefix=f"{settings.API_V1_STR}", tags=["Repositories"])
 app.include_router(
     client_portal.router, prefix=f"{settings.API_V1_STR}/client-portal", tags=["Client Portal"]
 )
 app.include_router(webhooks.router, prefix=f"{settings.API_V1_STR}/webhooks", tags=["Webhooks"])
+app.include_router(
+    work_sessions.router, prefix=f"{settings.API_V1_STR}/work-sessions", tags=["Work Sessions"]
+)
 
 
 @app.get("/health")
