@@ -4,6 +4,7 @@ import { Link, useNavigate } from 'react-router-dom';
 
 const Register = () => {
   const navigate = useNavigate();
+  const { register, loading, error } = useAuth();
 
   const [formData, setFormData] = useState({
     email: '',
@@ -20,8 +21,6 @@ const Register = () => {
     password: false,
     confirmPassword: false
   });
-
-  const { register, loading, error } = useAuth();
 
   // Real-time validation functions
   const validateEmail = (email: string) => {
@@ -107,12 +106,7 @@ const Register = () => {
     }
 
     try {
-      await register(
-        formData.email,
-        formData.password,
-        formData.firstName,
-        formData.surname
-      );
+      await register(formData.email, formData.password, formData.firstName, formData.surname);
       navigate('/dashboard');
     } catch (err) {
       console.error('Registration failed:', err);

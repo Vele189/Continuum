@@ -1,12 +1,12 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import backArrowIcon from "../../assets/back-arrow.png"
 
 const ResetPassword = () => {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [success, setSuccess] = useState(false);
   const [localError, setLocalError] = useState<string | null>(null);
+  const navigate = useNavigate();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -22,8 +22,8 @@ const ResetPassword = () => {
       return;
     }
 
-    // Static flow - just show success without backend call
-    setSuccess(true);
+    // Navigate to loading page after successful password reset
+    navigate("/loading");
   };
 
   const displayError = localError;
@@ -39,17 +39,7 @@ const ResetPassword = () => {
           <h2 className="text-[16px] mx-auto">Reset password</h2>
         </div>
 
-        {success ? (
-          <div className="h-[266px] w-[345px] flex flex-col items-center justify-center gap-4 text-center">
-            <p className="text-gray-900 font-medium text-[16px]">
-              Password updated successfully!
-            </p>
-            <Link to="/login" className="text-[#2299fa] font-bold text-[14px]">
-              Back to Login
-            </Link>
-          </div>
-        ) : (
-          <form onSubmit={handleSubmit} className="w-full">
+        <form onSubmit={handleSubmit} className="w-full">
             <div className="h-[266px] w-[345px] flex flex-col items-center justify-center gap-[24px]">
 
               <div className="w-[297px] h-[142px] flex flex-col mx-auto gap-[16px] relative">
@@ -96,7 +86,6 @@ const ResetPassword = () => {
 
             </div>
           </form>
-        )}
 
       </div>
     </div>
