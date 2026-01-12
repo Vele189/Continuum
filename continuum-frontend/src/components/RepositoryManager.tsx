@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   GitBranch,
@@ -46,7 +46,7 @@ export default function RepositoryManager({ projectId, projectName }: Repository
     webhook_secret: '',
   });
 
-  const fetchRepositories = async () => {
+  const fetchRepositories = useCallback(async () => {
     try {
       setIsLoading(true);
       setError(null);
@@ -58,11 +58,11 @@ export default function RepositoryManager({ projectId, projectName }: Repository
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [projectId]);
 
   useEffect(() => {
     fetchRepositories();
-  }, [projectId]);
+  }, [fetchRepositories]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

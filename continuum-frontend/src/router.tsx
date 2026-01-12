@@ -9,8 +9,10 @@ import ResetPassword from './pages/Auth/ResetPassword';
 import Loading from './pages/Auth/Loading';
 import EmailVerification from './pages/Auth/EmailVerification';
 import SignUp from './pages/Auth/SignUp';
-import { useAuthStore } from './store/authStore';
-import { Navigate } from 'react-router-dom';
+
+// Route components
+import ProtectedRoute from './components/ProtectedRoute';
+import PublicRoute from './components/PublicRoute';
 
 // Main pages
 import Landing from './pages/Landing';
@@ -20,26 +22,6 @@ import Team from './pages/Dashboard/Team';
 // Project pages
 import Projects from './pages/Projects';
 import ProjectSettings from './pages/Projects/ProjectSettings';
-
-const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  const { isAuthenticated } = useAuthStore();
-
-  if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
-  }
-
-  return <>{children}</>;
-};
-
-const PublicRoute = ({ children }: { children: React.ReactNode }) => {
-  const { isAuthenticated } = useAuthStore();
-
-  if (isAuthenticated) {
-    return <Navigate to="/dashboard" replace />;
-  }
-
-  return <>{children}</>;
-};
 
 const router = createBrowserRouter([
   {

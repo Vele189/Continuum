@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { authApi, type AuthResponse } from '../api/auth';
 import { useAuthStore } from '../store/authStore';
 
@@ -16,16 +16,7 @@ export const useAuth = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const token = localStorage.getItem('access_token');
-    if (token) {
-      fetchCurrentUser();
-    } else {
-      setLoading(false);
-    }
-  }, []);
-
-  const fetchCurrentUser = async () => {
+  const fetchCurrentUser = useCallback(async () => {
     try {
       const userData = await authApi.getCurrentUser();
       const token = localStorage.getItem('access_token') || '';
@@ -35,7 +26,16 @@ export const useAuth = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [setAuth, clearAuth]);
+
+  useEffect(() => {
+    const token = localStorage.getItem('access_token');
+    if (token) {
+      fetchCurrentUser();
+    } else {
+      setLoading(false);
+    }
+  }, [fetchCurrentUser]);
 
   const login = async (email: string, password: string) => {
     try {
@@ -92,8 +92,8 @@ export const useAuth = () => {
       await authApi.logout();
       localStorage.removeItem('access_token');
       localStorage.removeItem('refresh_token');
-    } catch (err) {
-     // console.error('Logout error:', err);
+    } catch {
+     // Logout error - silently fail
     } finally {
       clearAuth();
       localStorage.removeItem('access_token');
