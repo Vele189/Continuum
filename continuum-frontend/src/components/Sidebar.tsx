@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 
+
 type TreeProject = {
   id: string;
   name: string;
@@ -45,8 +46,11 @@ const Sidebar = () => {
   }, [search]);
 
   return (
-    <aside className="w-[212px] h-screen bg-[#F7FBFF] border-r border-[#E9EEF5] flex flex-col">
+   
+
+    <aside className="w-[212px] min-h-[962px] bg-[#F7FBFF] border-r border-[#E9EEF5] flex flex-col justify-between shrink-0">
       {/* TOP SECTION */}
+      
       <div className="w-[212px] flex flex-col px-[12px] pt-[24px] pb-[16px] gap-[20px]">
         {/* LOGO  */}
         <div className="w-full flex items-center justify-center pb-[4px]">
@@ -148,8 +152,9 @@ const Sidebar = () => {
           </div>
         </div>
       </div>
+      
 
-      {/* PROJECT LIST (scrollable) */}
+      {/* PROJECT LIST */}
       <div className="w-[212px] flex-1 overflow-y-auto px-[12px]">
         <div className="flex flex-col gap-[4px]">
           {filteredParents.map((p) => {
@@ -180,7 +185,7 @@ const Sidebar = () => {
                   </span>
                 </button>
 
-                {/* CHILD ROWS (only when selected parent has children) */}
+                {/* CHILD ROWS */}
                 {parentSelected && p.children?.length ? (
                   <div className="w-full flex flex-col gap-[4px] mt-[4px] mb-[8px]">
                     {p.children.map((c) => {
@@ -220,13 +225,15 @@ const Sidebar = () => {
         )}
       </div>
 
-      {/* USER PROFILE  */}
-      <div className="w-[212px] border-t border-[#E9EEF5] px-[12px] py-[12px] relative">
+      {/* USER PROFILE */}
+       <div className="w-[212px] px-[12px] py-[12px] relative">
+
+        <div className="w-full h-0 border-t border-[#DBE6EA] mb-[8px]" />
         <button
           type="button"
           onClick={() => setIsUserMenuOpen((prev) => !prev)}
-          className="w-full h-auto flex items-center justify-between rounded-[8px] p-[8px] hover:bg-[#EEF3F8] transition-colors"
-        >
+          className="w-full h-[40px] flex items-center justify-between rounded-[8px] px-[8px] hover:bg-[#EEF3F8] transition-colors"
+           >
           <div className="flex items-center gap-[8px] min-w-0 flex-1">
             <img
               src="/icons/Ellipse 1.svg"
